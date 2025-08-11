@@ -82,10 +82,11 @@ tile_map_data = PackedByteArray("AAAAAAAAAQAAAAAAAAAAAAEABAAAAAAAAAAAAAIABAAAAAA
 tile_set = SubResource("TileSet_7dm0k")
 script = ExtResource("7_f52ns")
 
-[node name="Ball" type="CharacterBody2D" parent="."]
+[node name="Ball" type="CharacterBody2D" parent="." node_paths=PackedStringArray("player_board")]
 position = Vector2(30, 670)
 input_pickable = true
 script = ExtResource("8_4srsv")
+player_board = NodePath("../Board/PlayerBoard")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ball"]
 texture = ExtResource("8_l5ukw")
