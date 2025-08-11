@@ -1,53 +1,10 @@
-[gd_scene load_steps=14 format=4 uid="uid://dkeh6trij7nd7"]
+[gd_scene load_steps=3 format=3 uid="uid://dkeh6trij7nd7"]
 
-[ext_resource type="Texture2D" uid="uid://gil45r2gfo3j" path="res://assets/Tiles/Small tiles/Thin outline/resized011.png" id="2_1bvp3"]
-[ext_resource type="Texture2D" uid="uid://4emphtv7ptr2" path="res://assets/Tiles/Small tiles/Thin outline/resized140.png" id="5_lquwl"]
-[ext_resource type="Texture2D" uid="uid://cmn04so78ryi6" path="res://assets/Tiles/Small tiles/Thin outline/resized013.png" id="5_w48qg"]
-[ext_resource type="Texture2D" uid="uid://dvmyiqq216tvb" path="res://assets/Tiles/resized048.png" id="6_7mycd"]
-[ext_resource type="Texture2D" uid="uid://bfm4nccvemrkv" path="res://assets/Tiles/Small tiles/Thin outline/resized005.png" id="7_2cqfq"]
-[ext_resource type="Texture2D" uid="uid://dnul7t2ya7tyg" path="res://assets/Tiles/Small tiles/Thin outline/resized030.png" id="10_cegan"]
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lquwl"]
-texture = ExtResource("7_2cqfq")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7mycd"]
-texture = ExtResource("2_1bvp3")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_272bh"]
-texture = ExtResource("5_w48qg")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5vw27"]
-texture = ExtResource("10_cegan")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kek77"]
-texture = ExtResource("5_lquwl")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4c57u"]
-texture = ExtResource("6_7mycd")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-
-[sub_resource type="TileSet" id="TileSet_7dm0k"]
-tile_size = Vector2i(64, 64)
-sources/0 = SubResource("TileSetAtlasSource_lquwl")
-sources/1 = SubResource("TileSetAtlasSource_7mycd")
-sources/2 = SubResource("TileSetAtlasSource_272bh")
-sources/3 = SubResource("TileSetAtlasSource_5vw27")
-sources/4 = SubResource("TileSetAtlasSource_kek77")
-sources/5 = SubResource("TileSetAtlasSource_4c57u")
+[ext_resource type="PackedScene" uid="uid://dnobw6138unn1" path="res://main_menu.tscn" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://j82ghhnsoume" path="res://main_game.tscn" id="2_h2yge"]
 
 [node name="Main" type="Node2D"]
 
-[node name="MainBoard" type="TileMapLayer" parent="."]
-tile_map_data = PackedByteArray("AAAAAAAAAQAAAAAAAAAAAAEABAAAAAAAAAAAAAIABAAAAAAAAAAAAAMABAAAAAAAAAAAAAQABAAAAAAAAAABAAAABQAAAAAAAAACAAAABQAAAAAAAAADAAAABQAAAAAAAAAEAAAABQAAAAAAAAAFAAAABQAAAAAAAAAFAAEABQAAAAAAAAAEAAEABQAAAAAAAAADAAEABQAAAAAAAAACAAEABQAAAAAAAAABAAEABQAAAAAAAAABAAIABQAAAAAAAAACAAIABQAAAAAAAAADAAIABQAAAAAAAAAEAAIABQAAAAAAAAAFAAIABQAAAAAAAAAFAAMABQAAAAAAAAAEAAMABQAAAAAAAAADAAMABQAAAAAAAAACAAMABQAAAAAAAAABAAMABQAAAAAAAAABAAQABQAAAAAAAAACAAQABQAAAAAAAAADAAQABQAAAAAAAAAEAAQABQAAAAAAAAAFAAQABQAAAAAAAAAAAAUAAwAAAAAAAAABAAUAAwAAAAAAAAACAAUAAwAAAAAAAAADAAUAAwAAAAAAAAAEAAUAAwAAAAAAAAAFAAUAAwAAAAAAAAAGAAUAAwAAAAAAAAAHAAUAAwAAAAAAAAAGAAAAAgAAAAAAAAAHAAAAAgAAAAAAAAAHAAEAAgAAAAAAAAAHAAIAAgAAAAAAAAAHAAMAAgAAAAAAAAAHAAQAAgAAAAAAAAAGAAQAAgAAAAAAAAAGAAMAAgAAAAAAAAAGAAIAAgAAAAAAAAAGAAEAAgAAAAAAAAAGAAYAAgAAAAAAAAAHAAYAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAHAAkAAgAAAAAAAAAGAAkAAgAAAAAAAAAGAAgAAgAAAAAAAAAGAAcAAgAAAAAAAAAHAAoAAgAAAAAAAAAGAAoAAgAAAAAAAAAAAAYABAAAAAAAAAAAAAcABAAAAAAAAAAAAAgABAAAAAAAAAAAAAkABAAAAAAAAAAAAAoAAQAAAAAAAAABAAYABQAAAAAAAAACAAYABQAAAAAAAAADAAYABQAAAAAAAAAEAAYABQAAAAAAAAAFAAYABQAAAAAAAAAFAAcABQAAAAAAAAAFAAgABQAAAAAAAAAFAAkABQAAAAAAAAAFAAoABQAAAAAAAAAEAAoABQAAAAAAAAADAAoABQAAAAAAAAACAAoABQAAAAAAAAABAAoABQAAAAAAAAABAAkABQAAAAAAAAABAAgABQAAAAAAAAABAAcABQAAAAAAAAACAAcABQAAAAAAAAADAAcABQAAAAAAAAAEAAcABQAAAAAAAAAEAAgABQAAAAAAAAAEAAkABQAAAAAAAAADAAkABQAAAAAAAAACAAkABQAAAAAAAAACAAgABQAAAAAAAAADAAgABQAAAAAAAAA=")
-tile_set = SubResource("TileSet_7dm0k")
+[node name="MainMenu" parent="." instance=ExtResource("1_0xm2m")]
+
+[node name="MainGame" parent="." instance=ExtResource("2_h2yge")]
