@@ -14,6 +14,10 @@ config/name="Ballen"
 run/main_scene="uid://dkeh6trij7nd7"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
+[autoload]
+
+EventBus="*res://event_bus.gd"
+
 [display]
 
 window/size/viewport_width=512

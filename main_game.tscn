@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=4 uid="uid://j82ghhnsoume"]
+[gd_scene load_steps=18 format=4 uid="uid://j82ghhnsoume"]
 
 [ext_resource type="Texture2D" uid="uid://bfm4nccvemrkv" path="res://assets/Tiles/Small tiles/Thin outline/resized005.png" id="1_2pltu"]
 [ext_resource type="Texture2D" uid="uid://gil45r2gfo3j" path="res://assets/Tiles/Small tiles/Thin outline/resized011.png" id="2_f52ns"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://dnul7t2ya7tyg" path="res://assets/Tiles/Small tiles/Thin outline/resized030.png" id="4_4srsv"]
 [ext_resource type="Texture2D" uid="uid://4emphtv7ptr2" path="res://assets/Tiles/Small tiles/Thin outline/resized140.png" id="5_mf81u"]
 [ext_resource type="Texture2D" uid="uid://dvmyiqq216tvb" path="res://assets/Tiles/resized048.png" id="6_02kkc"]
+[ext_resource type="Script" uid="uid://dy4bih78y8l0k" path="res://balls_board.gd" id="7_f52ns"]
+[ext_resource type="Script" uid="uid://dm0ro5w1i47p2" path="res://ball.gd" id="8_4srsv"]
+[ext_resource type="Texture2D" uid="uid://dfdc5agluhob3" path="res://assets/Tiles/resized092.png" id="8_l5ukw"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lquwl"]
 texture = ExtResource("1_2pltu")
@@ -46,18 +49,40 @@ sources/3 = SubResource("TileSetAtlasSource_5vw27")
 sources/4 = SubResource("TileSetAtlasSource_kek77")
 sources/5 = SubResource("TileSetAtlasSource_4c57u")
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_4srsv"]
+radius = 23.3452
+
 [node name="MainGame" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 
-[node name="MainBoard" type="TileMapLayer" parent="."]
+[node name="Board" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MainBoard" type="TileMapLayer" parent="Board"]
 tile_map_data = PackedByteArray("AAABAAAABQAAAAAAAAACAAAABQAAAAAAAAADAAAABQAAAAAAAAAEAAAABQAAAAAAAAAFAAAABQAAAAAAAAAFAAEABQAAAAAAAAAEAAEABQAAAAAAAAADAAEABQAAAAAAAAACAAEABQAAAAAAAAABAAEABQAAAAAAAAABAAIABQAAAAAAAAACAAIABQAAAAAAAAADAAIABQAAAAAAAAAEAAIABQAAAAAAAAAFAAIABQAAAAAAAAAFAAMABQAAAAAAAAAEAAMABQAAAAAAAAADAAMABQAAAAAAAAACAAMABQAAAAAAAAABAAMABQAAAAAAAAABAAQABQAAAAAAAAACAAQABQAAAAAAAAADAAQABQAAAAAAAAAEAAQABQAAAAAAAAAFAAQABQAAAAAAAAAAAAUAAwAAAAAAAAABAAUAAwAAAAAAAAACAAUAAwAAAAAAAAADAAUAAwAAAAAAAAAEAAUAAwAAAAAAAAAFAAUAAwAAAAAAAAAGAAUAAwAAAAAAAAAHAAUAAwAAAAAAAAABAAYABQAAAAAAAAACAAYABQAAAAAAAAADAAYABQAAAAAAAAAEAAYABQAAAAAAAAAFAAYABQAAAAAAAAAFAAcABQAAAAAAAAAFAAgABQAAAAAAAAAFAAkABQAAAAAAAAAFAAoABQAAAAAAAAAEAAoABQAAAAAAAAADAAoABQAAAAAAAAACAAoABQAAAAAAAAABAAoABQAAAAAAAAABAAkABQAAAAAAAAABAAgABQAAAAAAAAABAAcABQAAAAAAAAACAAcABQAAAAAAAAADAAcABQAAAAAAAAAEAAcABQAAAAAAAAAEAAgABQAAAAAAAAAEAAkABQAAAAAAAAADAAkABQAAAAAAAAACAAkABQAAAAAAAAACAAgABQAAAAAAAAADAAgABQAAAAAAAAA=")
 tile_set = SubResource("TileSet_7dm0k")
 
-[node name="RulesBoard" type="TileMapLayer" parent="."]
+[node name="RulesBoard" type="TileMapLayer" parent="Board"]
 tile_map_data = PackedByteArray("AAAGAAAAAgAAAAAAAAAHAAAAAgAAAAAAAAAHAAEAAgAAAAAAAAAHAAIAAgAAAAAAAAAHAAMAAgAAAAAAAAAHAAQAAgAAAAAAAAAGAAQAAgAAAAAAAAAGAAMAAgAAAAAAAAAGAAIAAgAAAAAAAAAGAAEAAgAAAAAAAAAGAAYAAgAAAAAAAAAHAAYAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAHAAkAAgAAAAAAAAAGAAkAAgAAAAAAAAAGAAgAAgAAAAAAAAAGAAcAAgAAAAAAAAAHAAoAAgAAAAAAAAAGAAoAAgAAAAAAAAA=")
 tile_set = SubResource("TileSet_7dm0k")
 
-[node name="BallsBoard" type="TileMapLayer" parent="."]
+[node name="BallsBoard" type="TileMapLayer" parent="Board"]
 tile_map_data = PackedByteArray("AAAAAAAAAQAAAAAAAAAAAAEABAAAAAAAAAAAAAIABAAAAAAAAAAAAAMABAAAAAAAAAAAAAQABAAAAAAAAAAAAAYABAAAAAAAAAAAAAcABAAAAAAAAAAAAAgABAAAAAAAAAAAAAkABAAAAAAAAAAAAAoAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_7dm0k")
+script = ExtResource("7_f52ns")
+
+[node name="Ball" type="CharacterBody2D" parent="."]
+position = Vector2(30, 670)
+input_pickable = true
+script = ExtResource("8_4srsv")
+
+[node name="Sprite2D" type="Sprite2D" parent="Ball"]
+texture = ExtResource("8_l5ukw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ball"]
+shape = SubResource("CircleShape2D_4srsv")
+
+[connection signal="input_event" from="Ball" to="Ball" method="_on_input_event"]
