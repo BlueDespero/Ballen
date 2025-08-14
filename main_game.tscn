@@ -1,5 +1,6 @@
-[gd_scene load_steps=18 format=4 uid="uid://j82ghhnsoume"]
+[gd_scene load_steps=20 format=4 uid="uid://j82ghhnsoume"]
 
+[ext_resource type="Script" uid="uid://2lk7otc6o7ex" path="res://main_game.gd" id="1_02kkc"]
 [ext_resource type="Texture2D" uid="uid://bfm4nccvemrkv" path="res://assets/Tiles/Small tiles/Thin outline/resized005.png" id="1_2pltu"]
 [ext_resource type="Texture2D" uid="uid://gil45r2gfo3j" path="res://assets/Tiles/Small tiles/Thin outline/resized011.png" id="2_f52ns"]
 [ext_resource type="Texture2D" uid="uid://cmn04so78ryi6" path="res://assets/Tiles/Small tiles/Thin outline/resized013.png" id="3_l5ukw"]
@@ -8,7 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://dvmyiqq216tvb" path="res://assets/Tiles/resized048.png" id="6_02kkc"]
 [ext_resource type="Script" uid="uid://dy4bih78y8l0k" path="res://balls_board.gd" id="7_f52ns"]
 [ext_resource type="Script" uid="uid://dm0ro5w1i47p2" path="res://ball.gd" id="8_4srsv"]
-[ext_resource type="Texture2D" uid="uid://dfdc5agluhob3" path="res://assets/Tiles/resized092.png" id="8_l5ukw"]
+[ext_resource type="Texture2D" uid="uid://dbh3ktpsdfno7" path="res://assets/Tiles/Large tiles/Thin outline/resized040.png" id="9_mf81u"]
+[ext_resource type="Script" uid="uid://c6c83tg5p425o" path="res://ball_sprite.gd" id="10_mf81u"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lquwl"]
 texture = ExtResource("1_2pltu")
@@ -55,6 +57,7 @@ radius = 23.3452
 [node name="MainGame" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+script = ExtResource("1_02kkc")
 
 [node name="Board" type="Control" parent="."]
 anchors_preset = 0
@@ -88,8 +91,9 @@ input_pickable = true
 script = ExtResource("8_4srsv")
 player_board = NodePath("../Board/PlayerBoard")
 
-[node name="Sprite2D" type="Sprite2D" parent="Ball"]
-texture = ExtResource("8_l5ukw")
+[node name="BallSprite" type="Sprite2D" parent="Ball"]
+texture = ExtResource("9_mf81u")
+script = ExtResource("10_mf81u")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ball"]
 shape = SubResource("CircleShape2D_4srsv")
