@@ -24,8 +24,9 @@ func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
 func snap_to_grid() -> void:
 	var chosen_cell_coords : Vector2i =  player_board.local_to_map(player_board.get_local_mouse_position())
 	var chosen_cell : TileData = player_board.get_cell_tile_data(chosen_cell_coords)
-	# Cell not in Player Board
-	if not chosen_cell:
+	# Cell not in Player Board or
+	# cell violates the picked rule
+	if not chosen_cell or not valid_placement():
 		return_to_spawn()
 		return
 	# Cell in Player board
@@ -35,4 +36,8 @@ func return_to_spawn() -> void:
 	self.position = spawn_point
 
 func snap_to_tile(cell_coords: Vector2i) -> void:
-		self.position = player_board.to_global(player_board.map_to_local(cell_coords))
+	self.position = player_board.to_global(player_board.map_to_local(cell_coords))
+		
+func valid_placement() -> bool:
+	#TODO check player rule
+	return true
