@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bpmygptg1qrac"]
 
-[ext_resource type="PackedScene" uid="uid://dvfejpgsla3f" path="res://rule.tscn" id="1_xm3t2"]
+[ext_resource type="PackedScene" uid="uid://dvfejpgsla3f" path="res://gui/rule.tscn" id="1_xm3t2"]
 
 [node name="RulesBox" type="VBoxContainer"]
 offset_right = 40.0

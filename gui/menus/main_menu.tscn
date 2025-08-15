@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dnobw6138unn1"]
 
-[ext_resource type="Script" uid="uid://5jvyjvy4vtg0" path="res://quit_button.gd" id="1_06t4h"]
-[ext_resource type="Script" uid="uid://cdv4rf2axkcvx" path="res://main_menu.gd" id="1_7vrkn"]
+[ext_resource type="Script" uid="uid://5jvyjvy4vtg0" path="res://gui/menus/quit_button.gd" id="1_06t4h"]
+[ext_resource type="Script" uid="uid://cdv4rf2axkcvx" path="res://gui/menus/main_menu.gd" id="1_7vrkn"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
