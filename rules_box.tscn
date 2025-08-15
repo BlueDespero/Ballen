@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://bpmygptg1qrac"]
+
+[ext_resource type="PackedScene" uid="uid://dvfejpgsla3f" path="res://rule.tscn" id="1_xm3t2"]
+
+[node name="RulesBox" type="VBoxContainer"]
+offset_right = 40.0
+offset_bottom = 131.0
+scale = Vector2(3.157, 2.41217)
+
+[node name="Rule" parent="." instance=ExtResource("1_xm3t2")]
+layout_mode = 2
+
+[node name="Rule2" parent="." instance=ExtResource("1_xm3t2")]
+layout_mode = 2
+
+[node name="Rule3" parent="." instance=ExtResource("1_xm3t2")]
+layout_mode = 2
+
+[node name="Rule4" parent="." instance=ExtResource("1_xm3t2")]
+layout_mode = 2
+
+[node name="Rule5" parent="." instance=ExtResource("1_xm3t2")]
+layout_mode = 2

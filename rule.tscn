@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://dvfejpgsla3f"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f86pg"]
+bg_color = Color(0.180004, 0.180005, 0.180004, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Rule" type="Button"]
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("StyleBoxFlat_f86pg")
+disabled = true
+text = "Rule"

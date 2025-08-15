@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=4 uid="uid://j82ghhnsoume"]
+[gd_scene load_steps=21 format=4 uid="uid://j82ghhnsoume"]
 
 [ext_resource type="Script" uid="uid://2lk7otc6o7ex" path="res://main_game.gd" id="1_02kkc"]
 [ext_resource type="Texture2D" uid="uid://bfm4nccvemrkv" path="res://assets/Tiles/Small tiles/Thin outline/resized005.png" id="1_2pltu"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dvmyiqq216tvb" path="res://assets/Tiles/resized048.png" id="6_02kkc"]
 [ext_resource type="Script" uid="uid://dy4bih78y8l0k" path="res://balls_board.gd" id="7_f52ns"]
 [ext_resource type="Script" uid="uid://dm0ro5w1i47p2" path="res://ball.gd" id="8_4srsv"]
+[ext_resource type="PackedScene" uid="uid://bpmygptg1qrac" path="res://rules_box.tscn" id="9_aomqu"]
 [ext_resource type="Texture2D" uid="uid://dbh3ktpsdfno7" path="res://assets/Tiles/Large tiles/Thin outline/resized040.png" id="9_mf81u"]
 [ext_resource type="Script" uid="uid://c6c83tg5p425o" path="res://ball_sprite.gd" id="10_mf81u"]
 
@@ -76,14 +77,37 @@ tile_set = SubResource("TileSet_7dm0k")
 tile_map_data = PackedByteArray("AAABAAYABQAAAAAAAAACAAYABQAAAAAAAAADAAYABQAAAAAAAAAEAAYABQAAAAAAAAAFAAYABQAAAAAAAAAFAAcABQAAAAAAAAAFAAgABQAAAAAAAAAFAAkABQAAAAAAAAAFAAoABQAAAAAAAAAEAAoABQAAAAAAAAADAAoABQAAAAAAAAACAAoABQAAAAAAAAABAAoABQAAAAAAAAABAAkABQAAAAAAAAABAAgABQAAAAAAAAABAAcABQAAAAAAAAACAAcABQAAAAAAAAADAAcABQAAAAAAAAAEAAcABQAAAAAAAAAEAAgABQAAAAAAAAAEAAkABQAAAAAAAAADAAkABQAAAAAAAAACAAkABQAAAAAAAAACAAgABQAAAAAAAAADAAgABQAAAAAAAAA=")
 tile_set = SubResource("TileSet_7dm0k")
 
-[node name="RulesBoard" type="TileMapLayer" parent="Board"]
-tile_map_data = PackedByteArray("AAAGAAAAAgAAAAAAAAAHAAAAAgAAAAAAAAAHAAEAAgAAAAAAAAAHAAIAAgAAAAAAAAAHAAMAAgAAAAAAAAAHAAQAAgAAAAAAAAAGAAQAAgAAAAAAAAAGAAMAAgAAAAAAAAAGAAIAAgAAAAAAAAAGAAEAAgAAAAAAAAAGAAYAAgAAAAAAAAAHAAYAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAHAAkAAgAAAAAAAAAGAAkAAgAAAAAAAAAGAAgAAgAAAAAAAAAGAAcAAgAAAAAAAAAHAAoAAgAAAAAAAAAGAAoAAgAAAAAAAAA=")
-tile_set = SubResource("TileSet_7dm0k")
-
 [node name="BallsBoard" type="TileMapLayer" parent="Board"]
 tile_map_data = PackedByteArray("AAAAAAAAAQAAAAAAAAAAAAEABAAAAAAAAAAAAAIABAAAAAAAAAAAAAMABAAAAAAAAAAAAAQABAAAAAAAAAAAAAYABAAAAAAAAAAAAAcABAAAAAAAAAAAAAgABAAAAAAAAAAAAAkABAAAAAAAAAAAAAoAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_7dm0k")
 script = ExtResource("7_f52ns")
+
+[node name="RuleBoards" type="Control" parent="Board"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PlayerRules" type="TileMapLayer" parent="Board/RuleBoards"]
+tile_map_data = PackedByteArray("AAAGAAYAAgAAAAAAAAAHAAYAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAHAAkAAgAAAAAAAAAGAAkAAgAAAAAAAAAGAAgAAgAAAAAAAAAGAAcAAgAAAAAAAAAHAAoAAgAAAAAAAAAGAAoAAgAAAAAAAAA=")
+tile_set = SubResource("TileSet_7dm0k")
+
+[node name="RulesBox" parent="Board/RuleBoards/PlayerRules" instance=ExtResource("9_aomqu")]
+offset_left = 386.0
+offset_top = 385.0
+offset_right = 426.0
+offset_bottom = 516.0
+scale = Vector2(2.94377, 1.85946)
+
+[node name="OpponntRules" type="TileMapLayer" parent="Board/RuleBoards"]
+tile_map_data = PackedByteArray("AAAGAAAAAgAAAAAAAAAHAAAAAgAAAAAAAAAHAAEAAgAAAAAAAAAHAAIAAgAAAAAAAAAHAAMAAgAAAAAAAAAHAAQAAgAAAAAAAAAGAAQAAgAAAAAAAAAGAAMAAgAAAAAAAAAGAAIAAgAAAAAAAAAGAAEAAgAAAAAAAAA=")
+tile_set = SubResource("TileSet_7dm0k")
+
+[node name="RulesBox" parent="Board/RuleBoards/OpponntRules" instance=ExtResource("9_aomqu")]
+offset_left = 384.0
+offset_top = 4.00003
+offset_right = 424.0
+offset_bottom = 44.0
+scale = Vector2(2.99323, 1.85183)
 
 [node name="Ball" type="CharacterBody2D" parent="." node_paths=PackedStringArray("player_board")]
 position = Vector2(30, 670)
