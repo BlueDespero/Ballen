@@ -44,6 +44,17 @@ static func is_on_edge(cell: Vector2i) -> bool:
 	return cell.x == 0 or cell.y == 0 or cell.x == SIZE - 1 or cell.y == SIZE - 1
 
 
+## The up to 8 cells touching a cell, diagonals included; only cells on the board.
+static func neighbours(cell: Vector2i) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for dy: int in range(-1, 2):
+		for dx: int in range(-1, 2):
+			var neighbour: Vector2i = cell + Vector2i(dx, dy)
+			if neighbour != cell and contains(neighbour):
+				cells.append(neighbour)
+	return cells
+
+
 ## Builds a board from 6 strings of 6 characters, top row (y = 0) first.
 ## "." is empty; y, b, r, g are the colours; upper case belongs to player 0,
 ## lower case to player 1. Example row: "..Rb..".

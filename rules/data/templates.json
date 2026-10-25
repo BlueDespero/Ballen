@@ -12,5 +12,12 @@
 			"part": "no_group_of", "n": "$n",
 			"of": { "part": "lines_through", "of": { "part": "target" } }
 		}
+	},
+	"not_next_to": {
+		"blanks": { "ball": ["same_colour"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
 	}
 }

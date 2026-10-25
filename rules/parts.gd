@@ -22,8 +22,10 @@ extends RefCounted
 static var _parts: Dictionary[String, Callable] = {
 	# Selectors
 	"target": _target,
+	"neighbours": _neighbours,
 	# Filters
 	"in_zone": _in_zone,
+	"same_colour": _same_colour,
 	# Conditions
 	"count_at_most": _count_at_most,
 	# Combiners
@@ -54,6 +56,19 @@ static func _target(_node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 	return [ctx.target]
 
 
+## The neighbours (up to 8, diagonals included, on the board only) of the cells
+## of "of", each listed once, leaving out the cells of "of" themselves.
+## {"part": "neighbours", "of": {"part": "target"}}
+static func _neighbours(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var centres: Array[Vector2i] = _cells(node.of, ctx)
+	var cells: Array[Vector2i] = []
+	for centre: Vector2i in centres:
+		for cell: Vector2i in Board.neighbours(centre):
+			if not centres.has(cell) and not cells.has(cell):
+				cells.append(cell)
+	return cells
+
+
 # Filters --------------------------------------------------------------------
 
 ## Cells in a zone of the board. {"part": "in_zone", "zone": "edge", "of": ...}
@@ -67,6 +82,17 @@ static func _in_zone(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 					kept.append(cell)
 			_:
 				push_error("in_zone: unknown zone '%s'" % node.zone)
+	return kept
+
+
+## Cells holding a ball of the placed ball's colour, either owner.
+## {"part": "same_colour", "of": ...}
+static func _same_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.colour == ctx.colour:
+			kept.append(cell)
 	return kept
 
 

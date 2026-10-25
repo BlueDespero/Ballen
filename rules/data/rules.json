@@ -1,4 +1,5 @@
 [
+	{ "id": "R01", "text": "Never next to the same colour", "template": "not_next_to", "values": { "ball": "same_colour" } },
 	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } },
 	{ "id": "R10", "text": "Never complete a line of 3", "template": "no_line_of", "values": { "n": 3 } }
 ]
