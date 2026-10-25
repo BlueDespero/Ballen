@@ -23,3 +23,11 @@ var result: MatchResult
 
 func opponent() -> int:
 	return Players.opponent(viewer)
+
+
+## The viewer's legal cells for the current colour when it is their turn to
+## place; empty otherwise. Computed from the viewer's own true rule only.
+func own_legal_cells() -> Array[Vector2i]:
+	if phase != Match.Phase.PLACE or current_player != viewer:
+		return []
+	return RuleChecker.legal_cells(own_true_rule, position, viewer, position.colour)
