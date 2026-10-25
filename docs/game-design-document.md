@@ -103,13 +103,26 @@ The rules library is Ballen's main content. Every rule is plain data assembled f
 
 - A deck is 5 rules, saved and reused; the true rule is chosen at the start of each match.
 - Every rule is available to every player from the start; there are no rule unlocks.
-- Player-made rules come in a later release: fill-in-the-blank templates with dropdowns. A strictness check tests each new rule on many random boards and accepts it only if it forbids roughly 20–60% of placements (thresholds set in playtesting).
+- **Rule tiers:** each rule is ranked **Simple**, **Intermediate** or **Hardcore** by how much it restricts the player who holds it. Ranks come from AI-vs-AI tuning, not guesswork. The guided deck builder offers only Simple rules; players who want an extra challenge can build decks with harder rules.
+- Player-made rules come in a later release: fill-in-the-blank templates with dropdowns. A strictness check tests each new rule on many random boards, accepts it only if it forbids roughly 20–60% of placements, and assigns its tier.
 
 **Progression is cosmetic.** Every duel earns a reward that buys ball skins, board themes and guess effects (see Business model). Nothing a player earns or buys makes them stronger.
 
+### Modes
+
+| Mode | Release | How it works |
+| --- | --- | --- |
+| Quick match vs AI | First | Your deck against a random AI deck at Easy, Normal or Hard. |
+| Daily duel | First | One opponent per day, the same for everyone: the AI's deck, its true rule, its colour choices and who starts are seeded by the date. You bring your own deck and pick the AI level; harder levels multiply your score. One try per day, with a spoiler-free result to share (level, turns, skips, win or lose). Pays a bonus reward plus a streak bonus for consecutive days. |
+| Online matchmaking | Later | Against other players; the server holds both true rules. |
+| Ranked online | Later | Ratings on top of matchmaking. |
+
+A puzzle campaign and pass-and-play are not planned.
+
 **Open questions**
 
-- [ ] Modes beyond single matches vs. AI, e.g. a puzzle campaign?
+- [ ] Should harder rule tiers in your deck earn a bigger reward?
+- [ ] Daily duel score formula and level multipliers (tune in playtesting).
 
 ## 4. Setting & tone
 
@@ -123,7 +136,7 @@ Ballen is played by drag and drop with mouse or touch, in landscape for the firs
 
 ```mermaid
 flowchart TD
-    menu["Main menu<br/>How to Play glows until first opened"] --> play["Play vs AI"]
+    menu["Main menu<br/>How to Play glows until first opened"] --> play["Play vs AI<br/>quick match or daily duel"]
     menu --> decks["Decks<br/>build and edit decks"]
     menu --> collection["Collection<br/>buy and equip looks"]
     menu --> how["How to Play<br/>text guide, tutorial"]
@@ -143,11 +156,11 @@ New players are never forced through the tutorial: How to Play glows until first
 
 | Screen | Contents | Status |
 | --- | --- | --- |
-| Main menu | Play vs AI, Decks, Collection, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
+| Main menu | Play vs AI (quick match or daily duel), Decks, Collection, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
 | How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
-| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start | Not started |
+| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Not started |
 | Game screen | Board in the centre; opponent's rules in one side panel, yours in the other; your ball, colour picker for the opponent's next ball, skip counters, Guess (hold), history arrows under the board | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
 | History | Arrows under the board step through past boards; view-only, any action returns to live | Not started |
@@ -161,6 +174,16 @@ New players are never forced through the tutorial: How to Play glows until first
 - **Placing:** the ball snaps into its cell with a soft click.
 - **Skipping:** the ball dissolves at your side of the board with a low tone.
 - **Guessing:** hold Guess while a ring fills (release early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
+
+### Accessibility
+
+The first release includes:
+
+- **Colour-blind mode (optional):** a distinct symbol on each ball colour; every ball skin supports it.
+- **Reduced motion:** turns off the slow-down, heartbeat and dissolve effects.
+- **Guess without holding:** tap then confirm, instead of hold-to-guess.
+- **Larger text:** a text-size setting for rule panels and menus.
+- **No turn timer** against the AI.
 
 ## 6. Art & audio
 
@@ -193,12 +216,12 @@ The next milestone is a playable prototype: one full match against a simple AI, 
 1. **Prototype** — game model and rules engine, a handful of rules, highlights, colour picks, skips, guessing, a simple AI, match result
 2. **Rules & decks** — a larger rule library, deck builder and match setup screens
 3. **AI levels** — Easy, Normal, Hard, each deducing and hiding fairly
-4. **Vertical slice** — notes, history, feedback effects, sound, match-end screen
+4. **Vertical slice** — notes, history, feedback effects, sound, match-end screen, daily duel, accessibility settings
 5. **Browser release** — web build for playtesting (e.g. itch.io); tune rule ratio, wrong guesses and colour picks
 6. **Mobile release** — Android and iOS builds, touch polish
-7. **Later** — online matchmaking, player-made rules, rule unlocks
+7. **Later** — online matchmaking, ranked online, player-made rules, portrait layout
 
-**Out of scope for the first release:** online multiplayer and player-made rules (both planned later). Ballen has no story.
+**Out of scope for the first release:** online multiplayer and player-made rules (both planned later). Ballen has no story, puzzle campaign or pass-and-play.
 
 ## 9. Business model
 
@@ -218,3 +241,16 @@ Ballen is free, earns from opt-in ads on mobile, and never sells an advantage: e
 
 - [ ] Reward amounts and cosmetic prices (tune in playtesting).
 - [ ] Price of the paid version.
+
+## 10. Risks
+
+The biggest design risk is that careful players hide perfectly; the opponent's colour pick is the built-in answer, and playtests must confirm it works.
+
+| Risk | What could happen | Mitigation |
+| --- | --- | --- |
+| Perfect hiding | Careful players reveal nothing, and games end in blind guesses | The opponent picks your colour; the 6 × 6 board fills fast; playtests check it |
+| Rule balance | Some rules are unbeatable as the true rule, too loose to read or too strict to hurt | Strictness check (20–60%), Simple / Intermediate / Hardcore tiers, AI-vs-AI tuning |
+| AI feel | Hard feels lucky or unfair, or Easy feels dull | The AI sees only public information; Hard never guesses on thin evidence; AI-vs-AI tuning and playtests |
+| Learning curve | True and fake rules, skips and guessing confuse new players | Optional tutorial, guided deck builder with Simple rules, glowing legal cells |
+| Scope creep | Online play, player-made rules and the portrait layout delay the first release | First release is vs AI and the daily duel only, in landscape |
+| Revenue | Opt-in ads earn little | Paid version, low running costs, no design that depends on ad income |

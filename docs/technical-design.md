@@ -74,6 +74,10 @@ Used for player-made rules (later release) and to tune built-in ones: simulate t
 boards and record the share of placements it forbids. Accept rules that forbid roughly 20–60%
 (thresholds set in playtesting). Store the measured value in the rules library.
 
+### Rule tiers
+
+AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal cells per turn, win rate as the true rule). The results rank each rule Simple, Intermediate or Hardcore, stored in the rules library's Tier column.
+
 ## AI opponent
 
 The AI's design (belief updating, colour picks as information probes, when to guess, hiding,
@@ -86,6 +90,12 @@ and summarised in the README's "How the AI thinks". Implementation notes:
 - Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
 - AI thinking pause: up to 5 s, scaled with decision difficulty; Hard adds random jitter so pauses carry no information.
 - A headless AI-vs-AI harness tunes randomisation and difficulty.
+
+## Daily duel
+
+- Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its true rule, its colour choices and who starts, so every player faces the same opponent.
+- The AI's own choices during the duel draw from that seeded RNG; the player's moves do not change the seed.
+- One attempt per day and the streak are stored locally for the first release.
 
 ## Open technical questions
 
