@@ -10,6 +10,10 @@ func before_each() -> void:
 	_book = RuleBook.load_default()
 
 
+func _position(rows: PackedStringArray) -> MatchPosition:
+	return MatchPosition.from_board(Board.parse(rows))
+
+
 func _rows_of(cells: Array[Vector2i]) -> Array[int]:
 	var ys: Array[int] = []
 	for cell: Vector2i in cells:
@@ -50,3 +54,68 @@ func test_r03_carries_its_player_text_and_data() -> void:
 	assert_eq(rule.text, "Only on even rows")
 	assert_eq(rule.to_data(), {"id": "R03", "text": "Only on even rows", "template": "only_on_axis",
 		"values": {"axis": "row", "parity": "even"}})
+
+
+# R05 At most 2 of a colour in any row ---------------------------------------
+
+func test_r05_forbids_a_third_ball_of_the_colour_in_a_row_of_either_owner() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"R...r.",
+		"......",
+		"......",
+		"......",
+	])
+	var rule: Rule = _book.rule("R05")
+	for holder: int in [0, 1]:
+		assert_false(RuleChecker.is_legal(rule, position, holder, BallColour.RED, Vector2i(2, 2)), "holder %d" % holder)
+
+
+func test_r05_allows_the_second_ball_of_the_colour_in_a_row() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"......",
+		"..r...",
+		"......",
+		"......",
+	])
+	assert_true(RuleChecker.is_legal(_book.rule("R05"), position, 0, BallColour.RED, Vector2i(5, 3)))
+
+
+func test_r05_counts_only_the_placed_colour() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"R.Bb.r",
+		"......",
+		"......",
+		"......",
+	])
+	var rule: Rule = _book.rule("R05")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(1, 2)))
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.BLUE, Vector2i(1, 2)))
+
+
+func test_r05_looks_only_at_the_target_row() -> void:
+	var position: MatchPosition = _position([
+		"RRr...",
+		"......",
+		"..r...",
+		"......",
+		"......",
+		"......",
+	])
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R05"), position, 1, BallColour.RED)
+	# 32 empty cells; only the 3 empty cells of the top row are closed.
+	assert_eq(cells.size(), 29)
+	for x: int in [3, 4, 5]:
+		assert_false(cells.has(Vector2i(x, 0)), "top row cell %d" % x)
+
+
+func test_r05_carries_its_player_text_and_data() -> void:
+	var rule: Rule = _book.rule("R05")
+	assert_eq(rule.text, "At most 2 of a colour in any row")
+	assert_eq(rule.to_data(), {"id": "R05", "text": "At most 2 of a colour in any row", "template": "max_in_axis",
+		"values": {"axis": "row", "ball": "same_colour", "n": 2.0}}) # JSON numbers are floats

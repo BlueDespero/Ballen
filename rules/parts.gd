@@ -23,6 +23,7 @@ static var _parts: Dictionary[String, Callable] = {
 	# Selectors
 	"target": _target,
 	"neighbours": _neighbours,
+	"same_axis": _same_axis,
 	# Filters
 	"in_zone": _in_zone,
 	"with_parity": _with_parity,
@@ -70,6 +71,22 @@ static func _neighbours(node: Dictionary, ctx: PlacementContext) -> Array[Vector
 	for centre: Vector2i in centres:
 		for cell: Vector2i in Board.neighbours(centre):
 			if not centres.has(cell) and not cells.has(cell):
+				cells.append(cell)
+	return cells
+
+
+## Every cell in the same row as a cell of "of", the "of" cells included, each
+## listed once. {"part": "same_axis", "axis": "row", "of": {"part": "target"}}
+## Axes: "row".
+static func _same_axis(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	if node.axis != "row":
+		push_error("same_axis: unknown axis '%s'" % node.axis)
+		return cells
+	for centre: Vector2i in _cells(node.of, ctx):
+		for x: int in Board.SIZE:
+			var cell: Vector2i = Vector2i(x, centre.y)
+			if not cells.has(cell):
 				cells.append(cell)
 	return cells
 
