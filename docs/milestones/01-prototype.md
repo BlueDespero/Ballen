@@ -67,11 +67,13 @@ they can be added without rewriting the model.
 ### 5. Playable scene (landscape)
 
 - Switch the project to landscape: 1280 × 720 base, stretch mode `canvas_items`, aspect `expand`.
-- Board in the centre; the opponent's 5 rules in a side panel on one side, yours (true one marked) on
-  the other; skip counters for both.
+- The board in the main area, your side at the bottom and the AI's at the top, with small row numbers
+  1–6 on its edge. Your waiting ball sits below the board, the AI's above it.
+- One rules panel on the right: the AI's 5 rules on top (with Guess), yours below (true one
+  highlighted); skip pips by each player's rules.
 - Your legal cells glow for your whole turn; drag and drop with mouse (touch must also work); a drop on
   any other cell snaps back.
-- Colour picker for the opponent's next ball.
+- Colour picker for the opponent's next ball, beside your ball.
 - Guess: select one of the opponent's rules, then press and hold Guess for about 1 s (a ring fills;
   release early to cancel). Available at the start of your turn and after placing or skipping only.
 - Skips: the ball visibly disappears and the skip counter updates.

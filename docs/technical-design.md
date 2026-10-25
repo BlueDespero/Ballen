@@ -9,6 +9,7 @@ wins and this file is updated.
 - Godot 4.7, statically typed GDScript, GL Compatibility renderer.
 - Browser (web export) first, then Android and iOS. Mouse and touch input.
 - Landscape, 1280 × 720 base resolution that scales (stretch mode `canvas_items`, aspect `expand`). Portrait layout for phones comes later.
+- Game screen layout: the board in the main area, the player's side at the bottom and the AI's at the top, row labels on the board edge; balls wait below and above the board; one rules panel on the right with the AI's rules on top (with Guess) and the player's below (true rule highlighted); skip pips by each player's rules; the colour picker beside the player's ball.
 - The current project still uses a 512 × 704 portrait window; change it when the game screen is rebuilt.
 
 ## Architecture

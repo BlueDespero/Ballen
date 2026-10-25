@@ -161,13 +161,13 @@ New players are never forced through the tutorial: How to Play glows until first
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
 | Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Not started |
-| Game screen | Board in the centre; opponent's rules in one side panel, yours in the other; your ball, colour picker for the opponent's next ball, skip counters, Guess (hold), history arrows under the board | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
+| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
 | History | Arrows under the board step through past boards; view-only, any action returns to live | Not started |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Not started |
 | Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
 
-**Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board sits in the centre, with the opponent's rules in a side panel on one side and yours on the other. A portrait layout, with rules above and below the board, comes in a later release for phones.
+**Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board fills the main area, with your side at the bottom and the opponent's at the top; each player's ball waits on their side of the board. One rules panel on the right holds the opponent's rules on top and yours below. A portrait layout, with rules above and below the board, comes in a later release for phones.
 
 **Feedback:**
 
