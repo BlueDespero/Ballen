@@ -39,6 +39,21 @@ static func create(decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumbe
 	return Match.new(MatchPosition.new(Board.new(), first_player), decks, true_rules, rng)
 
 
+## A match that continues from a position (for tests and replays). The position
+## is copied. At turn 0 it waits for the first colour pick; otherwise the
+## current player's turn starts in the position's colour.
+static func from_position(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> Match:
+	if not _setup_is_valid(decks, true_rules):
+		return null
+	if position.turn > 0 and not BallColour.is_valid(position.colour):
+		push_error("Match.from_position: turn %d needs a colour, got '%s'" % [position.turn, position.colour])
+		return null
+	var game: Match = Match.new(position.copy(), decks, true_rules, rng)
+	if position.turn > 0:
+		game._start_turn()
+	return game
+
+
 static func _setup_is_valid(decks: Array[Deck], true_rules: Array[Rule]) -> bool:
 	if decks.size() != Players.COUNT or true_rules.size() != Players.COUNT:
 		push_error("Match needs a deck and a true rule for each of the 2 players")
@@ -78,6 +93,10 @@ func turn() -> int:
 ## The colour the current player places; "" before the first colour pick.
 func current_colour() -> String:
 	return _position.colour
+
+
+func skip_count(player: int) -> int:
+	return _position.skips[player]
 
 
 ## A copy of the move history.

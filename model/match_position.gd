@@ -2,7 +2,7 @@ class_name MatchPosition
 extends RefCounted
 
 ## Everything on the table at one moment of a match, without the true rules:
-## board, first player, turn, current colour and history.
+## board, first player, turn, current colour, skip counts and history.
 ## Rules are checked against a position, and a match can start from one.
 
 var board: Board
@@ -13,6 +13,8 @@ var first_player: int
 var turn: int = 0
 ## The colour the current player places; "" before the first colour pick.
 var colour: String = ""
+## Skip count per player.
+var skips: Array[int] = [0, 0]
 var history: Array[HistoryEntry] = []
 
 
@@ -36,6 +38,7 @@ func copy() -> MatchPosition:
 	var position: MatchPosition = MatchPosition.new(board.copy(), first_player)
 	position.turn = turn
 	position.colour = colour
+	position.skips = skips.duplicate()
 	for entry: HistoryEntry in history:
 		position.history.append(entry.copy())
 	return position

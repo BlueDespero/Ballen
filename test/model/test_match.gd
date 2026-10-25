@@ -189,3 +189,61 @@ func test_turns_alternate_and_history_keeps_every_event_in_order() -> void:
 	] as Array[String])
 	assert_eq(game.turn(), 3)
 	assert_eq(game.current_player(), first)
+
+func _from_position(position: MatchPosition) -> Match:
+	var r04: Rule = _book.rule("R04")
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
+	var true_rules: Array[Rule] = [r04, r04]
+	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+
+
+func _late_position() -> MatchPosition:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"......",
+		".R....",
+		"..b...",
+		"......",
+		"......",
+		"......",
+	]), 1)
+	position.turn = 5
+	position.colour = BallColour.BLUE
+	position.skips = [2, 1]
+	position.history = [
+		HistoryEntry.colour_pick(0, BallColour.RED),
+		HistoryEntry.placement(1, Vector2i(2, 2), BallColour.BLUE),
+	]
+	return position
+
+
+func test_a_match_starts_from_a_given_position() -> void:
+	var game: Match = _from_position(_late_position())
+	assert_eq(game.phase(), Match.Phase.PLACE)
+	assert_eq(game.turn(), 5)
+	assert_eq(game.first_player(), 1)
+	assert_eq(game.current_player(), 1, "odd turns belong to the first player")
+	assert_eq(game.current_colour(), BallColour.BLUE)
+	assert_eq(game.skip_count(0), 2)
+	assert_eq(game.skip_count(1), 1)
+	assert_eq(game.history().size(), 2)
+	assert_eq(game.legal_cells().size(), 14, "16 inner cells minus 2 occupied")
+	assert_false(game.submit(1, Command.place(Vector2i(1, 1))))
+	assert_true(game.submit(1, Command.place(Vector2i(4, 4))))
+	assert_eq(game.history().size(), 3)
+
+
+func test_a_match_from_a_position_is_not_changed_by_later_edits_to_that_position() -> void:
+	var position: MatchPosition = _late_position()
+	var game: Match = _from_position(position)
+	position.board.place(Vector2i(4, 4), Ball.new(BallColour.RED, 0))
+	position.history.clear()
+	position.skips[0] = 0
+	assert_true(game.is_legal(Vector2i(4, 4)))
+	assert_eq(game.history().size(), 2)
+	assert_eq(game.skip_count(0), 2)
+
+
+func test_a_position_before_the_first_colour_pick_waits_for_it() -> void:
+	var game: Match = _from_position(MatchPosition.from_board(Board.new(), 0))
+	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
+	assert_eq(game.awaiting_players(), [1] as Array[int])
