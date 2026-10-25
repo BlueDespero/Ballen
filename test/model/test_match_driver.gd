@@ -120,6 +120,31 @@ func test_a_rejected_command_is_asked_for_again() -> void:
 	human.choose(null) # gives up the decision, ending run()
 
 
+func test_the_player_stalls_the_driver_when_they_have_no_legal_cell() -> void:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"......",
+		".RbRb.",
+		".bRbR.",
+		".RbRb.",
+		".bRbR.",
+		"......",
+	]), 0)
+	position.turn = 17
+	position.colour = BallColour.RED
+	var r04: Rule = _book.rule("R04")
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
+	var true_rules: Array[Rule] = [r04, r04]
+	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var driver: MatchDriver = _driver(game, controllers, [1], 3)
+	watch_signals(driver)
+	driver.run()
+	assert_signal_emitted_with_parameters(driver, "stalled", [0])
+	driver.stop()
+	human.choose(null) # releases run() if it is still waiting on the player
+
+
 func test_a_stopped_driver_submits_nothing_more() -> void:
 	var game: Match = _player_0_first()
 	var human: HumanController = HumanController.new()
