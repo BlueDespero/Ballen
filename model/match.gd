@@ -17,8 +17,16 @@ extends RefCounted
 ## Guess windows: the current player may name the opponent's true rule in
 ## PLACE (before placing) and in PICK_COLOUR (after placing or skipping, until
 ## the colour pick). A right guess wins and a wrong guess loses at once.
+##
+## A turn whose player has no legal cell skips PLACE: the ball is removed, the
+## player's skip count rises and history records the colour, all as the turn
+## starts. The turn goes on to PICK_COLOUR, unless that was the player's third
+## skip, which loses the match at once.
 
 enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR, OVER }
+
+## The skip that loses the match.
+const LOSING_SKIP: int = 3
 
 var _position: MatchPosition
 var _decks: Array[Deck] = []
@@ -210,3 +218,14 @@ func _end(result: MatchResult) -> void:
 
 func _start_turn() -> void:
 	_phase = Phase.PLACE
+	if legal_cells().is_empty():
+		_skip(current_player())
+
+
+func _skip(player: int) -> void:
+	_position.skips[player] += 1
+	_position.history.append(HistoryEntry.skip(player, _position.colour))
+	if _position.skips[player] >= LOSING_SKIP:
+		_end(MatchResult.new(Players.opponent(player), MatchResult.Reason.THIRD_SKIP))
+	else:
+		_phase = Phase.PICK_COLOUR

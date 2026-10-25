@@ -247,3 +247,81 @@ func test_a_position_before_the_first_colour_pick_waits_for_it() -> void:
 	var game: Match = _from_position(MatchPosition.from_board(Board.new(), 0))
 	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
 	assert_eq(game.awaiting_players(), [1] as Array[int])
+
+
+## R04 for both: the 16 inner cells are all the legal cells there are. Here
+## only (4, 4) is free, and player 1 (second) is to place blue on it, so the
+## next turn, player 0's, starts with no legal cell.
+func _one_inner_cell_left(skips: Array[int]) -> MatchPosition:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"......",
+		".RbRb.",
+		".bRbR.",
+		".RbRb.",
+		".bRb..",
+		"......",
+	]), 0)
+	position.turn = 16
+	position.colour = BallColour.BLUE
+	position.skips = skips
+	return position
+
+
+## Player 1 fills the last inner cell and hands player 0 red.
+func _fill_the_last_inner_cell(game: Match) -> void:
+	assert_true(game.submit(1, Command.place(Vector2i(4, 4))))
+	assert_true(game.submit(1, Command.pick_colour(BallColour.RED)))
+
+
+func test_a_player_with_no_legal_cell_skips_as_their_turn_starts() -> void:
+	var game: Match = _from_position(_one_inner_cell_left([0, 0]))
+	_fill_the_last_inner_cell(game)
+	assert_eq(game.turn(), 17)
+	assert_eq(game.current_player(), 0)
+	assert_eq(game.skip_count(0), 1)
+	assert_eq(game.skip_count(1), 0)
+	var last: HistoryEntry = game.history().back()
+	assert_eq(last.type, HistoryEntry.Type.SKIP)
+	assert_eq(last.player, 0)
+	assert_eq(last.colour, BallColour.RED, "history records the skipped colour")
+	assert_eq(str(last), "player 0 skips red")
+	assert_eq(game.public_view(0).position.board.empty_cells().size(), 20, "the skipped ball is not placed")
+
+
+func test_after_a_skip_the_turn_goes_on_to_the_colour_pick() -> void:
+	var game: Match = _from_position(_one_inner_cell_left([0, 0]))
+	_fill_the_last_inner_cell(game)
+	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
+	assert_eq(game.awaiting_players(), [0] as Array[int])
+	assert_false(game.submit(0, Command.place(Vector2i(0, 0))), "nothing to place")
+	assert_true(game.submit(0, Command.pick_colour(BallColour.GREEN)))
+	assert_eq(game.turn(), 18)
+	assert_eq(game.skip_count(1), 1, "player 1 has no legal cell either")
+	assert_eq(str(game.history().back()), "player 1 skips green")
+	assert_eq(game.awaiting_players(), [1] as Array[int])
+
+
+func test_a_match_from_a_position_with_no_legal_cell_starts_with_the_skip() -> void:
+	var position: MatchPosition = _one_inner_cell_left([1, 0])
+	position.board.place(Vector2i(4, 4), Ball.new(BallColour.BLUE, 1))
+	position.turn = 17
+	position.colour = BallColour.YELLOW
+	var game: Match = _from_position(position)
+	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
+	assert_eq(game.skip_count(0), 2)
+	assert_eq(str(game.history().back()), "player 0 skips yellow")
+
+
+func test_the_third_skip_loses_the_match_at_once() -> void:
+	var game: Match = _from_position(_one_inner_cell_left([2, 0]))
+	_fill_the_last_inner_cell(game)
+	assert_eq(game.skip_count(0), 3)
+	assert_eq(str(game.history().back()), "player 0 skips red")
+	assert_eq(game.phase(), Match.Phase.OVER)
+	var result: MatchResult = game.result()
+	assert_eq(result.winner, 1)
+	assert_eq(result.reason, MatchResult.Reason.THIRD_SKIP)
+	assert_eq(game.public_view(1).result.winner, 1, "both players see the result")
+	assert_eq(game.awaiting_players(), [] as Array[int], "no guess, no colour pick")
+	assert_false(game.submit(0, Command.pick_colour(BallColour.GREEN)))
+	assert_eq(game.history().size(), 3)

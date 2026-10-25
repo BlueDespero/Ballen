@@ -7,14 +7,16 @@ extends RefCounted
 ## To add an event: add a Type, a factory that fills the fields it uses, and a
 ## line in _to_string.
 
-enum Type { PLACEMENT, COLOUR_PICK, GUESS }
+enum Type { PLACEMENT, COLOUR_PICK, GUESS, SKIP }
 
 var type: Type
-## Who acted: the placer, the player who picked the colour, or the guesser.
+## Who acted: the placer, the player who picked the colour, the guesser, or the
+## one who skipped.
 var player: int
 ## PLACEMENT: where the ball went.
 var cell: Vector2i
 ## PLACEMENT: the ball's colour. COLOUR_PICK: the colour picked for the opponent.
+## SKIP: the colour of the ball that had no legal cell.
 var colour: String
 ## GUESS: the id of the opponent's rule the guesser named.
 var rule_id: String
@@ -47,6 +49,12 @@ static func guess(p_player: int, p_rule_id: String, p_right: bool) -> HistoryEnt
 	return entry
 
 
+static func skip(p_player: int, p_colour: String) -> HistoryEntry:
+	var entry: HistoryEntry = HistoryEntry.new(Type.SKIP, p_player)
+	entry.colour = p_colour
+	return entry
+
+
 func copy() -> HistoryEntry:
 	var entry: HistoryEntry = HistoryEntry.new(type, player)
 	entry.cell = cell
@@ -64,4 +72,6 @@ func _to_string() -> String:
 			return "player %d picks %s" % [player, colour]
 		Type.GUESS:
 			return "player %d guesses %s, %s" % [player, rule_id, "right" if right else "wrong"]
+		Type.SKIP:
+			return "player %d skips %s" % [player, colour]
 	return "player %d: event %d" % [player, type]

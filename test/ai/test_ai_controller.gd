@@ -54,9 +54,9 @@ func test_the_ais_choices_follow_its_seeded_rng() -> void:
 func test_two_ai_controllers_play_alternating_turns_entirely_in_code() -> void:
 	var game: Match = _r04_match(11)
 	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
-	# Without skips (a later ticket) play stops when the current player has no
-	# legal cell: R04 leaves the 16 inner cells.
-	while not (game.phase() == Match.Phase.PLACE and game.legal_cells().is_empty()):
+	# R04 leaves the 16 inner cells; once they are full both players skip until
+	# one's third skip ends the match.
+	while game.phase() != Match.Phase.OVER:
 		var player: int = game.awaiting_players()[0]
 		var command: Command = await controllers[player].decide(game.public_view(player))
 		assert_true(game.submit(player, command), "player %d: %s" % [player, command])
@@ -69,3 +69,4 @@ func test_two_ai_controllers_play_alternating_turns_entirely_in_code() -> void:
 		var expected_player: int = game.first_player() if i % 2 == 0 else Players.opponent(game.first_player())
 		assert_eq(placements[i].player, expected_player, "placements alternate")
 		assert_false(Board.is_on_edge(placements[i].cell))
+	assert_eq(game.result().reason, MatchResult.Reason.THIRD_SKIP)
