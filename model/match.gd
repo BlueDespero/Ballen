@@ -12,14 +12,16 @@ extends RefCounted
 ##   FIRST_COLOUR  turn 0 only: the second player picks the first player's colour
 ##   PLACE         the current player places a ball of the current colour
 ##   PICK_COLOUR   the current player picks the opponent's colour, ending the turn
+##   OVER          the match has a result and accepts no command
 
-enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR }
+enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR, OVER }
 
 var _position: MatchPosition
 var _decks: Array[Deck] = []
 var _true_rules: Array[Rule] = []
 var _rng: RandomNumberGenerator
 var _phase: Phase = Phase.FIRST_COLOUR
+var _result: MatchResult = null
 
 
 func _init(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> void:
@@ -79,7 +81,28 @@ func current_player() -> int:
 
 ## The players the match is waiting for a command from.
 func awaiting_players() -> Array[int]:
+	if _phase == Phase.OVER:
+		return []
 	return [current_player()]
+
+
+## How the match ended; null while it runs.
+func result() -> MatchResult:
+	return _result.copy() if _result != null else null
+
+
+## A snapshot of everything the viewer may know (ADR 0002).
+func public_view(viewer: int) -> PublicView:
+	var view: PublicView = PublicView.new()
+	view.viewer = viewer
+	view.phase = _phase
+	view.current_player = current_player()
+	view.position = _position.copy()
+	for deck: Deck in _decks:
+		view.decks.append(deck.copy())
+	view.own_true_rule = _true_rules[viewer]
+	view.result = result()
+	return view
 
 
 func first_player() -> int:
