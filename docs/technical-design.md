@@ -8,7 +8,8 @@ wins and this file is updated.
 
 - Godot 4.7, statically typed GDScript, GL Compatibility renderer.
 - Browser (web export) first, then Android and iOS. Mouse and touch input.
-- Portrait window, 512 × 704 px.
+- Landscape, 1280 × 720 base resolution that scales (stretch mode `canvas_items`, aspect `expand`). Portrait layout for phones comes later.
+- The current project still uses a 512 × 704 portrait window; change it when the game screen is rebuilt.
 
 ## Architecture
 

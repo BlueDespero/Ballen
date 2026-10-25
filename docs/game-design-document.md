@@ -37,12 +37,14 @@ A match is a duel of hidden rules. Each player's one true rule decides where the
 
 ```mermaid
 flowchart TD
-    start["Turn starts<br/>in the colour your opponent picked"] --> legal{"Legal cell?"}
-    legal -- yes --> place["Place on a highlighted cell"]
-    legal -- no --> removed["Ball removed<br/>+1 skip; the 3rd skip loses"]
+    start["Turn starts<br/>in the colour your opponent picked"] --> first{"Guess first?"}
+    first -- yes --> trigger["Pull the trigger<br/>right: you win · wrong: you lose"]
+    first -- no --> legal{"Legal cell?"}
+    legal -- yes --> place["Place on a glowing cell"]
+    legal -- no --> removed["Ball dissolves<br/>+1 skip; the 3rd skip loses"]
     place --> guess{"Guess now?"}
     removed --> guess
-    guess -- yes --> name["Name their true rule<br/>right: you win · wrong: you lose"]
+    guess -- yes --> trigger
     guess -- no --> full{"Board full?"}
     full -- yes --> both["Both must guess<br/>one right wins, else a draw"]
     full -- no --> pick["Pick your opponent's colour"]
@@ -56,12 +58,12 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
 | Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. |
 | Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. |
-| Placing | Cells legal under your true rule are highlighted, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
-| Skip | No legal cell for that colour: the game removes the ball automatically. 3 skips in total and you lose. |
-| Guess | After placing or skipping, you may name your opponent's true rule. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
+| Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
+| Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. 3 skips in total and you lose. |
+| Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
 | Full board | Both players must guess. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
-| History | Step back through every past board state, with each turn's ball or skipped colour highlighted. |
+| History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; any action returns to the live board. |
 
 **Open questions**
 
@@ -115,7 +117,7 @@ Ballen is an abstract duel with no story: two sides of one board face off, and t
 
 ## 5. Interface & controls
 
-Ballen is played by drag and drop with mouse or touch. On your turn the cells your true rule allows are highlighted, so nobody has to work out legality in their head; a drop anywhere else snaps the ball back.
+Ballen is played by drag and drop with mouse or touch, in landscape for the first release. On your turn the cells your true rule allows glow for the whole turn, so nobody has to work out legality in their head; a drop anywhere else snaps the ball back.
 
 ### Game flow
 
@@ -123,6 +125,7 @@ Ballen is played by drag and drop with mouse or touch. On your turn the cells yo
 flowchart TD
     menu["Main menu<br/>How to Play glows until first opened"] --> play["Play vs AI"]
     menu --> decks["Decks<br/>build and edit decks"]
+    menu --> collection["Collection<br/>buy and equip looks"]
     menu --> how["How to Play<br/>text guide, tutorial"]
     menu --> settings["Settings<br/>audio, colour-blind"]
     how --> tutorial["Tutorial (optional)<br/>rules intro → first deck → guided match"]
@@ -140,21 +143,24 @@ New players are never forced through the tutorial: How to Play glows until first
 
 | Screen | Contents | Status |
 | --- | --- | --- |
-| Main menu | Play vs AI, Decks, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
+| Main menu | Play vs AI, Decks, Collection, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
 | How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
+| Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
 | Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start | Not started |
-| Game screen | Board, your ball, colour picker for the opponent's next ball, both rule lists, skip counters, Guess button | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
+| Game screen | Board in the centre; opponent's rules in one side panel, yours in the other; your ball, colour picker for the opponent's next ball, skip counters, Guess (hold), history arrows under the board | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
-| History | Step back and forward through board states; each turn's ball or skipped colour highlighted | Not started |
+| History | Arrows under the board step through past boards; view-only, any action returns to live | Not started |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Not started |
 | Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
 
-**Layout:** portrait window, 512 × 704 px, which suits both phones and the browser. The 6 × 6 board sits between the opponent's area at the top and yours at the bottom.
+**Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board sits in the centre, with the opponent's rules in a side panel on one side and yours on the other. A portrait layout, with rules above and below the board, comes in a later release for phones.
 
-- [ ] Where do both rule lists, notes and history fit on a phone screen?
-- [ ] Feedback for placing, skipping and guessing (animation, sound)?
-- [ ] How does the opponent see that you skipped, and which colour it was?
+**Feedback:**
+
+- **Placing:** the ball snaps into its cell with a soft click.
+- **Skipping:** the ball dissolves at your side of the board with a low tone.
+- **Guessing:** hold Guess while a ring fills (release early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
 
 ## 6. Art & audio
 
@@ -205,11 +211,10 @@ Ballen is free, earns from opt-in ads on mobile, and never sells an advantage: e
 | Browser | None | Normal |
 
 - **Rewards:** every duel pays. A win pays more than a draw, a draw more than a loss, and harder AI levels pay more.
-- **Cosmetics:** rewards buy ball skins, board themes and guess effects. Skins must keep colours readable and support colour-blind symbols.
+- **Cosmetics:** rewards buy ball skins, board themes and guess effects. Skins must keep colours readable and support colour-blind symbols. They are bought and equipped on the Collection screen.
 - **Never for sale:** rules, hints, extra guesses, or anything else that helps you win.
 
 **Open questions**
 
-- [ ] Where are cosmetics bought and equipped (a shop or collection screen)?
 - [ ] Reward amounts and cosmetic prices (tune in playtesting).
 - [ ] Price of the paid version.
