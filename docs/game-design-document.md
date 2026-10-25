@@ -56,7 +56,7 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | Element | How it works |
 | --- | --- |
 | Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
-| Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. |
+| Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. Rows are numbered 1–6 from the first player's side, the same for both players. "Next to" in a rule means on any of the 8 surrounding cells, diagonals included. |
 | Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. |
 | Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
 | Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. Your third skip loses the match at once, with no guess. |
