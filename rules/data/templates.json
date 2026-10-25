@@ -14,7 +14,7 @@
 		}
 	},
 	"not_next_to": {
-		"blanks": { "ball": ["same_colour"] },
+		"blanks": { "ball": ["same_colour", "opponent_ball"] },
 		"tree": {
 			"part": "count_at_most", "n": 0,
 			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }

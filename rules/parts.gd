@@ -26,6 +26,7 @@ static var _parts: Dictionary[String, Callable] = {
 	# Filters
 	"in_zone": _in_zone,
 	"same_colour": _same_colour,
+	"opponent_ball": _opponent_ball,
 	# Conditions
 	"count_at_most": _count_at_most,
 	# Combiners
@@ -92,6 +93,18 @@ static func _same_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vecto
 	for cell: Vector2i in _cells(node.of, ctx):
 		var ball: Ball = ctx.board.ball_at(cell)
 		if ball != null and ball.colour == ctx.colour:
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball owned by the holder's opponent, any colour.
+## {"part": "opponent_ball", "of": ...}
+static func _opponent_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var opponent: int = Players.opponent(ctx.holder)
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.owner == opponent:
 			kept.append(cell)
 	return kept
 

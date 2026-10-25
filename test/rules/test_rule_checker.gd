@@ -185,6 +185,76 @@ func test_r01_carries_its_player_text() -> void:
 	assert_eq(_book.rule("R01").text, "Never next to the same colour")
 
 
+# R07 Never next to an opponent ball -------------------------------------------
+
+func test_r07_forbids_every_neighbour_of_an_opponent_ball_whatever_its_colour() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"......",
+		"......",
+		"...g..",
+		"......",
+	])
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R07"), position, 0, BallColour.RED)
+	var forbidden: Array[Vector2i] = [
+		Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3),
+		Vector2i(2, 4), Vector2i(4, 4),
+		Vector2i(2, 5), Vector2i(3, 5), Vector2i(4, 5),
+	]
+	assert_eq(cells.size(), 27)
+	for cell: Vector2i in forbidden:
+		assert_false(cells.has(cell), "neighbour %s" % cell)
+
+
+func test_r07_ignores_the_holders_own_balls() -> void:
+	var position: MatchPosition = _position([
+		"r.....",
+		"......",
+		"..YB..",
+		"..GR..",
+		"......",
+		"......",
+	])
+	var rule: Rule = _book.rule("R07")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.RED, Vector2i(4, 4)), "diagonal to own red")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.BLUE, Vector2i(1, 2)), "next to own yellow")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.BLUE, Vector2i(1, 1)), "diagonal to opponent red in the corner")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(0, 1)), "below opponent red on the edge")
+
+
+func test_r07_for_player_1_avoids_player_0_balls() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"......",
+		"......",
+		"....b.",
+		"Y.....",
+	])
+	var rule: Rule = _book.rule("R07")
+	assert_false(RuleChecker.is_legal(rule, position, 1, BallColour.GREEN, Vector2i(1, 4)), "diagonal to opponent yellow")
+	assert_false(RuleChecker.is_legal(rule, position, 1, BallColour.GREEN, Vector2i(1, 5)))
+	assert_true(RuleChecker.is_legal(rule, position, 1, BallColour.GREEN, Vector2i(5, 5)), "next to own blue")
+	assert_eq(RuleChecker.legal_cells(rule, position, 1, BallColour.GREEN).size(), 31)
+
+
+func test_r07_allows_every_empty_cell_with_no_opponent_balls() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		".rr...",
+		"......",
+		"...g..",
+		"......",
+		"......",
+	])
+	assert_eq(RuleChecker.legal_cells(_book.rule("R07"), position, 1, BallColour.RED).size(), 33)
+
+
+func test_r07_carries_its_player_text() -> void:
+	assert_eq(_book.rule("R07").text, "Never next to an opponent ball")
+
+
 func _sorted(cells: Array[Vector2i]) -> Array[Vector2i]:
 	var copy: Array[Vector2i] = cells.duplicate()
 	copy.sort()
