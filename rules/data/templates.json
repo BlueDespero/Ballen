@@ -19,5 +19,12 @@
 			"part": "count_at_most", "n": 0,
 			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }
 		}
+	},
+	"min_empty_neighbours": {
+		"blanks": { "n": [1, 2, 3, 4, 5, 6, 7, 8] },
+		"tree": {
+			"part": "count_at_least", "n": "$n",
+			"of": { "part": "empty", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
 	}
 }

@@ -255,6 +255,88 @@ func test_r07_carries_its_player_text() -> void:
 	assert_eq(_book.rule("R07").text, "Never next to an opponent ball")
 
 
+# R18 Only cells with 2+ empty neighbours ---------------------------------------
+
+func test_r18_forbids_a_corner_with_one_empty_neighbour() -> void:
+	var position: MatchPosition = _position([
+		".Y....",
+		"r.....",
+		"......",
+		"......",
+		"......",
+		"......",
+	])
+	assert_false(RuleChecker.is_legal(_book.rule("R18"), position, 0, BallColour.RED, Vector2i(0, 0)))
+
+
+func test_r18_allows_a_corner_with_exactly_two_empty_neighbours() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"......",
+		"......",
+		"....b.",
+		"......",
+	])
+	assert_true(RuleChecker.is_legal(_book.rule("R18"), position, 1, BallColour.BLUE, Vector2i(5, 5)))
+
+
+func test_r18_counts_diagonal_neighbours_as_filled() -> void:
+	var position: MatchPosition = _position([
+		".B....",
+		".g....",
+		"......",
+		"......",
+		"....G.",
+		"....r.",
+	])
+	var rule: Rule = _book.rule("R18")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(0, 0)), "corner, one side and its diagonal filled")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(5, 5)), "corner, its diagonal and one side filled")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(0, 1)), "edge, three of five empty")
+
+
+func test_r18_counts_only_empty_neighbours_of_an_inner_cell() -> void:
+	var seven_filled: MatchPosition = _position([
+		"......",
+		".yRb..",
+		".G.Y..",
+		".rB...",
+		"......",
+		"......",
+	])
+	var six_filled: MatchPosition = _position([
+		"......",
+		".yRb..",
+		".G.Y..",
+		".r....",
+		"......",
+		"......",
+	])
+	var rule: Rule = _book.rule("R18")
+	assert_false(RuleChecker.is_legal(rule, seven_filled, 0, BallColour.GREEN, Vector2i(2, 2)))
+	assert_true(RuleChecker.is_legal(rule, six_filled, 0, BallColour.GREEN, Vector2i(2, 2)))
+
+
+func test_r18_allows_every_cell_of_an_empty_board() -> void:
+	assert_eq(RuleChecker.legal_cells(_book.rule("R18"), _empty_position(), 0, BallColour.RED).size(), 36)
+
+
+func test_r18_carries_its_player_text() -> void:
+	assert_eq(_book.rule("R18").text, "Only cells with 2+ empty neighbours")
+
+
+func test_the_empty_neighbour_count_is_1_to_8() -> void:
+	# Numbers in rule data are floats, as JSON gives them.
+	for n: float in [1.0, 8.0]:
+		var rule: Rule = _book.make_rule({"id": "X", "text": "?", "template": "min_empty_neighbours", "values": {"n": n}})
+		assert_not_null(rule, "n = %s" % n)
+	for n: float in [0.0, 9.0]:
+		var rule: Rule = _book.make_rule({"id": "X", "text": "?", "template": "min_empty_neighbours", "values": {"n": n}})
+		assert_null(rule, "n = %s" % n)
+		assert_push_error("not allowed")
+
+
 func _sorted(cells: Array[Vector2i]) -> Array[Vector2i]:
 	var copy: Array[Vector2i] = cells.duplicate()
 	copy.sort()

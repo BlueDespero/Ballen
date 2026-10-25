@@ -27,8 +27,10 @@ static var _parts: Dictionary[String, Callable] = {
 	"in_zone": _in_zone,
 	"same_colour": _same_colour,
 	"opponent_ball": _opponent_ball,
+	"empty": _empty,
 	# Conditions
 	"count_at_most": _count_at_most,
+	"count_at_least": _count_at_least,
 	# Combiners
 	"all": _all,
 	# Group parts (rules/group_parts.gd)
@@ -109,11 +111,26 @@ static func _opponent_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vec
 	return kept
 
 
+## Cells holding no ball (after the placement, so never the target).
+## {"part": "empty", "of": ...}
+static func _empty(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		if ctx.board.is_empty(cell):
+			kept.append(cell)
+	return kept
+
+
 # Conditions -----------------------------------------------------------------
 
 ## At most n cells. {"part": "count_at_most", "n": 0, "of": ...}
 static func _count_at_most(node: Dictionary, ctx: PlacementContext) -> bool:
 	return _cells(node.of, ctx).size() <= int(node.n)
+
+
+## At least n cells. {"part": "count_at_least", "n": 2, "of": ...}
+static func _count_at_least(node: Dictionary, ctx: PlacementContext) -> bool:
+	return _cells(node.of, ctx).size() >= int(node.n)
 
 
 # Combiners ------------------------------------------------------------------
