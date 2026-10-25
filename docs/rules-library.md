@@ -1,8 +1,8 @@
 # Ballen — Rules Library
 
 The catalogue of placement rules. Each rule is a template plus the values in its blanks (see
-[technical-design.md](technical-design.md#data-format)). Template ids are proposals until the rules
-engine exists.
+[technical-design.md](technical-design.md#data-format)). Built rules live in `rules/data/rules.json` and
+their templates in `rules/data/templates.json`; the template ids of other rules are proposals.
 
 **Status:** Idea → Specced (template and blanks fixed) → Built → Tuned (strictness measured, playtested).
 **Strictness** is the share of placements the rule forbids on random boards; target roughly 20–60%.
@@ -15,7 +15,7 @@ A dash means not measured yet.
 | R01 | Never next to the same colour | Colour & neighbours | `not_next_to` | target = same colour | Idea | – | – |
 | R02 | Red only next to blue | Colour & neighbours | `colour_only_next_to` | colour = red, other = blue | Idea | – | – |
 | R03 | Only on even rows | Position | `only_on_lines` | axis = row, parity = even | Idea | – | – |
-| R04 | Never on the edge | Position | `not_on_zone` | zone = edge | Idea | – | – |
+| R04 | Never on the edge | Position | `not_on_zone` | zone = edge | Built | – | – |
 | R05 | At most 2 of a colour in any row | Counts | `max_in_line` | axis = row, target = same colour, n = 2 | Idea | – | – |
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Idea | – | – |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | target = opponent ball | Idea | – | – |
