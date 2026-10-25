@@ -19,7 +19,6 @@ Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.ts
 | --- | --- |
 | `main.tscn`, `main_game.tscn` | Entry scenes |
 | `gui/` | Ball, board, rules box and menu scenes and scripts |
-| `rules/` | Rule logic (`baserule.gd`, `class_name Rule`) |
 | `event_bus.gd`, `constants.gd`, `utils.gd` | Autoloads: global signals, ball colours, turn state |
 | `assets/` | Kenney art assets |
 | `docs/` | Design document and research notes |

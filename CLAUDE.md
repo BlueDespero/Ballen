@@ -42,7 +42,6 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 - `main.tscn` / `main_game.tscn` — entry scenes
 - `gui/` — ball, board, rules UI scenes and scripts
-- `rules/` — rule logic (`baserule.gd`, `class_name Rule`)
 - `assets/` — Kenney art assets
 
 ## Agent skills

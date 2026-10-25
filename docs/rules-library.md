@@ -23,7 +23,7 @@ A dash means not measured yet.
 | R09 | Never in the same row as your previous ball | History | `not_same_line_as` | axis = row, target = my last ball | Idea | – | – |
 | R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Idea | – | – |
 | R11 | At least 2 cells from any red | Geometry | `min_distance_from` | target = red, n = 2 | Idea | – | – |
-| R12 | Diagonal check (existing stub) | Geometry | `diagonal_check` | – | Stub in `rules/baserule.gd` | – | – |
+| R12 | Diagonal check | Geometry | `diagonal_check` | – | Idea | – | – |
 | R13 | Must touch an existing ball | Connection | `must_touch` | target = any ball | Idea | – | – |
 | R14 | Must join your own group | Connection | `must_touch` | target = my ball | Idea | – | – |
 | R15 | Above your last ball | Relative position | `relative_to_last` | direction = above | Idea | – | – |

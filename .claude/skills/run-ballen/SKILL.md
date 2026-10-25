@@ -87,9 +87,6 @@ command lives in `CLAUDE.md`.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
 - **The main menu is drawn on top of the game board**, which shows through it (see a menu
   screenshot). That's the current game, not a driver artefact.
-- **`rules/baserule.gd` is a half-written file that fails to parse.** Every run logs
-  `Parse Error: Expected conditional expression after "if"` from it. Nothing loads it yet, so it's
-  harmless until something does.
 - **Ball colour is random each run** (`main_game.gd`), so screenshots differ in colour; read
   `Ball/BallSprite:modulate` when it matters.
 - Files under `.claude/` are invisible to Godot's import (dot-folder), so `out/` PNGs and the driver

@@ -29,8 +29,8 @@ all run the same code.
 ### Key decisions
 
 - `valid_placement()` in `gui/ball.gd` asks the game model instead of checking rules itself.
-- `rules/baserule.gd` (`class_name Rule`) becomes the base of the parts system and the
-  custom-script fallback.
+- The custom-script fallback gets a fresh base script when it is first needed (the old
+  half-written `rules/baserule.gd` stub was deleted).
 - The AI gets a `PublicView` object without the opponent's `true_rule` field. Unit-test that it
   cannot reach hidden state.
 
