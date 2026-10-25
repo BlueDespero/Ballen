@@ -58,7 +58,7 @@ text ("Ball can't be placed in the same ___ as ___") and maps to parts underneat
 player-made rules share one JSON-ready format:
 
 ```json
-{ "template": "not_same_line_as", "values": { "line": "row", "target": "same_colour" } }
+{ "template": "not_same_line_as", "values": { "axis": "row", "target": "same_colour" } }
 ```
 
 The catalogue of planned rules lives in [rules-library.md](rules-library.md).
