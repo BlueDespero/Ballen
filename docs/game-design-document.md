@@ -4,16 +4,7 @@ Oct 25, 2026 · Cezary Troska
 
 > Exported from the online design doc. When the design changes, update this file (or re-export) so the repo copy stays the reference for code.
 
-## About this template
-
-This GDD follows Scott Rogers' "Ten-Pager" from *Level Up! The Guide to Great Video Game Design*, a GDD structure commonly used in game design courses. It borrows the asset breakdown and timeline from Jason Bakker's indie GDD template. Both fit a solo or small-team project because they stay short and practical.
-
-| Template | Structure | Why it's used here |
-| --- | --- | --- |
-| [Level Up! (Scott Rogers)](https://oreilly.com/library/view/level-up-the/9781118877197) | One-Sheet → Ten-Pager → Beat Chart → full GDD | Backbone: overview, core loop, progression, controls, art, USP |
-| [A GDD template for the indie developer (Jason Bakker, Game Developer, 2009)](https://www.gamedeveloper.com/design/a-gdd-template-for-the-indie-developer) | 10 sections: intro, gameplay, art style, systems, assets, game flow, timeline, ideas | Asset lists, game-flow diagram, project timeline |
-
-**How to use it:** keep it a living document. Fill the *Open questions* first, then update sections as the prototype changes. Aim for about 10 pages; detail belongs in the code and in a per-rule spec.
+This document covers **what** Ballen is and **why**. Detail lives in companion docs: [Technical design](technical-design.md) · [Rules library](rules-library.md) · [AI research](ai-decision-theory-research.md).
 
 ## 1. Game overview
 
@@ -76,41 +67,9 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 
 The rules library is Ballen's main content. Every rule is plain data assembled from shared parts, so a new rule needs no code, and a new mechanic is one new part that leaves existing rules untouched.
 
-**How a rule is built**
+**How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips. How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
 
-| Part | Answers | Examples |
-| --- | --- | --- |
-| Selector | Which cells or balls to look at? | Neighbours (4 or 8), row, column, diagonals, whole board, your last ball, opponent's last ball |
-| Filter | Which of those count? | Same colour as this ball, a fixed colour, mine / opponent's, empty / occupied |
-| Condition | What must be true? | Count = 0, ≤ N, ≥ N, more A than B, exists / none |
-| Combiner | How do conditions join? | AND, OR, NOT, IF … THEN |
-| Context | What a rule may know | Board, target cell, ball colour, ball owner, move history, turn number, skips |
-
-A rule is a **template plus the values in its blanks**. The template holds the hand-written text ("Ball can't be placed in the same \_\_\_ as \_\_\_") and maps to parts underneath. Built-in and player-made rules share this one JSON-ready format:
-
-```json
-{ "template": "not_same_line_as", "values": { "line": "row", "target": "same_colour" } }
-```
-
-Every rule is a pure function of the context that answers pass or fail. The same code drives the highlights, the AI and, later, the server. A rule that doesn't fit the parts gets its own script as a fallback.
-
-**Rule ideas** (not yet checked for strictness)
-
-| Type | Example rules |
-| --- | --- |
-| Colour & neighbours | Never next to the same colour; red only touching blue |
-| Position | Only on even rows; never on the edge |
-| Counts | At most 2 of a colour in any row; never more red than blue on the board |
-| Ball owner | Never next to an opponent ball |
-| History | Not next to the ball you placed last; never the same row as your previous ball |
-| Geometry | Never complete a line of 3; at least 2 cells from any red |
-| Connection | Must touch an existing ball; must join your own group |
-| Relative position | Above your last ball; closer to the opponent's side than your last ball |
-| Colour order | Must touch the next colour in yellow → blue → red → green |
-| Space | Only cells with 2+ empty neighbours; never fill a row completely |
-| Time | On odd turns, edge only; for the first 5 turns, your own half only |
-| Game state | After any skip, must touch one of your own balls |
-| Opponent-aware | Never next to the opponent's last ball |
+**Examples:** never next to the same colour; only on even rows; not next to the ball you placed last; after any skip, must touch one of your own balls. The full catalogue, with each rule's status and strictness, is the [rules library](rules-library.md).
 
 **Decks and player-made rules**
 
@@ -120,8 +79,6 @@ Every rule is a pure function of the context that answers pass or fail. The same
 
 **Open questions**
 
-- [ ] How many built-in rules does the first release need?
-- [ ] Deck limits: can a deck hold two near-identical rules? Are some rules too strong as the true rule?
 - [ ] Progression: what do players earn (rules, cosmetics, ranks)?
 - [ ] Modes beyond single matches vs. AI, e.g. a puzzle campaign?
 
@@ -173,16 +130,7 @@ Art uses Kenney assets for now, with one ball sprite tinted at runtime to yellow
 
 Ballen runs on Godot 4.7 with the GL Compatibility renderer and statically typed GDScript, which exports to the browser first and to Android and iOS later. Game logic is kept apart from the scenes, so the AI, the highlights and a future server all run the same code.
 
-| Layer | Holds | Notes |
-| --- | --- | --- |
-| Game model | Board, turn order, colour picks, skips, guesses, move history | Plain GDScript classes, no scene nodes |
-| Rules engine | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules loaded from JSON-ready data |
-| AI | Rule choice, placement, colour picks, deduction, guessing | Sees only public information; Easy, Normal, Hard |
-| Scenes / UI | Board (`gui/balls_board.gd`), ball drag (`gui/ball.gd`), rules box, menus | Show the model and send player actions; never decide legality themselves |
-| Autoloads | `EventBus` (global signals), `Constants` (colour table), `Utils` (turn state) | `Utils.player_turn` moves into the game model |
-| Online (later) | Both true rules; checks every move | Clients never receive the opponent's true rule |
-
-**Key technical decisions:** `valid_placement()` in `gui/ball.gd` asks the game model instead of checking rules itself. The existing `rules/baserule.gd` (`class_name Rule`) becomes the base of the parts system and the custom-script fallback. The AI deduces fairly: a rule stays a candidate only while every past placement and skip is consistent with it.
+The AI sees only what a human opponent could see, and online play (later) runs on a server so no client ever receives the opponent's true rule. Architecture, the rules engine and the AI implementation are in the [technical design](technical-design.md).
 
 ## 8. Production
 

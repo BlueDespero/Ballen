@@ -5,6 +5,8 @@ rule among four fakes, places balls to bluff, and wins by naming which of the op
 real. Built with Godot 4.7 and GDScript, for the browser first and mobile later.
 
 - **Game design:** [docs/game-design-document.md](docs/game-design-document.md)
+- **Technical design:** [docs/technical-design.md](docs/technical-design.md)
+- **Rules library:** [docs/rules-library.md](docs/rules-library.md)
 - **AI research notes:** [docs/ai-decision-theory-research.md](docs/ai-decision-theory-research.md)
 
 ## Running the project

@@ -10,6 +10,9 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 
 - `docs/game-design-document.md` is the source of truth for game rules and scope. Read it before
   changing gameplay, and flag any code that contradicts it.
+- `docs/technical-design.md`: architecture, rules engine (parts, data format) and AI implementation notes.
+- `docs/rules-library.md`: catalogue of placement rules with status and strictness; update it when
+  adding or changing a rule.
 - `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
   colour picks, guessing, difficulty levels).
 
