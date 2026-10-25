@@ -1,5 +1,6 @@
 [
 	{ "id": "R01", "text": "Never next to the same colour", "template": "not_next_to", "values": { "ball": "same_colour" } },
+	{ "id": "R03", "text": "Only on even rows", "template": "only_on_axis", "values": { "axis": "row", "parity": "even" } },
 	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } },
 	{ "id": "R07", "text": "Never next to an opponent ball", "template": "not_next_to", "values": { "ball": "opponent_ball" } },
 	{ "id": "R08", "text": "Not next to the ball you placed last", "template": "not_next_to", "values": { "ball": "my_last_ball" } },

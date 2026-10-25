@@ -6,6 +6,13 @@
 			"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } }
 		}
 	},
+	"only_on_axis": {
+		"blanks": { "axis": ["row"], "parity": ["even", "odd"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "with_parity", "axis": "$axis", "parity": "$parity", "of": { "part": "target" } }
+		}
+	},
 	"no_line_of": {
 		"blanks": { "n": [3] },
 		"tree": {

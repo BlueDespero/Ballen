@@ -25,6 +25,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"neighbours": _neighbours,
 	# Filters
 	"in_zone": _in_zone,
+	"with_parity": _with_parity,
 	"same_colour": _same_colour,
 	"opponent_ball": _opponent_ball,
 	"my_last_ball": _my_last_ball,
@@ -86,6 +87,21 @@ static func _in_zone(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 					kept.append(cell)
 			_:
 				push_error("in_zone: unknown zone '%s'" % node.zone)
+	return kept
+
+
+## Cells whose row number (1-6 from the first player's side) is even or odd.
+## Columns are not numbered, so "row" is the only axis.
+## {"part": "with_parity", "axis": "row", "parity": "even", "of": ...}
+static func _with_parity(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	if node.axis != "row":
+		push_error("with_parity: unknown axis '%s'" % node.axis)
+		return kept
+	var remainder: int = 0 if node.parity == "even" else 1
+	for cell: Vector2i in _cells(node.of, ctx):
+		if Board.row_number(cell, ctx.position.first_player) % 2 == remainder:
+			kept.append(cell)
 	return kept
 
 

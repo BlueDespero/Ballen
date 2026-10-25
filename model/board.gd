@@ -6,7 +6,7 @@ extends RefCounted
 ## A cell is a Vector2i(x, y): x is the column, 0-5 from the left; y is 0-5 from
 ## the top. Player 1's side is the top edge (y = 0) and player 0's side the
 ## bottom edge (y = 5). Row numbers for rules (1-6 from the first player's side)
-## are derived from y and the first player; they are not stored here.
+## are derived from y and the first player (row_number); they are not stored here.
 
 const SIZE: int = 6
 
@@ -42,6 +42,12 @@ static func all_cells() -> Array[Vector2i]:
 ## True for the outer ring of cells.
 static func is_on_edge(cell: Vector2i) -> bool:
 	return cell.x == 0 or cell.y == 0 or cell.x == SIZE - 1 or cell.y == SIZE - 1
+
+
+## The row number of a cell, 1-6 counted from the first player's side; both
+## players use the same numbering.
+static func row_number(cell: Vector2i, first_player: int) -> int:
+	return SIZE - cell.y if first_player == 0 else cell.y + 1
 
 
 ## The up to 8 cells touching a cell, diagonals included; only cells on the board.
