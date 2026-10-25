@@ -20,7 +20,7 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 
 - Type everything: variables (`var x: int`), parameters, and return types (`-> void`).
 - Tabs for indentation.
-- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Utils` (turn state).
+- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors). Turn state lives in the match.
 
 ## Tests
 

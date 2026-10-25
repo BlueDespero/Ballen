@@ -23,7 +23,7 @@ all run the same code.
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
 | Scenes / UI | Board (`gui/balls_board.gd`), ball drag (`gui/ball.gd`), rules box, menus | Show the model and send player actions; never decide legality themselves |
-| Autoloads | `EventBus` (global signals), `Constants` (colour table), `Utils` (turn state) | `Utils.player_turn` moves into the game model |
+| Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
 ### Key decisions
