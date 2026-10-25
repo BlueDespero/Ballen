@@ -22,6 +22,21 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 - Tabs for indentation.
 - Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Utils` (turn state).
 
+## Tests
+
+GUT 9.7.1 (`addons/gut`, config `.gutconfig.json`). Tests are `test/**/test_*.gd`, extending `GutTest`.
+Run the whole suite headless from the repo root; exit code 0 means every test passed:
+
+```powershell
+godot --headless --path . --import *> $null; godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+```
+
+In Git Bash, call `"$HOME/bin/godot.cmd"` instead of `godot` and redirect with `> /dev/null 2>&1`.
+
+Keep the import step: it registers new `class_name`s (and, in a fresh worktree, GUT's own). Skip it and
+GUT runs nothing yet exits 0, or a test using a new class fails to load. `test/post_run_hook.gd` turns a
+test script that fails to load into exit code 1.
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.
@@ -43,6 +58,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `main.tscn` / `main_game.tscn` — entry scenes
 - `gui/` — ball, board, rules UI scenes and scripts
 - `assets/` — Kenney art assets
+- `test/` — GUT tests; `addons/gut/` — vendored GUT 9.7.1
 
 ## Agent skills
 

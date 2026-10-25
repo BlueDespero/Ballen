@@ -21,6 +21,7 @@ Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.ts
 | `gui/` | Ball, board, rules box and menu scenes and scripts |
 | `event_bus.gd`, `constants.gd`, `utils.gd` | Autoloads: global signals, ball colours, turn state |
 | `assets/` | Kenney art assets |
+| `test/`, `addons/gut/` | GUT tests and the vendored GUT addon |
 | `docs/` | Design document and research notes |
 
 ## How the AI thinks

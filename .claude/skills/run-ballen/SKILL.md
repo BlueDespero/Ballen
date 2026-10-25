@@ -73,8 +73,11 @@ godot --path .   # window opens on the main menu; close it to stop
 
 ## Test
 
-No test suite yet. Milestone 1 (`docs/milestones/01-prototype.md`) adds GUT; once it exists, its
-command lives in `CLAUDE.md`.
+GUT suite, headless (details and gotchas in `CLAUDE.md`, section Tests). Exit code 0 = all passed.
+
+```powershell
+godot --headless --path . --import *> $null; godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+```
 
 ## Gotchas
 
