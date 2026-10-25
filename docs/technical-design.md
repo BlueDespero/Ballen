@@ -59,6 +59,10 @@ part (plus, if needed, a new context field) and leaves existing rules untouched.
 
 Example: "Never next to the same colour" = neighbours + same colour + count = 0.
 
+Some rules judge groups of cells rather than single cells. A group selector yields several groups and a
+group condition judges them (`rules/group_parts.gd`). Example: "Never complete a line of 3" = the lines
+through the target (one per direction: horizontal, vertical, both diagonals) + no group of 3 or more.
+
 ### Data format
 
 A rule is a **template plus the values in its blanks**, with an id and its hand-written player text.
