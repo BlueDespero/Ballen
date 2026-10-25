@@ -1,0 +1,3 @@
+[
+	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } }
+]

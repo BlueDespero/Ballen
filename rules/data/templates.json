@@ -1,0 +1,9 @@
+{
+	"not_on_zone": {
+		"blanks": { "zone": ["edge"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } }
+		}
+	}
+}
