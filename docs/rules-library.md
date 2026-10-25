@@ -19,7 +19,7 @@ A dash means not measured yet.
 | R05 | At most 2 of a colour in any row | Counts | `max_in_line` | axis = row, target = same colour, n = 2 | Idea | – | – |
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Idea | – | – |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | ball = opponent_ball | Built | – | – |
-| R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my last ball | Idea | – | – |
+| R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my_last_ball | Built | – | – |
 | R09 | Never in the same row as your previous ball | History | `not_same_line_as` | axis = row, target = my last ball | Idea | – | – |
 | R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | – | – |
 | R11 | At least 2 cells from any red | Geometry | `min_distance_from` | target = red, n = 2 | Idea | – | – |
