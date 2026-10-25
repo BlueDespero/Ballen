@@ -78,8 +78,9 @@ they can be added without rewriting the model.
   release early to cancel). Available at the start of your turn and after placing or skipping only.
 - Skips: the ball visibly disappears and the skip counter updates.
 - Pre-match: you get a fixed starter deck for the prototype and tap one of its rules to make it true;
-  the AI gets a random 5-rule deck from the implemented rules.
-- Match end: result (win, lose, draw), both true rules revealed, Rematch and Quit buttons.
+  the AI gets a fresh random 5-rule deck from the implemented rules for each new match. A rematch
+  keeps the AI's deck and draws a new true rule from it.
+- Match end: result (win, lose, draw), both true rules revealed, Rematch and Main menu buttons.
 - Use the existing Kenney assets; art, audio and polish come later.
 
 ### 6. AI-vs-AI harness

@@ -84,7 +84,7 @@ You play against an AI that plays by the same rules and sees only what you see. 
 | Normal | Reads your moves and keeps its own rule well hidden. |
 | Hard | Gives almost nothing away, reads every move, and never hesitates. |
 
-- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each match. Difficulty changes only how it plays, never which rules it gets.
+- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each new match. A rematch keeps the deck and draws a new true rule from it. Difficulty changes only how it plays, never which rules it gets.
 - **Silent:** no lines or reactions, so it never leaks what it knows.
 - **Thinking time:** up to 5 seconds, longer on harder choices. On Easy and Normal a longer pause honestly means it is less sure, a tell attentive players can read. Hard adds random variation so its pauses can't be read.
 - **Hard thinks on your turn too:** it keeps computing while you play, so its full search isn't limited to its own 5 seconds.
