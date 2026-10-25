@@ -102,4 +102,6 @@ layout. Don't build them; leave clean seams where they will attach.
 4. `CLAUDE.md` lists the test and harness commands; the rules library and technical design reflect what
    was built; anything that contradicts the GDD is listed in the PR as a question.
 5. All work is on one branch with a pull request to `master`. Never push to `master` directly and never
-   force-push.
+   force-push `master`.
+6. The branch history follows the commit rules in `CLAUDE.md`: small, self-contained commits that each
+   pass the tests, linear history with no merge commits, so the PR can be merged with "Rebase and merge".
