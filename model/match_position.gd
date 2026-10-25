@@ -34,7 +34,7 @@ func current_player() -> int:
 
 
 ## The player's most recent placement, or null before their first one. Other
-## events (colour picks, and skips once they exist) never change it.
+## events (colour picks, skips) never change it.
 func last_placement(player: int) -> HistoryEntry:
 	for i: int in range(history.size() - 1, -1, -1):
 		var entry: HistoryEntry = history[i]

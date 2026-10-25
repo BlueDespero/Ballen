@@ -91,8 +91,7 @@ func test_r08_for_player_1_looks_at_player_1s_last_ball() -> void:
 	assert_eq(RuleChecker.legal_cells(rule, position, 1, BallColour.GREEN).size(), 26)
 
 
-func test_r08_ignores_events_after_the_holders_last_placement() -> void:
-	# Colour picks stand in for skips here: the history has no skip event yet (#47).
+func test_r08_ignores_colour_picks_after_the_holders_last_placement() -> void:
 	var position: MatchPosition = _position([
 		"......",
 		"......",
@@ -107,6 +106,28 @@ func test_r08_ignores_events_after_the_holders_last_placement() -> void:
 	])
 	var rule: Rule = _book.rule("R08")
 	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.RED, Vector2i(2, 4)))
+	assert_eq(RuleChecker.legal_cells(rule, position, 0, BallColour.RED).size(), 27)
+
+
+func test_a_skip_by_the_holder_leaves_their_last_ball_unchanged() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"......",
+		"...B..",
+		"......",
+		"......",
+	], [
+		HistoryEntry.placement(0, Vector2i(3, 3), BallColour.BLUE),
+		HistoryEntry.colour_pick(0, BallColour.GREEN),
+		HistoryEntry.skip(1, BallColour.GREEN),
+		HistoryEntry.colour_pick(1, BallColour.YELLOW),
+		HistoryEntry.skip(0, BallColour.YELLOW),
+		HistoryEntry.colour_pick(0, BallColour.RED),
+		HistoryEntry.colour_pick(1, BallColour.RED),
+	])
+	var rule: Rule = _book.rule("R08")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.RED, Vector2i(4, 2)), "still next to the last ball")
 	assert_eq(RuleChecker.legal_cells(rule, position, 0, BallColour.RED).size(), 27)
 
 
