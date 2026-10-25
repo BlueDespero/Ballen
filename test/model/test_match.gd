@@ -138,3 +138,54 @@ func test_the_match_lists_the_current_players_legal_cells() -> void:
 	assert_false(game.is_legal(Vector2i(0, 0)))
 	game.submit(game.first_player(), Command.place(Vector2i(1, 1)))
 	assert_eq(game.legal_cells().size(), 0, "no legal cells outside the PLACE phase")
+
+func test_picking_a_colour_after_placing_ends_the_turn() -> void:
+	var game: Match = _started(_r04_match(1))
+	var first: int = game.first_player()
+	var second: int = Players.opponent(first)
+	game.submit(first, Command.place(Vector2i(2, 3)))
+	assert_true(game.submit(first, Command.pick_colour(BallColour.YELLOW)))
+	assert_eq(game.phase(), Match.Phase.PLACE)
+	assert_eq(game.turn(), 2)
+	assert_eq(game.current_player(), second)
+	assert_eq(game.current_colour(), BallColour.YELLOW)
+	assert_eq(game.awaiting_players(), [second] as Array[int])
+
+
+func test_a_colour_pick_before_placing_is_rejected() -> void:
+	var game: Match = _started(_r04_match(1))
+	assert_false(game.submit(game.first_player(), Command.pick_colour(BallColour.BLUE)))
+	assert_eq(game.phase(), Match.Phase.PLACE)
+	assert_eq(game.turn(), 1)
+
+
+func test_the_opponent_cannot_pick_the_colour_on_the_current_players_turn() -> void:
+	var game: Match = _started(_r04_match(1))
+	game.submit(game.first_player(), Command.place(Vector2i(2, 3)))
+	assert_false(game.submit(Players.opponent(game.first_player()), Command.pick_colour(BallColour.BLUE)))
+	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
+
+
+func test_turns_alternate_and_history_keeps_every_event_in_order() -> void:
+	var game: Match = _started(_r04_match(1))
+	var first: int = game.first_player()
+	var second: int = Players.opponent(first)
+	game.submit(first, Command.place(Vector2i(1, 1)))
+	game.submit(first, Command.pick_colour(BallColour.GREEN))
+	assert_false(game.submit(second, Command.place(Vector2i(1, 1))), "occupied cell")
+	game.submit(second, Command.place(Vector2i(2, 2)))
+	game.submit(second, Command.pick_colour(BallColour.GREEN))
+	game.submit(first, Command.place(Vector2i(3, 3)))
+	var lines: Array[String] = []
+	for entry: HistoryEntry in game.history():
+		lines.append(str(entry))
+	assert_eq(lines, [
+		"player %d picks red" % second,
+		"player %d places red at (1, 1)" % first,
+		"player %d picks green" % first,
+		"player %d places green at (2, 2)" % second,
+		"player %d picks green" % second,
+		"player %d places green at (3, 3)" % first,
+	] as Array[String])
+	assert_eq(game.turn(), 3)
+	assert_eq(game.current_player(), first)
