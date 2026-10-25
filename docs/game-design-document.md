@@ -41,7 +41,7 @@ flowchart TD
     first -- yes --> trigger["Pull the trigger<br/>right: you win · wrong: you lose"]
     first -- no --> legal{"Legal cell?"}
     legal -- yes --> place["Place on a glowing cell"]
-    legal -- no --> removed["Ball dissolves<br/>+1 skip; the 3rd skip loses"]
+    legal -- no --> removed["Ball dissolves<br/>+1 skip; the 3rd skip loses at once, no guess"]
     place --> guess{"Guess now?"}
     removed --> guess
     guess -- yes --> trigger
@@ -59,7 +59,7 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. |
 | Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. |
 | Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
-| Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. 3 skips in total and you lose. |
+| Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. Your third skip loses the match at once, with no guess. |
 | Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
 | Full board | Both players must guess. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
