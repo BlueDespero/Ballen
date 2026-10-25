@@ -2,8 +2,8 @@ class_name MatchDriver
 extends RefCounted
 
 ## Plays a match: asks the controller of every player the match awaits for a
-## command and submits it, until the match is over or a controller has no
-## command. The match alone decides what is legal.
+## command and submits it, until the match is over, a controller has no
+## command, or stop() is called. The match alone decides what is legal.
 ##
 ## The scene drives the player and the AI with it, redrawing on `changed`; it
 ## pauses the AI so the player can follow its turn. The harness can drive two
@@ -24,6 +24,7 @@ var _controllers: Array[Controller] = []
 var _paused_players: Array[int] = []
 var _rng: RandomNumberGenerator
 var _wait: Callable
+var _stopped: bool = false
 
 
 ## controllers is indexed by player. Before each command of a player in
@@ -38,16 +39,27 @@ func _init(game: Match, controllers: Array[Controller], paused_players: Array[in
 	_wait = wait
 
 
-## Runs until the match is over or stalls. A coroutine: await it. A command
-## the match rejects changes nothing and the same player is asked again.
+## Runs until the match is over, stalls or is stopped. A coroutine: await it.
+## A command the match rejects changes nothing and the same player is asked
+## again.
 func run() -> void:
-	while _match.phase() != Match.Phase.OVER:
+	while not _stopped and _match.phase() != Match.Phase.OVER:
 		for player: int in _match.awaiting_players():
 			if _paused_players.has(player):
 				await _wait.call(_rng.randf_range(MIN_PAUSE, MAX_PAUSE))
+				if _stopped:
+					return
 			var command: Command = await _controllers[player].decide(_match.public_view(player))
+			if _stopped:
+				return
 			if command == null:
 				stalled.emit(player)
 				return
 			if _match.submit(player, command):
 				changed.emit()
+
+
+## Ends run() at its next step: a pause or decision in progress submits
+## nothing. The scene calls it when it closes.
+func stop() -> void:
+	_stopped = true

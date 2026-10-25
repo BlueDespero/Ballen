@@ -119,3 +119,14 @@ func test_a_rejected_command_is_asked_for_again() -> void:
 	assert_signal_emit_count(driver, "changed", 2, "the first colour and the placement")
 	human.choose(null) # gives up the decision, ending run()
 
+
+func test_a_stopped_driver_submits_nothing_more() -> void:
+	var game: Match = _player_0_first()
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var driver: MatchDriver = _driver(game, controllers, [1], 3)
+	driver.run()
+	driver.stop()
+	human.choose(Command.place(Vector2i(2, 2)))
+	assert_eq(game.history().size(), 1)
+	assert_eq(game.phase(), Match.Phase.PLACE)
