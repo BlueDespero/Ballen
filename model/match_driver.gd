@@ -38,7 +38,8 @@ func _init(game: Match, controllers: Array[Controller], paused_players: Array[in
 	_wait = wait
 
 
-## Runs until the match is over or stalls. A coroutine: await it.
+## Runs until the match is over or stalls. A coroutine: await it. A command
+## the match rejects changes nothing and the same player is asked again.
 func run() -> void:
 	while _match.phase() != Match.Phase.OVER:
 		for player: int in _match.awaiting_players():

@@ -27,6 +27,20 @@ func _driver(game: Match, controllers: Array[Controller], paused_players: Array[
 	return MatchDriver.new(game, controllers, paused_players, Fixtures.rng(seed_value), _record_wait)
 
 
+## A match where player 0 goes first, so the AI (player 1) picks their first colour.
+func _player_0_first() -> Match:
+	for seed_value: int in 100:
+		var game: Match = _r04_match(seed_value)
+		if game.first_player() == 0:
+			return game
+	return null
+
+
+func _last(game: Match) -> HistoryEntry:
+	var history: Array[HistoryEntry] = game.history()
+	return history[-1]
+
+
 func _count(game: Match, type: HistoryEntry.Type, player: int) -> int:
 	var count: int = 0
 	for entry: HistoryEntry in game.history():
@@ -71,3 +85,37 @@ func test_pauses_follow_the_seeded_rng() -> void:
 	await _driver(_r04_match(11), controllers, [0, 1], 3).run()
 	assert_eq(_waits.size(), 34, "33 commands, then the stalled player is asked once more")
 	assert_eq(_waits, first_run)
+
+
+func test_the_players_commands_are_submitted_when_they_choose_them() -> void:
+	var game: Match = _player_0_first()
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var driver: MatchDriver = _driver(game, controllers, [1], 3)
+	driver.run()
+	assert_eq(game.phase(), Match.Phase.PLACE, "the AI picked the first colour; the driver now waits for the player")
+	assert_eq(game.awaiting_players(), [0] as Array[int])
+	human.choose(Command.place(Vector2i(2, 3)))
+	assert_eq(str(_last(game)), str(HistoryEntry.placement(0, Vector2i(2, 3), game.current_colour())))
+	human.choose(Command.pick_colour(BallColour.BLUE))
+	var history: Array[HistoryEntry] = game.history()
+	assert_eq(str(history[3]), str(HistoryEntry.placement(1, history[3].cell, BallColour.BLUE)), "the AI placed blue")
+	assert_eq(history[4].type, HistoryEntry.Type.COLOUR_PICK)
+	assert_eq(game.awaiting_players(), [0] as Array[int], "and handed the turn back")
+	human.choose(null) # gives up the decision, ending run()
+
+
+func test_a_rejected_command_is_asked_for_again() -> void:
+	var game: Match = _player_0_first()
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var driver: MatchDriver = _driver(game, controllers, [1], 3)
+	watch_signals(driver)
+	driver.run()
+	human.choose(Command.place(Vector2i(0, 0)))
+	assert_eq(game.history().size(), 1, "R04 forbids the corner")
+	human.choose(Command.place(Vector2i(2, 2)))
+	assert_eq(_last(game).cell, Vector2i(2, 2))
+	assert_signal_emit_count(driver, "changed", 2, "the first colour and the placement")
+	human.choose(null) # gives up the decision, ending run()
+
