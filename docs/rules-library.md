@@ -19,7 +19,7 @@ A dash means not measured yet.
 | R05 | At most 2 of a colour in any row | Counts | `max_in_line` | axis = row, target = same colour, n = 2 | Idea | – | – |
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Idea | – | – |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | ball = opponent_ball | Built | – | – |
-| R08 | Not next to the ball you placed last | History | `not_next_to` | target = my last ball | Idea | – | – |
+| R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my last ball | Idea | – | – |
 | R09 | Never in the same row as your previous ball | History | `not_same_line_as` | axis = row, target = my last ball | Idea | – | – |
 | R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | – | – |
 | R11 | At least 2 cells from any red | Geometry | `min_distance_from` | target = red, n = 2 | Idea | – | – |
@@ -34,7 +34,7 @@ A dash means not measured yet.
 | R20 | On odd turns, edge only | Time | `if_then` | if = odd turn, then = on edge | Idea | – | – |
 | R21 | For the first 5 turns, your own half only | Time | `if_then` | if = turn ≤ 5, then = own half | Idea | – | – |
 | R22 | After any skip, must touch one of your own balls | Game state | `if_then` | if = any skip, then = touch my ball | Idea | – | – |
-| R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | target = opponent's last ball | Idea | – | – |
+| R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | ball = opponent's last ball | Idea | – | – |
 
 ## Open questions
 
