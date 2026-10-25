@@ -46,7 +46,7 @@ flowchart TD
     removed --> guess
     guess -- yes --> trigger
     guess -- no --> full{"Board full?"}
-    full -- yes --> both["Both must guess<br/>one right wins, else a draw"]
+    full -- yes --> both["Both must guess, sealed<br/>one right wins, else a draw"]
     full -- no --> pick["Pick your opponent's colour"]
     pick -- "opponent takes the same turn" --> start
 ```
@@ -57,11 +57,11 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | --- | --- |
 | Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
 | Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. Rows are numbered 1–6 from the first player's side, the same for both players. "Next to" in a rule means on any of the 8 surrounding cells, diagonals included. |
-| Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. |
+| Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. Picking your opponent's colour ends your turn. |
 | Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
 | Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. Your third skip loses the match at once, with no guess. |
 | Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
-| Full board | Both players must guess. Exactly one right wins; both right or both wrong is a draw. |
+| Full board | Both players must guess. The guesses are sealed and revealed together, so neither side can react to the other. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
 | History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; any action returns to the live board. |
 
