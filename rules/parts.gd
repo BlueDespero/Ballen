@@ -25,6 +25,8 @@ static var _parts: Dictionary[String, Callable] = {
 	"in_zone": _in_zone,
 	# Conditions
 	"count_at_most": _count_at_most,
+	# Combiners
+	"all": _all,
 }
 
 
@@ -69,3 +71,15 @@ static func _in_zone(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 ## At most n cells. {"part": "count_at_most", "n": 0, "of": ...}
 static func _count_at_most(node: Dictionary, ctx: PlacementContext) -> bool:
 	return _cells(node.of, ctx).size() <= int(node.n)
+
+
+# Combiners ------------------------------------------------------------------
+
+## Passes when every condition passes; an empty list always passes, which makes
+## {"part": "all", "of": []} a permissive rule for tests.
+## {"part": "all", "of": [<condition>, ...]}
+static func _all(node: Dictionary, ctx: PlacementContext) -> bool:
+	for condition: Dictionary in node.of:
+		if not evaluate(condition, ctx):
+			return false
+	return true

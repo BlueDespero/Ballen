@@ -87,6 +87,28 @@ func test_rule_data_missing_a_blank_is_rejected() -> void:
 	assert_push_error("no value for blank")
 
 
+func test_a_permissive_rule_defined_as_data_allows_every_empty_cell() -> void:
+	_book.add_template("anywhere", {"blanks": {}, "tree": {"part": "all", "of": []}})
+	var rule: Rule = _book.make_rule({"id": "T1", "text": "Anywhere", "template": "anywhere", "values": {}})
+	var position: MatchPosition = _position([
+		"Y.....",
+		"......",
+		"..r...",
+		"......",
+		"......",
+		".....G",
+	])
+	assert_eq(RuleChecker.legal_cells(rule, position, 1, BallColour.RED).size(), 33)
+
+
+func test_all_fails_when_any_of_its_conditions_fails() -> void:
+	var off_edge: Dictionary = {"part": "count_at_most", "n": 0, "of": {"part": "in_zone", "zone": "edge", "of": {"part": "target"}}}
+	_book.add_template("both", {"blanks": {}, "tree": {"part": "all", "of": [{"part": "all", "of": []}, off_edge]}})
+	var rule: Rule = _book.make_rule({"id": "T2", "text": "Both", "template": "both", "values": {}})
+	assert_true(RuleChecker.is_legal(rule, _empty_position(), 0, BallColour.RED, Vector2i(2, 2)))
+	assert_false(RuleChecker.is_legal(rule, _empty_position(), 0, BallColour.RED, Vector2i(0, 2)))
+
+
 func _sorted(cells: Array[Vector2i]) -> Array[Vector2i]:
 	var copy: Array[Vector2i] = cells.duplicate()
 	copy.sort()
