@@ -14,6 +14,7 @@ extends RefCounted
 ## - filter: the cells of its "of" node that count (Array[Vector2i])
 ## - condition: a pass / fail over cells (bool)
 ## - combiner: a pass / fail over its "of" list of conditions (bool)
+## - group selector and group condition: see GroupParts (rules/group_parts.gd)
 ##
 ## To add a part: write a static function (node, ctx) -> value below and list it
 ## in _parts. JSON numbers arrive as floats, so read counts with int().
@@ -27,6 +28,9 @@ static var _parts: Dictionary[String, Callable] = {
 	"count_at_most": _count_at_most,
 	# Combiners
 	"all": _all,
+	# Group parts (rules/group_parts.gd)
+	"lines_through": GroupParts.lines_through,
+	"no_group_of": GroupParts.no_group_of,
 }
 
 

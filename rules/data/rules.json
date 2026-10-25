@@ -1,3 +1,4 @@
 [
-	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } }
+	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } },
+	{ "id": "R10", "text": "Never complete a line of 3", "template": "no_line_of", "values": { "n": 3 } }
 ]

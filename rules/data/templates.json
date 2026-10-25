@@ -5,5 +5,12 @@
 			"part": "count_at_most", "n": 0,
 			"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } }
 		}
+	},
+	"no_line_of": {
+		"blanks": { "n": [3] },
+		"tree": {
+			"part": "no_group_of", "n": "$n",
+			"of": { "part": "lines_through", "of": { "part": "target" } }
+		}
 	}
 }
