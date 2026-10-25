@@ -44,3 +44,17 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `gui/` — ball, board, rules UI scenes and scripts
 - `rules/` — rule logic (`baserule.gd`, `class_name Rule`)
 - `assets/` — Kenney art assets
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues for BlueDespero/Ballen (via `gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` at the root, ADRs in `docs/adr/`. See `docs/agents/domain.md`.
