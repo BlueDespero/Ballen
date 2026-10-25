@@ -1,10 +1,17 @@
-# Ballen (rulion)
+# Ballen
 
 Godot 4.7, GDScript, static typing. GL Compatibility renderer.
 
 Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 `CharacterBody2D` not `KinematicBody2D`, `@export`/`@onready` annotations,
 `signal.emit()` / `signal.connect(callable)`, `PackedVector2Array`, etc.).
+
+## Design
+
+- `docs/game-design-document.md` is the source of truth for game rules and scope. Read it before
+  changing gameplay, and flag any code that contradicts it.
+- `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
+  colour picks, guessing, difficulty levels).
 
 ## Conventions
 
