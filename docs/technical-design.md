@@ -19,9 +19,9 @@ all run the same code.
 
 | Layer | Holds | Notes |
 | --- | --- | --- |
-| Game model | Board, turn order, colour picks, skips, guesses, move history | Plain GDScript classes, no scene nodes |
-| Rules engine | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules loaded from JSON-ready data |
-| AI | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
+| Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
+| Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
+| AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
 | Scenes / UI | Board (`gui/balls_board.gd`), ball drag (`gui/ball.gd`), rules box, menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table), `Utils` (turn state) | `Utils.player_turn` moves into the game model |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
@@ -31,8 +31,16 @@ all run the same code.
 - `valid_placement()` in `gui/ball.gd` asks the game model instead of checking rules itself.
 - The custom-script fallback gets a fresh base script when it is first needed (the old
   half-written `rules/baserule.gd` stub was deleted).
-- The AI gets a `PublicView` object without the opponent's `true_rule` field. Unit-test that it
-  cannot reach hidden state.
+- The match never acts on its own. A driver (the scene, the AI-vs-AI harness, a test) asks
+  `Match.awaiting_players()`, gets a `Command` from that player's `Controller`
+  (`await controller.decide(match.public_view(player))`) and hands it to `Match.submit()`, which
+  rejects any command illegal for the phase or the player. Human and AI share the `Controller`
+  interface.
+- The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
+  legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
+  A test compares views from matches that differ only in the opponent's true rule.
+- A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
+  random choice goes through an injected, seedable `RandomNumberGenerator`.
 
 ## Rules engine
 
@@ -53,19 +61,37 @@ Example: "Never next to the same colour" = neighbours + same colour + count = 0.
 
 ### Data format
 
-A rule is a **template plus the values in its blanks**. The template holds the hand-written player
-text ("Ball can't be placed in the same ___ as ___") and maps to parts underneath. Built-in and
-player-made rules share one JSON-ready format:
+A rule is a **template plus the values in its blanks**, with an id and its hand-written player text.
+Built-in and player-made rules share one JSON-ready format (`rules/data/rules.json`):
 
 ```json
-{ "template": "not_same_line_as", "values": { "axis": "row", "target": "same_colour" } }
+{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } }
 ```
+
+A template is data too ([ADR 0001](adr/0001-rule-templates-are-data.md), `rules/data/templates.json`):
+its blanks with their allowed values, and a tree of parts. Each node names a part and gives its
+arguments; `"$zone"` is filled with the rule's value for the blank `zone`:
+
+```json
+"not_on_zone": {
+	"blanks": { "zone": ["edge"] },
+	"tree": { "part": "count_at_most", "n": 0,
+		"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } } }
+}
+```
+
+Part implementations live in `rules/parts.gd`. The JSON files are not Godot resources, so an export
+preset must include `*.json` in its non-resource filter.
 
 The catalogue of planned rules lives in [rules-library.md](rules-library.md).
 
 ### Evaluation
 
 - A rule is a pure function: `(context) -> bool` (pass / fail). No side effects, no scene access.
+  The context is the board as it would be after the placement, the target cell, the ball's colour,
+  the rule's holder and the position before the placement (first player, history, skips, turn).
+- `RuleChecker` answers whether a cell is legal for a rule, colour and holder, and lists the legal
+  cells.
 - The same evaluation drives the legal-cell highlights, skip detection, the AI and, later, the server.
 - A rule that doesn't fit the parts gets its own script (fallback), still with the same signature.
 
