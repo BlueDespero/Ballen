@@ -1,8 +1,8 @@
 # Ballen
 
-Ballen is a two-player bluffing and deduction game on a 6 × 6 board. Each player hides one true
-rule among four fakes, places balls to bluff, and wins by naming which of the opponent's rules is
-real. Built with Godot 4.7 and GDScript, for the browser first and mobile later.
+Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one true rule
+among four fakes, places balls that give away as little as possible, and wins by naming which of the
+opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser first and mobile later.
 
 - **Game design:** [docs/game-design-document.md](docs/game-design-document.md)
 - **Technical design:** [docs/technical-design.md](docs/technical-design.md)
@@ -46,8 +46,9 @@ The evidence comes in two strengths:
 - **Hard evidence.** The game enforces your true rule, so a placement that breaks rule *r* proves
   *r* is fake, and a skip rules out every rule that would have allowed a cell. This evidence can
   never mislead.
-- **Soft evidence.** *Which* legal cell you picked hints at your rule, and this is where bluffing
-  works. The AI weighs it with a model of how you play (honest or hiding), so it can be fooled.
+- **Soft evidence.** *Which* legal cell you picked hints at your rule, and this is where hiding
+  works: a cell that satisfies all 5 of your rules reveals nothing. The AI weighs it with a model of
+  how you play (careless or careful), so it can be misled.
 
 The entropy of the belief, between 0 and log₂5 ≈ 2.32 bits, measures how hidden you still are.
 
@@ -62,7 +63,7 @@ The entropy of the belief, between 0 and log₂5 ≈ 2.32 bits, measures how hid
 To stay hidden, the AI also tracks what *you* can deduce about *its* rules, since every move is
 public.
 
-### Bluffing and randomness
+### Staying unpredictable
 
 A predictable hider is easy to read. The AI randomises which rule it makes true and, when it must
 break a fake rule, which one it breaks (mixed strategies, §3.3 Games).
@@ -74,8 +75,11 @@ The levels differ in how the AI models you and how far it thinks ahead, never in
 | Level | Models you as | Thinks ahead |
 | --- | --- | --- |
 | Easy | Placing at random; makes believable mistakes | No lookahead; guesses only when very sure |
-| Normal | Honest player, plus hard evidence | One step |
-| Hard | A player who might be bluffing (level-k reasoning, §3.3.3) | Monte Carlo tree search over sampled futures (§4.6.4, §6.5.4) |
+| Normal | A careless player, plus hard evidence | One step |
+| Hard | A player who deliberately hides (level-k reasoning, §3.3.3) | Monte Carlo tree search over sampled futures (§4.6.4, §6.5.4), also during your turn |
+
+Thinking time is up to 5 seconds and grows with how hard the choice is. On Easy and Normal a long
+pause honestly means the AI is unsure; Hard adds random variation so its pauses can't be read.
 
 All of this stays inside the AI; the game never shows these numbers to the player during a match.
 The full research behind it, with sources, is in

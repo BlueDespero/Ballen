@@ -75,14 +75,15 @@ boards and record the share of placements it forbids. Accept rules that forbid r
 
 ## AI opponent
 
-The AI's design (belief updating, colour picks as information probes, when to guess, bluffing,
+The AI's design (belief updating, colour picks as information probes, when to guess, hiding,
 difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
 and summarised in the README's "How the AI thinks". Implementation notes:
 
 - Exact Bayesian belief over the opponent's 5 rules, with a hard elimination mask and soft scores in
   log space.
 - Easy and Normal use heuristics plus at most one-step lookahead (well under a frame).
-- Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread.
+- Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
+- AI thinking pause: up to 5 s, scaled with decision difficulty; Hard adds random jitter so pauses carry no information.
 - A headless AI-vs-AI harness tunes randomisation and difficulty.
 
 ## Open technical questions

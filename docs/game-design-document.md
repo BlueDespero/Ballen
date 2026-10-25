@@ -8,23 +8,32 @@ This document covers **what** Ballen is and **why**. Detail lives in companion d
 
 ## 1. Game overview
 
-Ballen is a two-player bluffing and deduction game on a 6 × 6 board. Each player hides one true rule among four fakes, places balls to bluff, and wins by naming which of the opponent's rules is real. Anything marked *Open question* still needs a decision.
+Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one true rule among four fakes, places balls that give away as little as possible, and wins by naming which of the opponent's rules is real. Anything marked *Open question* still needs a decision.
 
 | Field | Current answer |
 | --- | --- |
 | Title | Ballen |
-| Elevator pitch | Hide your one true rule among four fakes, bluff with every ball you place, and win by naming your opponent's real rule first. |
-| Genre | Two-player bluffing and deduction / abstract strategy |
+| Elevator pitch | Hide your one true rule among four fakes, give little away with every ball you place, and win by naming your opponent's real rule first. |
+| Genre | Two-player hidden-information duel / abstract strategy |
 | Players | 1 player vs. AI (Easy, Normal, Hard) at launch; online matchmaking in a later release |
 | Platform | Browser first (web build, e.g. on itch.io), then mobile (Android, iOS). Mouse and touch. |
 | Engine | Godot 4.7, GDScript |
 | Target audience | *Open question: e.g. fans of deduction games like Cryptid and Zendo, mobile puzzle players.* |
-| Match length | *Open question: target minutes per match.* |
+| Match length | 5–10 minutes against the AI |
 | Unique selling point | Rules hidden in plain sight: you see all 5 of your opponent's rules and race to work out which one is real, while your own true rule limits what you can do. |
+
+### Design pillars
+
+Every design decision is checked against these four.
+
+1. **Outsmart, don't outluck.** Wins come from reading the opponent's moves and hiding your own, not from lucky colours.
+2. **Fair hidden information.** The AI sees only what you see, the game never deduces for you, and online play keeps secrets on the server.
+3. **Short, sharp matches.** A match takes 5–10 minutes, so it fits a break on a phone.
+4. **Hesitation is defeat.** Every turn you weigh one more clue against the risk that your opponent pulls the trigger first. Guess too early and you're wrong; wait too long and you're beaten.
 
 ## 2. Gameplay & mechanics
 
-A match is a duel of hidden rules. Each player's one true rule decides where they may place; their four fakes exist only to mislead. You win by naming your opponent's true rule, or when they skip 3 times.
+A match is a duel of hidden rules. Each player's one true rule decides where they may place; their four fakes are cover. You win by naming your opponent's true rule, or when they skip 3 times.
 
 ```mermaid
 flowchart TD
@@ -44,7 +53,7 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 
 | Element | How it works |
 | --- | --- |
-| Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. |
+| Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
 | Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. |
 | Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is random. |
 | Placing | Cells legal under your true rule are highlighted, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
@@ -56,12 +65,29 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 
 **Open questions**
 
-- [ ] Who takes the first turn, and does going first need balancing?
+- [ ] Does going first need balancing beyond alternating who starts? (playtest)
 - [ ] Ratio of true to fake rules: keep 1 / 4, or try 2 / 6? (playtest)
 - [ ] Wrong guesses before losing: 1 or 2? (playtest)
 - [ ] Does the colour pick need limits, e.g. not the same colour twice in a row? (playtest)
 - [ ] With 2 true rules, must a guess name both?
 - [ ] Turn time limit for online play?
+
+### The AI opponent
+
+You play against an AI that plays by the same rules and sees only what you see. Its levels differ in how well it reads your moves and hides its own, never in what it knows.
+
+| Level | How it plays (shown in match setup) |
+| --- | --- |
+| Easy | Learns slowly and gives a lot away. |
+| Normal | Reads your moves and keeps its own rule well hidden. |
+| Hard | Gives almost nothing away, reads every move, and never hesitates. |
+
+- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each match. Difficulty changes only how it plays, never which rules it gets.
+- **Silent:** no lines or reactions, so it never leaks what it knows.
+- **Thinking time:** up to 5 seconds, longer on harder choices. On Easy and Normal a longer pause honestly means it is less sure, a tell attentive players can read. Hard adds random variation so its pauses can't be read.
+- **Hard thinks on your turn too:** it keeps computing while you play, so its full search isn't limited to its own 5 seconds.
+
+How the AI decides is in the [AI research notes](ai-decision-theory-research.md).
 
 ## 3. Progression & content
 
@@ -93,16 +119,38 @@ Ballen is currently an abstract game with no story, which is normal for the genr
 
 Ballen is played by drag and drop with mouse or touch. On your turn the cells your true rule allows are highlighted, so nobody has to work out legality in their head; a drop anywhere else snaps the ball back.
 
+### Game flow
+
+```mermaid
+flowchart TD
+    menu["Main menu<br/>How to Play glows until first opened"] --> play["Play vs AI"]
+    menu --> decks["Decks<br/>build and edit decks"]
+    menu --> how["How to Play<br/>text guide, tutorial"]
+    menu --> settings["Settings<br/>audio, colour-blind"]
+    how --> tutorial["Tutorial (optional)<br/>rules intro → first deck → guided match"]
+    play --> has{"Have a deck?"}
+    has -- no --> guided["Guided deck builder<br/>simple rules, change later"]
+    guided --> setup["Match setup<br/>deck, level, true rule"]
+    has -- yes --> setup
+    setup --> match["Match<br/>5–10 minutes"]
+    match --> endscreen["Match end<br/>true rules revealed"]
+    endscreen -- "Rematch: same deck and level, pick a true rule" --> setup
+    endscreen --> back["Main menu"]
+```
+
+New players are never forced through the tutorial: How to Play glows until first opened, and anyone without a deck is led through the guided deck builder before their first match.
+
 | Screen | Contents | Status |
 | --- | --- | --- |
-| Main menu | Single Player, Quit; later Online and Deck builder | Built (`gui/menus/main_menu.tscn`) |
-| Deck builder | Choose 5 rules from the library and save decks; later the template editor for player-made rules | Not started |
-| Match setup | Pick a deck, mark its true rule, choose AI level (Easy, Normal, Hard) | Not started |
+| Main menu | Play vs AI, Decks, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
+| How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
+| Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
+| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start | Not started |
 | Game screen | Board, your ball, colour picker for the opponent's next ball, both rule lists, skip counters, Guess button | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
 | History | Step back and forward through board states; each turn's ball or skipped colour highlighted | Not started |
-| Pause / settings | *Open question* | Not started |
-| Match end | Win, lose or draw. *Open question: reveal both true rules, rematch button?* | Not started |
+| Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Not started |
+| Settings | Audio, colour-blind mode, language; Quit on desktop | Not started |
 
 **Layout:** portrait window, 512 × 704 px, which suits both phones and the browser. The 6 × 6 board sits between the opponent's area at the top and yours at the bottom.
 
@@ -138,7 +186,7 @@ The next milestone is a playable prototype: one full match against a simple AI, 
 
 1. **Prototype** — game model and rules engine, a handful of rules, highlights, colour picks, skips, guessing, a simple AI, match result
 2. **Rules & decks** — a larger rule library, deck builder and match setup screens
-3. **AI levels** — Easy, Normal, Hard, each deducing and bluffing fairly
+3. **AI levels** — Easy, Normal, Hard, each deducing and hiding fairly
 4. **Vertical slice** — notes, history, feedback effects, sound, match-end screen
 5. **Browser release** — web build for playtesting (e.g. itch.io); tune rule ratio, wrong guesses and colour picks
 6. **Mobile release** — Android and iOS builds, touch polish
