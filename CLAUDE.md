@@ -56,9 +56,10 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 ## Layout
 
 - `main.tscn` / `main_game.tscn` — entry scenes
-- `gui/` — ball, board, rules UI scenes and scripts
+- `gui/` — board, ball, colour picker, rules panel and menu scenes and scripts
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Command`,
-  `HistoryEntry`, `PublicView`, `Controller`; plain `RefCounted`, no scene nodes
+  `HistoryEntry`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`; plain `RefCounted`,
+  no scene nodes
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `RuleChecker`; rule and template data in `rules/data/`
 - `ai/` — AI controller
 - `assets/` — Kenney art assets

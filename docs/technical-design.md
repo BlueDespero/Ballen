@@ -22,20 +22,23 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
-| Scenes / UI | Board (`gui/balls_board.gd`), ball drag (`gui/ball.gd`), rules box, menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
 ### Key decisions
 
-- `valid_placement()` in `gui/ball.gd` asks the game model instead of checking rules itself.
+- The dragged ball (`gui/ball_view.gd`) asks the match whether the cell under it is legal
+  (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`.
 - The custom-script fallback gets a fresh base script when it is first needed (the old
   half-written `rules/baserule.gd` stub was deleted).
 - The match never acts on its own. A driver (the scene, the AI-vs-AI harness, a test) asks
   `Match.awaiting_players()`, gets a `Command` from that player's `Controller`
   (`await controller.decide(match.public_view(player))`) and hands it to `Match.submit()`, which
   rejects any command illegal for the phase or the player. Human and AI share the `Controller`
-  interface.
+  interface. `MatchDriver` runs that loop for the scene, waiting a random 0.5–1.5 s (seeded RNG,
+  injected wait) before each AI action; the player's `HumanController` waits until the scene hands
+  it the command from a drop or a colour button.
 - The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
   A test compares views from matches that differ only in the opponent's true rule.
