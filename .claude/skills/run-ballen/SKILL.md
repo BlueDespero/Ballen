@@ -30,38 +30,55 @@ godot --headless --path . --import
 One process per script of commands; read the `[driver]` lines on stdout, look at the PNGs.
 
 ```powershell
-# Menu -> Single Player -> drag the ball onto the player board -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:256,297 wait:10 drag:30,670,170,470 wait:5 get:Ball:position ss:placed
+# Menu -> Single Player -> (pick the AI's first colour if you go second) -> wait for your turn
+# -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:120 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
-Prints `Ball.position = (160.0, 480.0)` (snapped to the cell centre) and writes
-`.claude/skills/run-ballen/out/placed.png` (gitignored). Exit code 0; 1 on an unknown command.
+Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends your turn.` and writes
+`.claude/skills/run-ballen/out/turn.png` (gitignored). Exit code 0; 1 on an unknown command.
 
 | command | what it does |
 |---|---|
 | `wait:N` | let N frames pass |
+| `until:NODE/PATH:prop=VALUE` | wait until `str(prop) == VALUE`, at most 600 frames; prints `met` or `TIMED OUT` |
 | `click:X,Y` | left press + release at viewport pixel X,Y |
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
+| `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
 | `tree` | print the current scene tree |
 | `get:NODE/PATH:prop` | print a property; path is relative to the current scene |
 | `scene:res://…tscn` | switch scene directly, skipping the menu |
 | `quit` | exit (appended automatically) |
 
-**Logic-only checks without a window** (doesn't touch your mouse; `ss` errors and is skipped):
+**State-only checks without a window** (doesn't touch your mouse; `ss` errors and is skipped).
+Headless runs read state only: clicks, drags and touches reach no control, so play needs a window.
 
 ```powershell
-godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn get:Ball/BallSprite:modulate get:Ball:position
+godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:120 get:Layout/Status:text get:Layout/PlayerBall:draggable
 ```
 
-### Layout (viewport is 512×704, no stretch, so viewport px = window px)
+### Layout (landscape: 1280×720 base, stretch `canvas_items`, aspect `expand`)
 
-- Main menu buttons (centre x 256): Single Player y=297, Loadout y=334, Options y=370, Quit y=407.
-- Board tiles are 64 px. Cell `(col,row)` centre is `(64*col+32, 64*row+32)`.
-  Player board: cols 1–5, rows 6–10. Opponent board: cols 1–5, rows 0–4. Rule columns: cols 6–7.
-- Ball spawn: `(30,670)`. Dropping outside the player board sends it back there.
-- After Single Player, the current scene is `MainGame` (paths like `Ball`, `Board/PlayerBoard`).
-  Before it, it's `Main` (paths like `MainMenu/GameButtons/SinglePlayerButton`, `MainGame/Ball`).
+At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
+layout and centres it, so these coordinates no longer hold.
+
+- Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414.
+- The match scene's nodes sit under `Layout` (a centred 1280×720 control).
+- Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
+  bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
+- Your waiting ball: `Layout/PlayerBall`, centre (440,660); `draggable` is true on your placement turn.
+  A drop on a non-legal cell or off the board snaps it back to `position (408,628)`.
+- Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
+  green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second).
+- The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
+- `Layout/Status` (left column) says whose turn it is and what to do; read it with `get`.
+- Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (rows y≈94–286), a free slot
+  for Guess (y≈340), yours below (y≈454–646) with the true one highlighted.
+- Free room kept for later tickets: row labels left of the board (x≈176–196), skip pips beside each
+  panel title (`%AISkipPips`, `%PlayerSkipPips`), the Guess slot (`%GuessSlot`).
+- After Single Player, the current scene is `MainGame`; before it, `Main`
+  (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
 ## Run (human path)
 
@@ -81,17 +98,17 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
 
 ## Gotchas
 
-- **Windowed runs take over your real mouse cursor.** `Viewport.get_mouse_position()` reads the OS
-  cursor, not injected events, and `gui/ball.gd` follows it while dragging. So the driver
-  `Input.warp_mouse`s as well as injecting events. Without it the ball flew to wherever the real
-  cursor was (`Ball.position = (935.0, 544.0)`) and never got its release. Don't move the mouse during a
-  windowed run.
+- **Windowed runs take over your real mouse cursor**: the driver `Input.warp_mouse`s as well as
+  injecting events, because `Viewport.get_mouse_position()` reads the OS cursor. Keep your hands off
+  the mouse during a windowed run.
 - **`ss` under `--headless` used to hang forever**: nothing draws, so `frame_post_draw` never fires.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
-- **The main menu is drawn on top of the game board**, which shows through it (see a menu
-  screenshot). That's the current game, not a driver artefact.
-- **Ball colour is random each run** (`main_game.gd`), so screenshots differ in colour; read
-  `Ball/BallSprite:modulate` when it matters.
+- **Every match is random**: the coin toss, the AI's colours, cells and pauses are unseeded. If you go
+  second, the first thing the match waits for is your colour pick (`Layout/Status` says so), so
+  `until:Layout/PlayerBall:draggable=true` times out; click a colour first. Clicking a disabled picker
+  does nothing, so `wait:120 click:624,660` at the start is safe either way.
+- **Skips aren't built yet** (#47): with R04 as both true rules the 16 inner cells fill up and the
+  match stops, with `Layout/Status` saying who has no legal cell.
 - Files under `.claude/` are invisible to Godot's import (dot-folder), so `out/` PNGs and the driver
   get no `.uid`/`.import` files. `-s` and `res://.claude/...` paths still load fine.
 
