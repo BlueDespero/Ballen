@@ -18,7 +18,7 @@ Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hi
 | Players | 1 player vs. AI (Easy, Normal, Hard) at launch; online matchmaking in a later release |
 | Platform | Browser first (web build, e.g. on itch.io), then mobile (Android, iOS). Mouse and touch. |
 | Engine | Godot 4.7, GDScript |
-| Target audience | *Open question: e.g. fans of deduction games like Cryptid and Zendo, mobile puzzle players.* |
+| Target audience | Deduction fans, 16+, who want a tense 5–10 minute match on phone or browser |
 | Match length | 5–10 minutes against the AI |
 | Unique selling point | Rules hidden in plain sight: you see all 5 of your opponent's rules and race to work out which one is real, while your own true rule limits what you can do. |
 
@@ -100,20 +100,18 @@ The rules library is Ballen's main content. Every rule is plain data assembled f
 **Decks and player-made rules**
 
 - A deck is 5 rules, saved and reused; the true rule is chosen at the start of each match.
-- All built-in rules are available at launch; unlocking rules may become the progression system later.
+- Every rule is available to every player from the start; there are no rule unlocks.
 - Player-made rules come in a later release: fill-in-the-blank templates with dropdowns. A strictness check tests each new rule on many random boards and accepts it only if it forbids roughly 20–60% of placements (thresholds set in playtesting).
+
+**Progression is cosmetic.** Every duel earns a reward that buys ball skins, board themes and guess effects (see Business model). Nothing a player earns or buys makes them stronger.
 
 **Open questions**
 
-- [ ] Progression: what do players earn (rules, cosmetics, ranks)?
 - [ ] Modes beyond single matches vs. AI, e.g. a puzzle campaign?
 
-## 4. Story, setting & tone
+## 4. Setting & tone
 
-Ballen is currently an abstract game with no story, which is normal for the genre. Decide early whether it stays that way, because the answer shapes art and audio.
-
-- [ ] Pure abstract, or a light theme (e.g. a character, a world, a framing device)?
-- [ ] Tone in three words (e.g. calm, clever, playful)
+Ballen is an abstract duel with no story: two sides of one board face off, and the guess is the moment someone pulls the trigger. Everything should feel **tense, clever and elegant**: calm, minimal visuals and sound, with the tension coming from play rather than decoration.
 
 ## 5. Interface & controls
 
@@ -150,7 +148,7 @@ New players are never forced through the tutorial: How to Play glows until first
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
 | History | Step back and forward through board states; each turn's ball or skipped colour highlighted | Not started |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Not started |
-| Settings | Audio, colour-blind mode, language; Quit on desktop | Not started |
+| Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
 
 **Layout:** portrait window, 512 × 704 px, which suits both phones and the browser. The 6 × 6 board sits between the opponent's area at the top and yours at the bottom.
 
@@ -160,19 +158,21 @@ New players are never forced through the tutorial: How to Play glows until first
 
 ## 6. Art & audio
 
-Art uses Kenney assets for now, with one ball sprite tinted at runtime to yellow, blue, red or green. Audio has not been started.
+The prototype uses free [Kenney](https://kenney.nl) assets (CC0: free for commercial use, credit appreciated, Kenney's logo is reserved for his own projects). Before release they are replaced by custom minimal vector art. Audio is calm music that builds tension as the board fills and skips mount, with crisp sounds for placing and pulling the trigger.
 
-| Asset group | Needed | Status |
-| --- | --- | --- |
-| Balls | One sprite, 4 colour tints | Done (Kenney + `Constants.colors`) |
-| Board | Tile set for the grid | In use (Kenney) |
-| UI / menus | Buttons, rule cards, fonts | Partly done |
-| Effects | Legal-cell highlight; place, skip, guess and win feedback | Not started |
-| Sound effects | Pick up, place, skip, guess, turn change | Not started |
-| Music | Menu and in-game tracks | Not started |
+| Asset group | Prototype source | Release | Status |
+| --- | --- | --- | --- |
+| Board, balls, tokens | [Board Game Pack](https://kenney.nl/assets/boardgame-pack) | Custom vector art | Swap from current pixel UI and platformer tiles |
+| Menus, panels, buttons | [UI Pack 2.0](https://kenney.nl/assets/ui-pack) | Custom vector art | Swap from UI Pack – Pixel Adventure |
+| Icons, colour-blind symbols | [Game Icons](https://kenney.nl/assets/game-icons) | Custom symbols | Not started |
+| Fonts | [Kenney Fonts](https://kenney.nl/assets/kenney-fonts) | To decide | Not started |
+| Effects | Godot shaders and particles | Same | Not started |
+| Sound effects | [Interface Sounds](https://kenney.nl/assets/interface-sounds), [UI Audio](https://kenney.nl/assets/ui-audio), [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Same or custom | Not started |
+| Jingles | [Music Jingles](https://kenney.nl/assets/music-jingles) (win, lose, draw) | Same or custom | Not started |
+| Music | CC0 / royalty-free library, layered so intensity can rise; licence checked per track | Same | Not started |
 
-- [ ] Keep the Kenney look, or move to custom art later?
-- [ ] Colour-blind support: add a shape or pattern per ball colour?
+- **Colour-blind mode (optional, in Settings):** adds a distinct symbol to each ball colour. Every ball skin must support it.
+- **Credits (Settings → Credits):** Kenney and every music source, credited by name with a link; no third-party logos.
 
 ## 7. Technical overview
 
@@ -192,4 +192,24 @@ The next milestone is a playable prototype: one full match against a simple AI, 
 6. **Mobile release** — Android and iOS builds, touch polish
 7. **Later** — online matchmaking, player-made rules, rule unlocks
 
-**Out of scope for the first release:** online multiplayer and player-made rules (both planned later), story, monetisation. *Open question: confirm story and monetisation.*
+**Out of scope for the first release:** online multiplayer and player-made rules (both planned later). Ballen has no story.
+
+## 9. Business model
+
+Ballen is free, earns from opt-in ads on mobile, and never sells an advantage: every rule is free to every player, and money or rewards only buy looks.
+
+| Version | Ads | Duel rewards |
+| --- | --- | --- |
+| Mobile, free | Opt-in only: after a duel, watch one ad to double that duel's reward. Never during play. | Normal, or doubled by the ad |
+| Mobile, paid (one-off) | None | Always doubled |
+| Browser | None | Normal |
+
+- **Rewards:** every duel pays. A win pays more than a draw, a draw more than a loss, and harder AI levels pay more.
+- **Cosmetics:** rewards buy ball skins, board themes and guess effects. Skins must keep colours readable and support colour-blind symbols.
+- **Never for sale:** rules, hints, extra guesses, or anything else that helps you win.
+
+**Open questions**
+
+- [ ] Where are cosmetics bought and equipped (a shop or collection screen)?
+- [ ] Reward amounts and cosmetic prices (tune in playtesting).
+- [ ] Price of the paid version.
