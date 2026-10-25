@@ -33,6 +33,16 @@ func current_player() -> int:
 	return first_player if turn % 2 == 1 else Players.opponent(first_player)
 
 
+## The player's most recent placement, or null before their first one. Other
+## events (colour picks, and skips once they exist) never change it.
+func last_placement(player: int) -> HistoryEntry:
+	for i: int in range(history.size() - 1, -1, -1):
+		var entry: HistoryEntry = history[i]
+		if entry.type == HistoryEntry.Type.PLACEMENT and entry.player == player:
+			return entry
+	return null
+
+
 ## A deep copy that shares no mutable state with this position.
 func copy() -> MatchPosition:
 	var position: MatchPosition = MatchPosition.new(board.copy(), first_player)

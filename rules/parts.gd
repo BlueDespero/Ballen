@@ -27,6 +27,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"in_zone": _in_zone,
 	"same_colour": _same_colour,
 	"opponent_ball": _opponent_ball,
+	"my_last_ball": _my_last_ball,
 	"empty": _empty,
 	# Conditions
 	"count_at_most": _count_at_most,
@@ -107,6 +108,18 @@ static func _opponent_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vec
 	for cell: Vector2i in _cells(node.of, ctx):
 		var ball: Ball = ctx.board.ball_at(cell)
 		if ball != null and ball.owner == opponent:
+			kept.append(cell)
+	return kept
+
+
+## The cell of the holder's last ball, when it is among the cells of "of";
+## nothing before the holder's first placement.
+## {"part": "my_last_ball", "of": ...}
+static func _my_last_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var last: Array[Vector2i] = ctx.last_ball(ctx.holder)
+	for cell: Vector2i in _cells(node.of, ctx):
+		if last.has(cell):
 			kept.append(cell)
 	return kept
 

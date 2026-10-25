@@ -22,3 +22,13 @@ func _init(p_position: MatchPosition, p_holder: int, p_colour: String, p_target:
 	colour = p_colour
 	target = p_target
 	board = p_position.board.with_ball(p_target, Ball.new(p_colour, p_holder))
+
+
+## The cell of the player's last ball (their most recent placement before this
+## one) as a list of one cell; empty before their first placement.
+func last_ball(player: int) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	var entry: HistoryEntry = position.last_placement(player)
+	if entry != null:
+		cells.append(entry.cell)
+	return cells
