@@ -16,6 +16,12 @@ func _r04_match(seed_value: int) -> Match:
 	return Fixtures.new_match(_book, r04, r04, seed_value)
 
 
+## A match past the first colour pick: the first player is to place red.
+func _started(game: Match) -> Match:
+	game.submit(Players.opponent(game.first_player()), Command.pick_colour(BallColour.RED))
+	return game
+
+
 func test_the_coin_toss_follows_the_seeded_rng() -> void:
 	assert_eq(_r04_match(7).first_player(), _r04_match(7).first_player())
 	var firsts: Array[int] = []
@@ -90,3 +96,45 @@ func test_a_placement_before_the_first_colour_pick_is_rejected() -> void:
 	assert_false(game.submit(game.first_player(), Command.place(Vector2i(2, 2))))
 	assert_false(game.submit(Players.opponent(game.first_player()), Command.place(Vector2i(2, 2))))
 	assert_eq(game.history().size(), 0)
+
+
+func test_the_current_player_places_on_a_legal_cell() -> void:
+	var game: Match = _started(_r04_match(1))
+	var first: int = game.first_player()
+	assert_true(game.submit(first, Command.place(Vector2i(2, 3))))
+	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
+	var last: HistoryEntry = game.history().back()
+	assert_eq(last.type, HistoryEntry.Type.PLACEMENT)
+	assert_eq(last.player, first)
+	assert_eq(last.cell, Vector2i(2, 3))
+	assert_eq(last.colour, BallColour.RED)
+
+
+func test_a_placement_on_a_cell_the_true_rule_forbids_is_rejected() -> void:
+	var game: Match = _started(_r04_match(1))
+	assert_false(game.submit(game.first_player(), Command.place(Vector2i(0, 3))))
+	assert_false(game.submit(game.first_player(), Command.place(Vector2i(9, 9))))
+	assert_eq(game.phase(), Match.Phase.PLACE)
+	assert_eq(game.history().size(), 1)
+
+
+func test_the_opponent_cannot_place_on_the_current_players_turn() -> void:
+	var game: Match = _started(_r04_match(1))
+	assert_false(game.submit(Players.opponent(game.first_player()), Command.place(Vector2i(2, 3))))
+	assert_eq(game.phase(), Match.Phase.PLACE)
+
+
+func test_a_second_placement_in_the_same_turn_is_rejected() -> void:
+	var game: Match = _started(_r04_match(1))
+	game.submit(game.first_player(), Command.place(Vector2i(2, 3)))
+	assert_false(game.submit(game.first_player(), Command.place(Vector2i(3, 3))))
+	assert_eq(game.history().size(), 2)
+
+
+func test_the_match_lists_the_current_players_legal_cells() -> void:
+	var game: Match = _started(_r04_match(1))
+	assert_eq(game.legal_cells().size(), 16)
+	assert_true(game.is_legal(Vector2i(1, 1)))
+	assert_false(game.is_legal(Vector2i(0, 0)))
+	game.submit(game.first_player(), Command.place(Vector2i(1, 1)))
+	assert_eq(game.legal_cells().size(), 0, "no legal cells outside the PLACE phase")

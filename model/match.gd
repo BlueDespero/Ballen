@@ -85,15 +85,43 @@ func history() -> Array[HistoryEntry]:
 	return _position.copy().history
 
 
+## The current player's legal cells for the current colour, under their true
+## rule; empty outside the PLACE phase. Drives highlights and the drop check.
+func legal_cells() -> Array[Vector2i]:
+	if _phase != Phase.PLACE:
+		return []
+	var player: int = current_player()
+	return RuleChecker.legal_cells(_true_rules[player], _position, player, _position.colour)
+
+
+## Whether the current player may place the current ball on this cell now.
+func is_legal(cell: Vector2i) -> bool:
+	if _phase != Phase.PLACE:
+		return false
+	var player: int = current_player()
+	return RuleChecker.is_legal(_true_rules[player], _position, player, _position.colour, cell)
+
+
 ## Hands a player's command to the match. Returns false, changing nothing,
 ## when the command is illegal for the phase or the player.
 func submit(player: int, command: Command) -> bool:
 	if command == null or not awaiting_players().has(player):
 		return false
 	match command.type:
+		Command.Type.PLACE:
+			return _place(player, command.cell)
 		Command.Type.PICK_COLOUR:
 			return _pick_colour(player, command.colour)
 	return false
+
+
+func _place(player: int, cell: Vector2i) -> bool:
+	if not is_legal(cell):
+		return false
+	_position.board.place(cell, Ball.new(_position.colour, player))
+	_position.history.append(HistoryEntry.placement(player, cell, _position.colour))
+	_phase = Phase.PICK_COLOUR
+	return true
 
 
 func _pick_colour(player: int, colour: String) -> bool:
