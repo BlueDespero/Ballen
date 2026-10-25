@@ -21,7 +21,7 @@ A dash means not measured yet.
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | target = opponent ball | Idea | – | – |
 | R08 | Not next to the ball you placed last | History | `not_next_to` | target = my last ball | Idea | – | – |
 | R09 | Never in the same row as your previous ball | History | `not_same_line_as` | axis = row, target = my last ball | Idea | – | – |
-| R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Idea | – | – |
+| R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | – | – |
 | R11 | At least 2 cells from any red | Geometry | `min_distance_from` | target = red, n = 2 | Idea | – | – |
 | R12 | Diagonal check | Geometry | `diagonal_check` | – | Idea | – | – |
 | R13 | Must touch an existing ball | Connection | `must_touch` | target = any ball | Idea | – | – |
