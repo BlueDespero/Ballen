@@ -87,6 +87,18 @@ func test_rule_data_missing_a_blank_is_rejected() -> void:
 	assert_push_error("no value for blank")
 
 
+func test_a_rule_file_that_does_not_parse_gives_an_empty_book() -> void:
+	var book: RuleBook = RuleBook.load_files("res://rules/data/missing.json", RuleBook.RULES_PATH)
+	assert_eq(book.rule_ids(), [] as Array[String])
+	assert_push_error("could not read")
+
+
+func test_template_data_that_is_not_an_object_gives_an_empty_book() -> void:
+	var book: RuleBook = RuleBook.load_files(RuleBook.RULES_PATH, RuleBook.RULES_PATH)
+	assert_eq(book.rule_ids(), [] as Array[String])
+	assert_push_error("must be")
+
+
 func test_a_permissive_rule_defined_as_data_allows_every_empty_cell() -> void:
 	_book.add_template("anywhere", {"blanks": {}, "tree": {"part": "all", "of": []}})
 	var rule: Rule = _book.make_rule({"id": "T1", "text": "Anywhere", "template": "anywhere", "values": {}})

@@ -18,11 +18,25 @@ var _rules: Dictionary[String, Rule] = {}
 
 ## The built-in templates and rules from rules/data/.
 static func load_default() -> RuleBook:
+	return load_files(TEMPLATES_PATH, RULES_PATH)
+
+
+## Templates and rules from two JSON files: an object of templates by id and
+## an array of rules. If either file can't be read or has the wrong shape, the
+## book is empty (and an error is reported).
+static func load_files(templates_path: String, rules_path: String) -> RuleBook:
 	var book: RuleBook = RuleBook.new()
-	var templates: Dictionary = _read_json(TEMPLATES_PATH)
+	var parsed_templates: Variant = _read_json(templates_path)
+	var parsed_rules: Variant = _read_json(rules_path)
+	if parsed_templates == null or parsed_rules == null:
+		return book
+	if not parsed_templates is Dictionary or not parsed_rules is Array:
+		push_error("RuleBook: %s must be an object and %s an array" % [templates_path, rules_path])
+		return book
+	var templates: Dictionary = parsed_templates
 	for template_id: String in templates:
 		book.add_template(template_id, templates[template_id])
-	var rules: Array = _read_json(RULES_PATH)
+	var rules: Array = parsed_rules
 	for data: Dictionary in rules:
 		var rule: Rule = book.make_rule(data)
 		if rule != null:
@@ -106,8 +120,10 @@ static func _parts_exist(node: Variant) -> bool:
 	return true
 
 
+## The parsed file; null (and an error) if it is missing or isn't valid JSON.
 static func _read_json(path: String) -> Variant:
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if parsed == null:
+	var json: JSON = JSON.new()
+	if not FileAccess.file_exists(path) or json.parse(FileAccess.get_file_as_string(path)) != OK:
 		push_error("RuleBook: could not read %s" % path)
-	return parsed
+		return null
+	return json.data
