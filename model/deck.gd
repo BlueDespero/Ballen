@@ -31,6 +31,12 @@ static func draw(book: RuleBook, rng: RandomNumberGenerator) -> Deck:
 	return Deck.new(drawn)
 
 
+## One of the deck's rules at random, using only rng: a true rule for a
+## player who doesn't choose one (the AI, the harness).
+func random_rule(rng: RandomNumberGenerator) -> Rule:
+	return rules[rng.randi_range(0, rules.size() - 1)]
+
+
 func has(rule: Rule) -> bool:
 	return rules.has(rule)
 

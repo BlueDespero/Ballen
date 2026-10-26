@@ -35,7 +35,7 @@ static func play(book: RuleBook, seed_value: int) -> MatchRecord:
 	for player: int in Players.COUNT:
 		var deck: Deck = Deck.draw(book, rng)
 		decks.append(deck)
-		true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
+		true_rules.append(deck.random_rule(rng))
 		ais.append(AIController.new(rng))
 	var current_match: Match = Match.create(decks, true_rules, rng)
 	play_out(current_match, ais)

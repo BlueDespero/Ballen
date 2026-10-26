@@ -143,7 +143,7 @@ func test_over_many_seeded_matches_the_true_rule_is_never_ruled_out() -> void:
 		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
 		var true_rules: Array[Rule] = []
 		for deck: Deck in decks:
-			true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
+			true_rules.append(deck.random_rule(rng))
 		var current_match: Match = Match.create(decks, true_rules, rng)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
 		while current_match.phase() != Match.Phase.OVER:

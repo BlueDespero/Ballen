@@ -83,7 +83,7 @@ func test_over_seeded_ai_matches_through_the_driver_every_guess_is_right() -> vo
 		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
 		var true_rules: Array[Rule] = []
 		for deck: Deck in decks:
-			true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
+			true_rules.append(deck.random_rule(rng))
 		var current_match: Match = Match.create(decks, true_rules, rng)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
 		await MatchDriver.new(current_match, controllers, [], rng, func(_seconds: float) -> void: pass).run()
