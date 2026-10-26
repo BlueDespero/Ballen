@@ -109,6 +109,15 @@ layout and centres it, so these coordinates no longer hold.
   `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 wait:40 ss:end click:364,540`.
   A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
   `The AI skipped for the third time.`
+- Full board: the placement that fills it brings no colour pick. When your forced guess is due,
+  `Layout/RulesPanel:seal_enabled` is true, the Seal button shows and `Layout/Status` starts
+  `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
+  stays too (`guess_enabled` true; right wins, wrong loses) and Seal sits left of it, centre
+  (1022,356); otherwise Seal alone takes Guess's place, centre (1188,344). A sealed guess stays
+  sealed (the status says so) until the AI's is in, then the match-end screen shows `You win`,
+  `You lose` or `Draw`. A full board takes 36 placements; to
+  check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full
+  `MatchPosition` (see `Fixtures.nearly_full_match` in `test/helpers/fixtures.gd`) and don't commit it.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
