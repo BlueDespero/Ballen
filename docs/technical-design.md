@@ -22,7 +22,7 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
-| Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
@@ -47,7 +47,12 @@ all run the same code.
   selects one of the AI's rules and holds Guess (`gui/guess_button.gd`) for about a second.
 - The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
-  A test compares views from matches that differ only in the opponent's true rule.
+  A test compares views from matches that differ only in the opponent's true rule. Once the match is
+  over, the view reveals both true rules (`revealed_true_rules`, empty while the match runs).
+- The match-end screen (`gui/match_end_overlay.tscn`) shows what `MatchEndSummary.from_view()` makes
+  of the player's finished view: win, lose or draw, how the match ended (a guess, a third skip or both
+  forced guesses, read from the result and the guesses at the end of the history) and both true
+  rules. The rules panel marks the AI's true rule. Main menu returns to `main.tscn`.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
 - `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
