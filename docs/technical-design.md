@@ -222,6 +222,15 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
   is bad), 0 otherwise.
 - Same seed, same output. 100 matches take about 40 s (about 0.4 s a match).
 
+## Tests
+
+GUT tests in `test/`, one folder per code folder, run headless (the command is in `CLAUDE.md`). They test
+through the public seams only: the match (commands in; phase, result, history and `PublicView` out),
+`RuleChecker` (rule data, position, holder and colour in; legal or not, legal cells out), the AI
+(`PublicView` in, `Command` out), the harness, and scene-free helpers such as `MatchSetup` and
+`MatchEndSummary`. Every RNG is seeded. `test/helpers/fixtures.gd` builds rule books, decks and
+matches, including permissive rules written as data.
+
 ## Daily duel
 
 - Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its true rule, its colour choices and who starts, so every player faces the same opponent.
