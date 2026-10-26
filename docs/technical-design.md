@@ -93,6 +93,20 @@ Some rules judge groups of cells rather than single cells. A group selector yiel
 group condition judges them (`rules/group_parts.gd`). Example: "Never complete a line of 3" = the lines
 through the target (one per direction: horizontal, vertical, both diagonals) + no group of 3 or more.
 
+Built so far, enough for the milestone 1 rules:
+
+| Kind | Parts |
+| --- | --- |
+| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row) |
+| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `opponent_ball`; `my_last_ball`; `empty` |
+| Condition | `count_at_most`; `count_at_least` |
+| Combiner | `all` (with an empty list it always passes: the permissive rule tests use) |
+| Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
+
+Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
+(`Board.row_number`). In template ids and blanks a row or column is an `axis` (only rows are built);
+"line" means only a line of one colour, as in the [glossary](../GLOSSARY.md).
+
 ### Data format
 
 A rule is a **template plus the values in its blanks**, with an id and its hand-written player text.
