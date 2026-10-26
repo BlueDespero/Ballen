@@ -7,29 +7,37 @@ extends Controller
 ## names it once its guess policy fires, which it checks at the start of its
 ## turn and after it places or skips; on a full board its forced guess names a
 ## random remaining candidate. To hide its true rule it places on a legal
-## cell satisfying the most of its own deck rules, ties broken at random. It
-## picks a random colour for now.
+## cell satisfying the most of its own deck rules, ties broken at random. Its
+## colour-pick strategy chooses the colour expected to teach it the most.
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
+var _colour_pick: ColourPickStrategy
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
 ## guess_policy decides when to guess; the default guesses when one candidate
-## remains.
-func _init(rng: RandomNumberGenerator, guess_policy: GuessPolicy = GuessPolicy.new()) -> void:
+## remains. colour_pick chooses the opponent's colour; the default is the
+## uniform model.
+func _init(
+	rng: RandomNumberGenerator,
+	guess_policy: GuessPolicy = GuessPolicy.new(),
+	colour_pick: ColourPickStrategy = ColourPickStrategy.new(),
+) -> void:
 	_rng = rng
 	_guess_policy = guess_policy
+	_colour_pick = colour_pick
 
 
 func decide(view: PublicView) -> Command:
+	var candidates: Array[Rule] = Deduction.candidates(view)
 	if view.can_guess():
-		var guess: Rule = _guess_policy.choose(Deduction.candidates(view))
+		var guess: Rule = _guess_policy.choose(candidates)
 		if guess != null:
 			return Command.guess(guess.id)
 	match view.phase:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
-			return Command.pick_colour(_pick(BallColour.ALL))
+			return Command.pick_colour(_colour_pick.choose(view, candidates, _rng))
 		Match.Phase.PLACE:
 			var cells: Array[Vector2i] = _best_cells(view)
 			if cells.is_empty():
@@ -37,7 +45,7 @@ func decide(view: PublicView) -> Command:
 			return Command.place(_pick(cells))
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
-				return Command.forced_guess(_pick(Deduction.candidates(view)).id)
+				return Command.forced_guess(_pick(candidates).id)
 	return null
 
 
