@@ -39,6 +39,12 @@ all run the same code.
   interface. `MatchDriver` runs that loop for the scene, waiting a random 0.5–1.5 s (seeded RNG,
   injected wait) before each AI action; the player's `HumanController` waits until the scene hands
   it the command from a drop or a colour button.
+- A guess is a command like any other (`Command.guess(rule_id)`, naming a rule of the opponent's deck).
+  The match accepts it only in the current player's guess windows, the `PLACE` phase (before placing)
+  and the `PICK_COLOUR` phase (after placing or skipping, until the colour pick); `PublicView.can_guess()`
+  tells a controller when its window is open. A right guess wins and a wrong one loses at once, and
+  history records the guesser, the named rule and whether it was right. In the scene the player
+  selects one of the AI's rules and holds Guess (`gui/guess_button.gd`) for about a second.
 - The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
   A test compares views from matches that differ only in the opponent's true rule.
