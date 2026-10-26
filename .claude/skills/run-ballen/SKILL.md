@@ -67,6 +67,8 @@ layout and centres it, so these coordinates no longer hold.
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
   bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
+- Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the
+  bottom when you go first, at the top when the AI does.
 - Your waiting ball: `Layout/PlayerBall`, centre (440,660); `draggable` is true on your placement turn.
   A drop on a non-legal cell or off the board snaps it back to `position (408,628)`.
 - Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
@@ -75,7 +77,7 @@ layout and centres it, so these coordinates no longer hold.
 - `Layout/Status` (left column) says whose turn it is and what to do; read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (rows y≈94–286), a free slot
   for Guess (y≈340), yours below (y≈454–646) with the true one highlighted.
-- Free room kept for later tickets: row labels left of the board (x≈176–196), skip pips beside each
+- Free room kept for later tickets: skip pips beside each
   panel title (`%AISkipPips`, `%PlayerSkipPips`), the Guess slot (`%GuessSlot`).
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
