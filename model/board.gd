@@ -11,7 +11,7 @@ extends RefCounted
 const SIZE: int = 6
 
 const _EMPTY_CHAR: String = "."
-## Board.parse / to_rows letters: upper case is owned by player 0, lower case by player 1.
+## Board.parse letters: upper case is owned by player 0, lower case by player 1.
 const _COLOUR_CHARS: Dictionary[String, String] = {
 	BallColour.YELLOW: "y",
 	BallColour.BLUE: "b",
@@ -85,22 +85,6 @@ static func parse(rows: PackedStringArray) -> Board:
 			var owner: int = 0 if symbol == symbol.to_upper() else 1
 			board.place(Vector2i(x, y), Ball.new(colour, owner))
 	return board
-
-
-## The inverse of parse; handy in failure messages.
-func to_rows() -> PackedStringArray:
-	var rows: PackedStringArray = []
-	for y: int in SIZE:
-		var row: String = ""
-		for x: int in SIZE:
-			var ball: Ball = ball_at(Vector2i(x, y))
-			if ball == null:
-				row += _EMPTY_CHAR
-			else:
-				var symbol: String = _COLOUR_CHARS[ball.colour]
-				row += symbol.to_upper() if ball.owner == 0 else symbol
-		rows.append(row)
-	return rows
 
 
 ## The ball on a cell, or null when the cell is empty or off the board.
