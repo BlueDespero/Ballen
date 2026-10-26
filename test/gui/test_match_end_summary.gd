@@ -74,10 +74,45 @@ func test_there_is_no_summary_while_the_match_runs() -> void:
 	assert_null(MatchEndSummary.from_view(_started(1).public_view(0)))
 
 
+## A match that ended as it started: player 0 holds R04, the 16 inner cells
+## are full and it is their turn with 2 skips, so their third skip loses.
+func _third_skip_by_player_0() -> Match:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"......",
+		".RbRb.",
+		".bRbR.",
+		".RbRb.",
+		".bRbR.",
+		"......",
+	]), 0)
+	position.turn = 17
+	position.colour = BallColour.RED
+	position.skips = [2, 0]
+	var r04: Rule = _book.rule("R04")
+	var bt: Rule = Fixtures.anywhere(_book, "BT")
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, bt, "B")]
+	var true_rules: Array[Rule] = [r04, bt]
+	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	assert_eq(game.phase(), Match.Phase.OVER)
+	return game
+
+
+func test_the_viewers_third_skip_loses() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_third_skip_by_player_0().public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
+	assert_eq(summary.headline, "You lose")
+	assert_eq(summary.reason, "You skipped for the third time.")
+
+
+func test_the_ais_third_skip_wins_for_the_viewer() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_third_skip_by_player_0().public_view(1))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
+	assert_eq(summary.reason, "The AI skipped for the third time.")
+
+
 ## The view of a match that ended with this result after the closing history
-## entries. Third skips (#47) and forced guesses (#50) can't be played to the
-## end yet, so their views are built from a running match's view; switch to
-## real matches once they can.
+## entries. Forced guesses (#50) can't be played to the end yet, so their views
+## are built from a running match's view; switch to real matches once they can.
 func _ended_view(viewer: int, result: MatchResult, closing: Array[HistoryEntry]) -> PublicView:
 	var view: PublicView = _started(1).public_view(viewer)
 	view.phase = Match.Phase.OVER
@@ -86,21 +121,6 @@ func _ended_view(viewer: int, result: MatchResult, closing: Array[HistoryEntry])
 	view.revealed_true_rules = true_rules
 	view.position.history.append_array(closing)
 	return view
-
-
-func test_the_viewers_third_skip_loses() -> void:
-	var result: MatchResult = MatchResult.new(1, MatchResult.Reason.THIRD_SKIP)
-	var summary: MatchEndSummary = MatchEndSummary.from_view(_ended_view(0, result, []))
-	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
-	assert_eq(summary.headline, "You lose")
-	assert_eq(summary.reason, "You skipped for the third time.")
-
-
-func test_the_ais_third_skip_wins_for_the_viewer() -> void:
-	var result: MatchResult = MatchResult.new(0, MatchResult.Reason.THIRD_SKIP)
-	var summary: MatchEndSummary = MatchEndSummary.from_view(_ended_view(0, result, []))
-	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
-	assert_eq(summary.reason, "The AI skipped for the third time.")
 
 
 func test_two_wrong_forced_guesses_draw_and_list_the_viewers_guess_first() -> void:
