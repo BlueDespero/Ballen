@@ -22,7 +22,7 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
-| Scenes / UI | Match scene (`main_game.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
@@ -50,6 +50,11 @@ all run the same code.
   A test compares views from matches that differ only in the opponent's true rule.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
+- `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
+  AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`). Both decks are shown first;
+  `MatchSetup.start(true_rule)` then draws the AI's true rule from its deck and creates the match,
+  whose coin toss picks the first player. The setup keeps both decks, so a rematch can start from it
+  again.
 
 ## Rules engine
 
