@@ -37,6 +37,16 @@ Keep the import step: it registers new `class_name`s (and, in a fresh worktree, 
 GUT runs nothing yet exits 0, or a test using a new class fails to load. `test/post_run_hook.gd` turns a
 test script that fails to load into exit code 1.
 
+## AI-vs-AI harness
+
+Plays N matches between two AIs with random decks, headless and with no pauses, and prints balance numbers
+(results, end reasons, average turns, skip and win rate per true rule). Same seed, same output; exit code 1 if
+any match didn't finish. From the repo root, after the import step above:
+
+```powershell
+godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+```
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.
@@ -62,6 +72,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
   no scene nodes
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `RuleChecker`; rule and template data in `rules/data/`
 - `ai/` — AI controller
+- `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`
 - `assets/` — Kenney art assets
 - `test/` — GUT tests; `addons/gut/` — vendored GUT 9.7.1
 
