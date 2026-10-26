@@ -14,9 +14,9 @@ A dash means not measured yet.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R01 | Never next to the same colour | Colour & neighbours | `not_next_to` | ball = same_colour | Built | – | – |
 | R02 | Red only next to blue | Colour & neighbours | `colour_only_next_to` | colour = red, other = blue | Idea | – | – |
-| R03 | Only on even rows | Position | `only_on_lines` | axis = row, parity = even | Idea | – | – |
+| R03 | Only on even rows | Position | `only_on_axis` | axis = row, parity = even | Built | – | – |
 | R04 | Never on the edge | Position | `not_on_zone` | zone = edge | Built | – | – |
-| R05 | At most 2 of a colour in any row | Counts | `max_in_line` | axis = row, target = same colour, n = 2 | Idea | – | – |
+| R05 | At most 2 of a colour in any row | Counts | `max_in_axis` | axis = row, ball = same_colour, n = 2 | Built | – | – |
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Idea | – | – |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | ball = opponent_ball | Built | – | – |
 | R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my_last_ball | Built | – | – |
