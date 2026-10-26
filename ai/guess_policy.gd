@@ -6,8 +6,9 @@ extends RefCounted
 ## threshold, or a subclass with another confidence model (later difficulty
 ## levels).
 ##
-## Under hard elimination every candidate is equally likely, so confidence is
-## 1 / candidates; the default threshold of 1 guesses only when one remains.
+## Ruling out is all or nothing, so every candidate is equally likely:
+## confidence is 1 / candidates; the default threshold of 1 guesses only when
+## one remains.
 
 var threshold: float
 

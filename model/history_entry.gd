@@ -1,7 +1,7 @@
 class_name HistoryEntry
 extends RefCounted
 
-## One event in a match's move history; together they rebuild any past board.
+## One event in a match's history; together they rebuild any past board.
 ## Treat an entry as an immutable value.
 ##
 ## To add an event: add a Type, a factory that fills the fields it uses, and a

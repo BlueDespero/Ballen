@@ -3,7 +3,7 @@ extends RefCounted
 
 ## How the AI rules out the opponent's rules, from a PublicView only (ADR 0002).
 ##
-## Hard elimination: a candidate is ruled out when one of the opponent's
+## Ruling out is certain: a candidate is ruled out when one of the opponent's
 ## placements breaks it, or when the opponent skipped although it would have
 ## allowed a cell for that colour. Each event is judged on the position as it
 ## was just before it (board, first player, turn, skips and history), exactly

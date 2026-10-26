@@ -23,7 +23,7 @@ func _match(opponent_true_rule_id: String) -> Match:
 	return Match.create(decks, true_rules, Fixtures.rng(3))
 
 
-## Plays the same inner-cell moves in any match; legal under R04 and B1.
+## Plays the same inner-cell placements in any match; legal under R04 and B1.
 func _play_some_turns(current_match: Match) -> void:
 	var cells: Array[Vector2i] = [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3)]
 	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))

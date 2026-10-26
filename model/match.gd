@@ -151,7 +151,7 @@ func skip_count(player: int) -> int:
 	return _position.skips[player]
 
 
-## A copy of the move history.
+## A copy of the history.
 func history() -> Array[HistoryEntry]:
 	return _position.copy().history
 

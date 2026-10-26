@@ -3,7 +3,7 @@ extends Controller
 
 ## The AI player. It sees only the PublicView it is handed (ADR 0002).
 ##
-## It works out the opponent's true rule by hard elimination (Deduction) and
+## It works out the opponent's true rule by ruling out rules (Deduction) and
 ## names it once its guess policy fires, which it checks at the start of its
 ## turn and after it places or skips; on a full board its forced guess names a
 ## random remaining candidate. To hide its true rule it places on a legal
