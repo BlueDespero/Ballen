@@ -4,10 +4,11 @@ extends RefCounted
 ## How the AI rules out the opponent's rules, from a PublicView only (ADR 0002).
 ##
 ## Hard elimination: a candidate is ruled out when one of the opponent's
-## placements breaks it. Each event is judged on the position as it was just
-## before it (board, first player, turn, skips and history), exactly as the
-## match judged it, so rules that read history or rows see what the real
-## check saw.
+## placements breaks it, or when the opponent skipped although it would have
+## allowed a cell for that colour. Each event is judged on the position as it
+## was just before it (board, first player, turn, skips and history), exactly
+## as the match judged it, so rules that read history or rows see what the
+## real check saw.
 
 
 ## The rules of the opponent's deck not yet ruled out, in deck order.
@@ -17,7 +18,7 @@ static func candidates(view: PublicView) -> Array[Rule]:
 	var history: Array[HistoryEntry] = view.position.history
 	for i: int in history.size():
 		var event: HistoryEntry = history[i]
-		if event.player != opponent or event.type != HistoryEntry.Type.PLACEMENT:
+		if event.player != opponent or not _is_evidence(event):
 			continue
 		var before: MatchPosition = position_before(view.position, i)
 		var kept: Array[Rule] = []
@@ -31,14 +32,19 @@ static func candidates(view: PublicView) -> Array[Rule]:
 ## Whether the event proves the rule is not its player's true rule, judged on
 ## the position just before the event. #58 can pass a hypothetical event.
 static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) -> bool:
-	if event.type == HistoryEntry.Type.PLACEMENT:
-		return not RuleChecker.is_legal(rule, before, event.player, event.colour, event.cell)
+	match event.type:
+		HistoryEntry.Type.PLACEMENT:
+			return not RuleChecker.is_legal(rule, before, event.player, event.colour, event.cell)
+		HistoryEntry.Type.SKIP:
+			for cell: Vector2i in before.board.empty_cells():
+				if RuleChecker.is_legal(rule, before, event.player, event.colour, cell):
+					return true
 	return false
 
 
-## The position just before the placement at history[index]: every later
-## placement taken off the board, later colour picks and skips undone, history
-## cut before it. Its colour is the event's colour.
+## The position just before the placement or skip at history[index]: every
+## later placement taken off the board, later colour picks and skips undone,
+## history cut before it. Its colour is the event's colour.
 static func position_before(position: MatchPosition, index: int) -> MatchPosition:
 	var history: Array[HistoryEntry] = position.history
 	var later_cells: Array[Vector2i] = []
@@ -65,3 +71,7 @@ static func position_before(position: MatchPosition, index: int) -> MatchPositio
 		before.skips[player] = position.skips[player] - later_skips[player]
 	before.history = history.slice(0, index)
 	return before
+
+
+static func _is_evidence(event: HistoryEntry) -> bool:
+	return event.type == HistoryEntry.Type.PLACEMENT or event.type == HistoryEntry.Type.SKIP

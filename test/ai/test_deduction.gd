@@ -95,3 +95,40 @@ func test_rows_are_counted_from_the_first_players_side() -> void:
 	game = _match(["R04", "R07", "R08", "R03"], AI)
 	_play(game, _placements([Vector2i(5, 5), Vector2i(2, 4)]))
 	assert_does_not_have(_candidate_ids(game), "R03")
+
+
+## The AI (player 1) is to place yellow in the last inner cell, (3, 3). The
+## opponent's true rule is R04, so once the inner cells are full they skip.
+## Every edge cell touches a red ball.
+func _skip_match() -> Match:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"......",
+		".RrRr.",
+		".rYyR.",
+		".Rg.r.",
+		".rRrR.",
+		"......",
+	]), OPPONENT)
+	position.turn = 16
+	position.colour = BallColour.YELLOW
+	var r04: Rule = _book.rule("R04")
+	var opponent_deck: Array[Rule] = [r04, _book.rule("R01"), _book.rule("R03"), _book.rule("R18"), Fixtures.anywhere(_book, "O1")]
+	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
+	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
+	var true_rules: Array[Rule] = [r04, ai_true_rule]
+	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+
+
+func test_a_skip_rules_out_the_rules_that_would_have_allowed_a_cell_for_that_colour() -> void:
+	var game: Match = _skip_match()
+	_play(game, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED)])
+	assert_eq(str(game.history().back()), "player 0 skips red")
+	# R01 had no cell for red: every empty cell touches a red ball.
+	assert_eq(_candidate_ids(game), ["R04", "R01"] as Array[String])
+
+
+func test_a_skip_stays_judged_for_the_skipped_colour() -> void:
+	var game: Match = _skip_match()
+	_play(game, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED), Command.pick_colour(BallColour.BLUE)])
+	assert_eq(game.current_player(), AI)
+	assert_eq(_candidate_ids(game), ["R04", "R01"] as Array[String], "R01 would allow blue, not red")
