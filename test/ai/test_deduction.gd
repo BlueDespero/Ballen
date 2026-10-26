@@ -26,7 +26,7 @@ func _match(opponent_rules: Array[String], first_player: int) -> Match:
 	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
 	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
 	var true_rules: Array[Rule] = [opponent_deck[0], ai_true_rule]
-	var position: MatchPosition = MatchPosition.from_board(Board.new(), first_player)
+	var position: MatchPosition = MatchPosition.new(Board.new(), first_player)
 	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
 
 
@@ -101,7 +101,7 @@ func test_rows_are_counted_from_the_first_players_side() -> void:
 ## opponent's true rule is R04, so once the inner cells are full they skip.
 ## Every edge cell touches a red ball.
 func _skip_match() -> Match:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"......",
 		".RrRr.",
 		".rYyR.",

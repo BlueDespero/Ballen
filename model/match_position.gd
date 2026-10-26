@@ -18,14 +18,10 @@ var skips: Array[int] = [0, 0]
 var history: Array[HistoryEntry] = []
 
 
+## A position at turn 0 with no history: on its own, a board for checking rules.
 func _init(p_board: Board = Board.new(), p_first_player: int = 0) -> void:
 	board = p_board
 	first_player = p_first_player
-
-
-## A position holding only a board, for checking rules.
-static func from_board(p_board: Board, p_first_player: int = 0) -> MatchPosition:
-	return MatchPosition.new(p_board, p_first_player)
 
 
 ## The player whose turn it is; at turn 0, the player who picks the first colour.

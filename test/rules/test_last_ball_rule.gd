@@ -12,7 +12,7 @@ func before_each() -> void:
 
 
 func _position(rows: PackedStringArray, history: Array[HistoryEntry]) -> MatchPosition:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse(rows))
+	var position: MatchPosition = MatchPosition.new(Board.parse(rows))
 	position.history = history
 	return position
 

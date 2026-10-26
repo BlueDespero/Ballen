@@ -147,7 +147,7 @@ func test_a_guess_ends_the_match_and_the_run() -> void:
 
 
 func test_a_player_with_no_legal_cell_is_skipped_and_asked_for_a_colour() -> void:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"......",
 		".RbRb.",
 		".bRbR.",

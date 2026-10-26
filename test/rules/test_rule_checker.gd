@@ -18,11 +18,11 @@ func before_each() -> void:
 
 
 func _position(rows: PackedStringArray) -> MatchPosition:
-	return MatchPosition.from_board(Board.parse(rows))
+	return MatchPosition.new(Board.parse(rows))
 
 
 func _empty_position() -> MatchPosition:
-	return MatchPosition.from_board(Board.new())
+	return MatchPosition.new(Board.new())
 
 
 func test_r04_legal_cells_on_an_empty_board_are_the_inner_cells() -> void:

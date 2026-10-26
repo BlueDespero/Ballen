@@ -77,7 +77,7 @@ func test_there_is_no_summary_while_the_match_runs() -> void:
 ## A match that ended as it started: player 0 holds R04, the 16 inner cells
 ## are full and it is their turn with 2 skips, so their third skip loses.
 func _third_skip_by_player_0() -> Match:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"......",
 		".RbRb.",
 		".bRbR.",

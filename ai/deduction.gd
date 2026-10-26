@@ -64,7 +64,7 @@ static func position_before(position: MatchPosition, index: int) -> MatchPositio
 		var ball: Ball = position.board.ball_at(cell)
 		if ball != null and not later_cells.has(cell):
 			board.place(cell, ball)
-	var before: MatchPosition = MatchPosition.from_board(board, position.first_player)
+	var before: MatchPosition = MatchPosition.new(board, position.first_player)
 	before.turn = position.turn - later_picks
 	before.colour = history[index].colour
 	for player: int in Players.COUNT:

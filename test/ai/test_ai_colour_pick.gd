@@ -44,7 +44,7 @@ func _colours_picked(view: PublicView, seeds: int) -> Array[String]:
 
 func test_the_ais_first_pick_with_no_information_is_a_random_colour() -> void:
 	var deck: Array[Rule] = [_book.rule("R01"), _book.rule("R03"), _book.rule("R04"), _book.rule("R05"), _book.rule("R07")]
-	var view: PublicView = _match(MatchPosition.from_board(Board.new(), OPPONENT), deck).public_view(AI)
+	var view: PublicView = _match(MatchPosition.new(Board.new(), OPPONENT), deck).public_view(AI)
 	assert_eq(view.phase, Match.Phase.FIRST_COLOUR)
 	var distinct: Array[String] = []
 	for colour: String in await _colours_picked(view, 20):
@@ -61,7 +61,7 @@ func test_the_ai_picks_the_colour_expected_to_rule_out_the_most_candidates() -> 
 	# out; if R01 is true, nothing is ruled out: 4/34 expected. Blue: 3 cells
 	# next to the blue ball: 3/68. Yellow, green: 0.
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "OT"), _book.rule("R01"), _nowhere("N2"), _nowhere("N3"), _nowhere("N4")]
-	var current_match: Match = _match(MatchPosition.from_board(Board.new(), OPPONENT), deck)
+	var current_match: Match = _match(MatchPosition.new(Board.new(), OPPONENT), deck)
 	assert_true(current_match.submit(AI, Command.pick_colour(BallColour.RED)))
 	assert_true(current_match.submit(OPPONENT, Command.place(Vector2i(2, 2))))
 	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.BLUE)))
@@ -82,7 +82,7 @@ func test_the_ai_counts_what_a_skip_would_rule_out() -> void:
 	# Red: OT 0.75 + 0.5; R01 only allows (3, 0), ruling out R04 (1); R04
 	# rules out R01 (1). Expected 3.25 / 3, about 1.08: more than blue's 2.5 / 3
 	# if the skip counted for nothing.
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"R.b.bG",
 		"R..bbg",
 		"RRRRyg",
@@ -114,7 +114,7 @@ class AlwaysGreen:
 
 func test_a_swapped_colour_pick_strategy_changes_the_ais_pick() -> void:
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "OT"), _book.rule("R01"), _nowhere("N2"), _nowhere("N3"), _nowhere("N4")]
-	var view: PublicView = _match(MatchPosition.from_board(Board.new(), OPPONENT), deck).public_view(AI)
+	var view: PublicView = _match(MatchPosition.new(Board.new(), OPPONENT), deck).public_view(AI)
 	var ai: AIController = AIController.new(Fixtures.rng(1), GuessPolicy.new(), AlwaysGreen.new())
 	var command: Command = await ai.decide(view)
 	assert_eq(command.colour, BallColour.GREEN)

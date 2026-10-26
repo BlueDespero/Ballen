@@ -34,7 +34,7 @@ func _ai_turn(permissive: int) -> Match:
 	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
 	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
 	var true_rules: Array[Rule] = [opponent_deck[0], ai_true_rule]
-	var current_match: Match = Match.from_position(MatchPosition.from_board(Board.new(), OPPONENT), decks, true_rules, Fixtures.rng(1))
+	var current_match: Match = Match.from_position(MatchPosition.new(Board.new(), OPPONENT), decks, true_rules, Fixtures.rng(1))
 	assert_true(current_match.submit(AI, Command.pick_colour(BallColour.RED)))
 	assert_true(current_match.submit(OPPONENT, Command.place(Vector2i(2, 2))))
 	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.RED)))

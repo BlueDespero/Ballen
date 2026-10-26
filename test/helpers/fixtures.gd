@@ -41,7 +41,7 @@ const LAST_EMPTY_CELL: Vector2i = Vector2i(5, 5)
 ## player 0 went first and is to place red. Permissive true rules "AT"
 ## (player 0) and "BT" (player 1) head decks filled with A1..A4 / B1..B4.
 static func nearly_full_match(rule_book: RuleBook) -> Match:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"YbRgYb",
 		"RgYbRg",
 		"YbRgYb",

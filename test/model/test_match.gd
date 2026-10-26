@@ -198,7 +198,7 @@ func _from_position(position: MatchPosition) -> Match:
 
 
 func _late_position() -> MatchPosition:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"......",
 		".R....",
 		"..b...",
@@ -244,7 +244,7 @@ func test_a_match_from_a_position_is_not_changed_by_later_edits_to_that_position
 
 
 func test_a_position_before_the_first_colour_pick_waits_for_it() -> void:
-	var current_match: Match = _from_position(MatchPosition.from_board(Board.new(), 0))
+	var current_match: Match = _from_position(MatchPosition.new(Board.new(), 0))
 	assert_eq(current_match.phase(), Match.Phase.FIRST_COLOUR)
 	assert_eq(current_match.awaiting_players(), [1] as Array[int])
 
@@ -253,7 +253,7 @@ func test_a_position_before_the_first_colour_pick_waits_for_it() -> void:
 ## only (4, 4) is free, and player 1 (second) is to place blue on it, so the
 ## next turn, player 0's, starts with no legal cell.
 func _one_inner_cell_left(skips: Array[int]) -> MatchPosition:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+	var position: MatchPosition = MatchPosition.new(Board.parse([
 		"......",
 		".RbRb.",
 		".bRbR.",

@@ -12,7 +12,7 @@ func before_each() -> void:
 
 
 func _legal(rows: PackedStringArray, holder: int, colour: String, cell: Vector2i) -> bool:
-	var position: MatchPosition = MatchPosition.from_board(Board.parse(rows))
+	var position: MatchPosition = MatchPosition.new(Board.parse(rows))
 	return RuleChecker.is_legal(_book.rule("R10"), position, holder, colour, cell)
 
 
@@ -151,7 +151,7 @@ func test_legal_cells_leave_out_only_the_cells_that_complete_a_line() -> void:
 		"......",
 		"......",
 	]
-	var position: MatchPosition = MatchPosition.from_board(Board.parse(rows))
+	var position: MatchPosition = MatchPosition.new(Board.parse(rows))
 	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R10"), position, 1, BallColour.GREEN)
 	assert_eq(cells.size(), 32)
 	assert_false(cells.has(Vector2i(1, 2)))
