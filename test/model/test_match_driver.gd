@@ -27,6 +27,12 @@ func _driver(game: Match, controllers: Array[Controller], paused_players: Array[
 	return MatchDriver.new(game, controllers, paused_players, Fixtures.rng(seed_value), _record_wait)
 
 
+## An AI that never guesses (no confidence reaches an infinite threshold), so
+## matches run on to their skips.
+func _ai(seed_value: int) -> AIController:
+	return AIController.new(Fixtures.rng(seed_value), GuessPolicy.new(INF))
+
+
 ## A match where player 0 goes first, so the AI (player 1) picks their first colour.
 func _player_0_first() -> Match:
 	for seed_value: int in 100:
@@ -51,7 +57,7 @@ func _count(game: Match, type: HistoryEntry.Type, player: int) -> int:
 
 func test_two_ais_play_until_a_third_skip_ends_the_match() -> void:
 	var game: Match = _r04_match(11)
-	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [_ai(1), _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [], 3)
 	watch_signals(driver)
 	await driver.run()
@@ -70,7 +76,7 @@ func test_two_ais_play_until_a_third_skip_ends_the_match() -> void:
 
 func test_a_paused_player_waits_half_a_second_to_a_second_and_a_half_before_each_command() -> void:
 	var game: Match = _r04_match(11)
-	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [_ai(1), _ai(2)]
 	await _driver(game, controllers, [1], 3).run()
 	var commands_by_1: int = _count(game, HistoryEntry.Type.PLACEMENT, 1) + _count(game, HistoryEntry.Type.COLOUR_PICK, 1)
 	assert_eq(_waits.size(), commands_by_1, "a pause each time player 1 is asked, none for player 0")
@@ -82,11 +88,11 @@ func test_a_paused_player_waits_half_a_second_to_a_second_and_a_half_before_each
 
 
 func test_pauses_follow_the_seeded_rng() -> void:
-	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [_ai(1), _ai(2)]
 	await _driver(_r04_match(11), controllers, [0, 1], 3).run()
 	var first_run: Array[float] = _waits.duplicate()
 	_waits = []
-	controllers = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
+	controllers = [_ai(1), _ai(2)]
 	await _driver(_r04_match(11), controllers, [0, 1], 3).run()
 	assert_eq(_waits.size(), 37, "one per command: 1 first colour, 16 placements, 20 picks")
 	assert_eq(_waits, first_run)
@@ -95,7 +101,7 @@ func test_pauses_follow_the_seeded_rng() -> void:
 func test_the_players_commands_are_submitted_when_they_choose_them() -> void:
 	var game: Match = _player_0_first()
 	var human: HumanController = HumanController.new()
-	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [1], 3)
 	driver.run()
 	assert_eq(game.phase(), Match.Phase.PLACE, "the AI picked the first colour; the driver now waits for the player")
@@ -113,7 +119,7 @@ func test_the_players_commands_are_submitted_when_they_choose_them() -> void:
 func test_a_rejected_command_is_asked_for_again() -> void:
 	var game: Match = _player_0_first()
 	var human: HumanController = HumanController.new()
-	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [1], 3)
 	watch_signals(driver)
 	driver.run()
@@ -128,7 +134,7 @@ func test_a_rejected_command_is_asked_for_again() -> void:
 func test_a_guess_ends_the_match_and_the_run() -> void:
 	var game: Match = _player_0_first()
 	var human: HumanController = HumanController.new()
-	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [1], 3)
 	watch_signals(driver)
 	driver.run()
@@ -156,7 +162,7 @@ func test_a_player_with_no_legal_cell_is_skipped_and_asked_for_a_colour() -> voi
 	var true_rules: Array[Rule] = [r04, r04]
 	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
 	var human: HumanController = HumanController.new()
-	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [1], 3)
 	driver.run()
 	assert_eq(str(_last(game)), "player 0 skips red")
@@ -175,7 +181,7 @@ func test_a_player_with_no_legal_cell_is_skipped_and_asked_for_a_colour() -> voi
 func test_a_stopped_driver_submits_nothing_more() -> void:
 	var game: Match = _player_0_first()
 	var human: HumanController = HumanController.new()
-	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(game, controllers, [1], 3)
 	driver.run()
 	driver.stop()

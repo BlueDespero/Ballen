@@ -3,20 +3,30 @@ extends Controller
 
 ## The AI player. It sees only the PublicView it is handed (ADR 0002).
 ##
-## Placeholder for milestone 1's first ticket: it places on a random legal cell
-## and picks a random colour; on a full board its forced guess names a random
-## rule of the opponent's deck. Deduction, placement preference, colour-pick
-## strategy and guessing replace these choices in later tickets.
+## It works out the opponent's true rule by hard elimination (Deduction) and
+## names it once its guess policy fires, which it checks at the start of its
+## turn and after it places or skips. Otherwise it places on a random legal
+## cell and picks a random colour; on a full board its forced guess names a
+## random rule of the opponent's deck. Placement preference and the
+## colour-pick strategy replace these choices in later tickets.
 
 var _rng: RandomNumberGenerator
+var _guess_policy: GuessPolicy
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
-func _init(rng: RandomNumberGenerator) -> void:
+## guess_policy decides when to guess; the default guesses when one candidate
+## remains.
+func _init(rng: RandomNumberGenerator, guess_policy: GuessPolicy = GuessPolicy.new()) -> void:
 	_rng = rng
+	_guess_policy = guess_policy
 
 
 func decide(view: PublicView) -> Command:
+	if view.can_guess():
+		var guess: Rule = _guess_policy.choose(Deduction.candidates(view))
+		if guess != null:
+			return Command.guess(guess.id)
 	match view.phase:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
 			return Command.pick_colour(_pick(BallColour.ALL))

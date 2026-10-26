@@ -51,11 +51,12 @@ func test_the_ais_choices_follow_its_seeded_rng() -> void:
 	assert_gt(cells.size(), 1, "different seeds pick different cells")
 
 
-func test_two_ai_controllers_play_alternating_turns_entirely_in_code() -> void:
+func test_two_ai_controllers_play_entirely_in_code_until_one_guesses() -> void:
 	var game: Match = _r04_match(11)
 	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
-	# R04 leaves the 16 inner cells; once they are full both players skip until
-	# one's third skip ends the match.
+	# R04 leaves the 16 inner cells. Once they are full the first player skips,
+	# which rules out the permissive rest of their deck; the second player then
+	# skips too and names R04.
 	while game.phase() != Match.Phase.OVER:
 		var player: int = game.awaiting_players()[0]
 		var command: Command = await controllers[player].decide(game.public_view(player))
@@ -69,4 +70,12 @@ func test_two_ai_controllers_play_alternating_turns_entirely_in_code() -> void:
 		var expected_player: int = game.first_player() if i % 2 == 0 else Players.opponent(game.first_player())
 		assert_eq(placements[i].player, expected_player, "placements alternate")
 		assert_false(Board.is_on_edge(placements[i].cell))
-	assert_eq(game.result().reason, MatchResult.Reason.THIRD_SKIP)
+	var second: int = Players.opponent(game.first_player())
+	var history: Array[HistoryEntry] = game.history()
+	assert_eq(history[-4].type, HistoryEntry.Type.SKIP)
+	assert_eq(history[-4].player, game.first_player())
+	assert_eq(history[-2].type, HistoryEntry.Type.SKIP)
+	assert_eq(history[-2].player, second)
+	assert_eq(str(history[-1]), "player %d guesses R04, right" % second, "guesses after its own skip")
+	assert_eq(game.result().winner, second)
+	assert_eq(game.result().reason, MatchResult.Reason.RIGHT_GUESS)
