@@ -94,9 +94,15 @@ layout and centres it, so these coordinates no longer hold.
   Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
   your turn, after placing until your colour pick); the button also needs a selected rule. The ring's
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
-  60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. The result
-  then shows in `Layout/Status`, e.g. `You named R04 as the AI's true rule: right. You win!`
-  (the AI's true rule is random, so a guess is right about one time in five).
+  60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. A guess ends
+  the match (the AI's true rule is random, so a guess is right about one time in five).
+- Match end: `Layout/MatchEnd` (`visible` turns true) dims the layout and shows a card over the board;
+  the rules panel stays lit, marks the AI's true rule and says the match is over. Read
+  `Layout/MatchEnd/Centre/Card/Content/Headline:text` (`You win`, `You lose`, `Draw`) and
+  `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's true rule.`);
+  `Layout/Status` is empty. Main menu button centre (364,540); it returns to `Main`. To guess the
+  AI's first rule and go back to the menu:
+  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 wait:40 ss:end click:364,540`.
 - Free room kept for later tickets: skip pips beside each panel title (`%AISkipPips`,
   `%PlayerSkipPips`).
 - After Single Player, the current scene is `MainGame`; before it, `Main`
