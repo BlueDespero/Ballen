@@ -145,3 +145,26 @@ func test_there_is_no_forced_guess_before_the_board_is_full() -> void:
 	var game: Match = _nearly_full()
 	assert_false(game.submit(0, Command.forced_guess("BT")))
 	assert_eq(game.phase(), Match.Phase.PLACE)
+
+
+func test_the_view_shows_the_placer_their_forced_guess_is_due_and_they_may_still_guess() -> void:
+	var game: Match = _full()
+	var placer: PublicView = game.public_view(0)
+	assert_eq(placer.awaiting_players, [0] as Array[int])
+	assert_true(placer.forced_guess_due())
+	assert_true(placer.can_guess())
+	var opponent: PublicView = game.public_view(1)
+	assert_false(opponent.forced_guess_due())
+	assert_false(opponent.can_guess())
+
+
+func test_the_view_shows_the_opponent_their_forced_guess_is_due_after_the_placers() -> void:
+	var game: Match = _full()
+	game.submit(0, Command.forced_guess("B2"))
+	var opponent: PublicView = game.public_view(1)
+	assert_eq(opponent.awaiting_players, [1] as Array[int])
+	assert_true(opponent.forced_guess_due())
+	assert_false(opponent.can_guess(), "only the placer may pull the trigger")
+	var placer: PublicView = game.public_view(0)
+	assert_false(placer.forced_guess_due())
+	assert_false(placer.can_guess())

@@ -11,6 +11,8 @@ var viewer: int
 var phase: Match.Phase
 ## The player whose turn it is (during FIRST_COLOUR, the player picking it).
 var current_player: int
+## The players the match is waiting for a command from.
+var awaiting_players: Array[int] = []
 ## Board, first player, turn, current colour, skip counts and history.
 var position: MatchPosition
 ## Both players' decks, indexed by player.
@@ -29,11 +31,20 @@ func opponent() -> int:
 
 
 ## Whether one of the viewer's guess windows is open: their turn, before
-## placing or after placing or skipping, until they pick a colour.
+## placing or after placing or skipping, until they pick a colour; after
+## filling the board, until their forced guess.
 func can_guess() -> bool:
 	if current_player != viewer:
 		return false
+	if phase == Match.Phase.FORCED_GUESS:
+		return forced_guess_due()
 	return phase == Match.Phase.PLACE or phase == Match.Phase.PICK_COLOUR
+
+
+## Whether the board is full and the match is waiting for the viewer's forced
+## guess.
+func forced_guess_due() -> bool:
+	return phase == Match.Phase.FORCED_GUESS and awaiting_players.has(viewer)
 
 
 ## The viewer's legal cells for the current colour when it is their turn to

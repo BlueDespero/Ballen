@@ -121,6 +121,7 @@ func public_view(viewer: int) -> PublicView:
 	view.viewer = viewer
 	view.phase = _phase
 	view.current_player = current_player()
+	view.awaiting_players = awaiting_players()
 	view.position = _position.copy()
 	for deck: Deck in _decks:
 		view.decks.append(deck.copy())
