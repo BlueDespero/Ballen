@@ -17,9 +17,9 @@ func _r04_match(seed_value: int) -> Match:
 
 
 ## A match past the first colour pick: the first player is to place red.
-func _started(game: Match) -> Match:
-	game.submit(Players.opponent(game.first_player()), Command.pick_colour(BallColour.RED))
-	return game
+func _started(current_match: Match) -> Match:
+	current_match.submit(Players.opponent(current_match.first_player()), Command.pick_colour(BallColour.RED))
+	return current_match
 
 
 func test_the_coin_toss_follows_the_seeded_rng() -> void:
@@ -51,34 +51,34 @@ func test_a_deck_of_other_than_five_rules_is_rejected() -> void:
 
 
 func test_a_new_match_waits_for_the_second_player_to_pick_the_first_colour() -> void:
-	var game: Match = _r04_match(1)
-	var second: int = Players.opponent(game.first_player())
-	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
-	assert_eq(game.awaiting_players(), [second] as Array[int])
+	var current_match: Match = _r04_match(1)
+	var second: int = Players.opponent(current_match.first_player())
+	assert_eq(current_match.phase(), Match.Phase.FIRST_COLOUR)
+	assert_eq(current_match.awaiting_players(), [second] as Array[int])
 
 
 func test_the_first_player_cannot_pick_the_first_colour() -> void:
-	var game: Match = _r04_match(1)
-	assert_false(game.submit(game.first_player(), Command.pick_colour(BallColour.RED)))
-	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
-	assert_eq(game.history().size(), 0)
+	var current_match: Match = _r04_match(1)
+	assert_false(current_match.submit(current_match.first_player(), Command.pick_colour(BallColour.RED)))
+	assert_eq(current_match.phase(), Match.Phase.FIRST_COLOUR)
+	assert_eq(current_match.history().size(), 0)
 
 
 func test_the_first_colour_pick_starts_the_first_players_turn_in_that_colour() -> void:
-	var game: Match = _r04_match(1)
-	var first: int = game.first_player()
-	assert_true(game.submit(Players.opponent(first), Command.pick_colour(BallColour.GREEN)))
-	assert_eq(game.phase(), Match.Phase.PLACE)
-	assert_eq(game.current_player(), first)
-	assert_eq(game.current_colour(), BallColour.GREEN)
-	assert_eq(game.turn(), 1)
+	var current_match: Match = _r04_match(1)
+	var first: int = current_match.first_player()
+	assert_true(current_match.submit(Players.opponent(first), Command.pick_colour(BallColour.GREEN)))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
+	assert_eq(current_match.current_player(), first)
+	assert_eq(current_match.current_colour(), BallColour.GREEN)
+	assert_eq(current_match.turn(), 1)
 
 
 func test_history_records_the_first_colour_pick() -> void:
-	var game: Match = _r04_match(1)
-	var second: int = Players.opponent(game.first_player())
-	game.submit(second, Command.pick_colour(BallColour.BLUE))
-	var history: Array[HistoryEntry] = game.history()
+	var current_match: Match = _r04_match(1)
+	var second: int = Players.opponent(current_match.first_player())
+	current_match.submit(second, Command.pick_colour(BallColour.BLUE))
+	var history: Array[HistoryEntry] = current_match.history()
 	assert_eq(history.size(), 1)
 	assert_eq(history[0].type, HistoryEntry.Type.COLOUR_PICK)
 	assert_eq(history[0].player, second)
@@ -86,24 +86,24 @@ func test_history_records_the_first_colour_pick() -> void:
 
 
 func test_an_unknown_colour_is_rejected() -> void:
-	var game: Match = _r04_match(1)
-	assert_false(game.submit(Players.opponent(game.first_player()), Command.pick_colour("purple")))
-	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
+	var current_match: Match = _r04_match(1)
+	assert_false(current_match.submit(Players.opponent(current_match.first_player()), Command.pick_colour("purple")))
+	assert_eq(current_match.phase(), Match.Phase.FIRST_COLOUR)
 
 
 func test_a_placement_before_the_first_colour_pick_is_rejected() -> void:
-	var game: Match = _r04_match(1)
-	assert_false(game.submit(game.first_player(), Command.place(Vector2i(2, 2))))
-	assert_false(game.submit(Players.opponent(game.first_player()), Command.place(Vector2i(2, 2))))
-	assert_eq(game.history().size(), 0)
+	var current_match: Match = _r04_match(1)
+	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(2, 2))))
+	assert_false(current_match.submit(Players.opponent(current_match.first_player()), Command.place(Vector2i(2, 2))))
+	assert_eq(current_match.history().size(), 0)
 
 
 func test_the_current_player_places_on_a_legal_cell() -> void:
-	var game: Match = _started(_r04_match(1))
-	var first: int = game.first_player()
-	assert_true(game.submit(first, Command.place(Vector2i(2, 3))))
-	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
-	var last: HistoryEntry = game.history().back()
+	var current_match: Match = _started(_r04_match(1))
+	var first: int = current_match.first_player()
+	assert_true(current_match.submit(first, Command.place(Vector2i(2, 3))))
+	assert_eq(current_match.phase(), Match.Phase.PICK_COLOUR)
+	var last: HistoryEntry = current_match.history().back()
 	assert_eq(last.type, HistoryEntry.Type.PLACEMENT)
 	assert_eq(last.player, first)
 	assert_eq(last.cell, Vector2i(2, 3))
@@ -111,73 +111,73 @@ func test_the_current_player_places_on_a_legal_cell() -> void:
 
 
 func test_a_placement_on_a_cell_the_true_rule_forbids_is_rejected() -> void:
-	var game: Match = _started(_r04_match(1))
-	assert_false(game.submit(game.first_player(), Command.place(Vector2i(0, 3))))
-	assert_false(game.submit(game.first_player(), Command.place(Vector2i(9, 9))))
-	assert_eq(game.phase(), Match.Phase.PLACE)
-	assert_eq(game.history().size(), 1)
+	var current_match: Match = _started(_r04_match(1))
+	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(0, 3))))
+	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(9, 9))))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
+	assert_eq(current_match.history().size(), 1)
 
 
 func test_the_opponent_cannot_place_on_the_current_players_turn() -> void:
-	var game: Match = _started(_r04_match(1))
-	assert_false(game.submit(Players.opponent(game.first_player()), Command.place(Vector2i(2, 3))))
-	assert_eq(game.phase(), Match.Phase.PLACE)
+	var current_match: Match = _started(_r04_match(1))
+	assert_false(current_match.submit(Players.opponent(current_match.first_player()), Command.place(Vector2i(2, 3))))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
 
 
 func test_a_second_placement_in_the_same_turn_is_rejected() -> void:
-	var game: Match = _started(_r04_match(1))
-	game.submit(game.first_player(), Command.place(Vector2i(2, 3)))
-	assert_false(game.submit(game.first_player(), Command.place(Vector2i(3, 3))))
-	assert_eq(game.history().size(), 2)
+	var current_match: Match = _started(_r04_match(1))
+	current_match.submit(current_match.first_player(), Command.place(Vector2i(2, 3)))
+	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(3, 3))))
+	assert_eq(current_match.history().size(), 2)
 
 
 func test_the_match_lists_the_current_players_legal_cells() -> void:
-	var game: Match = _started(_r04_match(1))
-	assert_eq(game.legal_cells().size(), 16)
-	assert_true(game.is_legal(Vector2i(1, 1)))
-	assert_false(game.is_legal(Vector2i(0, 0)))
-	game.submit(game.first_player(), Command.place(Vector2i(1, 1)))
-	assert_eq(game.legal_cells().size(), 0, "no legal cells outside the PLACE phase")
+	var current_match: Match = _started(_r04_match(1))
+	assert_eq(current_match.legal_cells().size(), 16)
+	assert_true(current_match.is_legal(Vector2i(1, 1)))
+	assert_false(current_match.is_legal(Vector2i(0, 0)))
+	current_match.submit(current_match.first_player(), Command.place(Vector2i(1, 1)))
+	assert_eq(current_match.legal_cells().size(), 0, "no legal cells outside the PLACE phase")
 
 func test_picking_a_colour_after_placing_ends_the_turn() -> void:
-	var game: Match = _started(_r04_match(1))
-	var first: int = game.first_player()
+	var current_match: Match = _started(_r04_match(1))
+	var first: int = current_match.first_player()
 	var second: int = Players.opponent(first)
-	game.submit(first, Command.place(Vector2i(2, 3)))
-	assert_true(game.submit(first, Command.pick_colour(BallColour.YELLOW)))
-	assert_eq(game.phase(), Match.Phase.PLACE)
-	assert_eq(game.turn(), 2)
-	assert_eq(game.current_player(), second)
-	assert_eq(game.current_colour(), BallColour.YELLOW)
-	assert_eq(game.awaiting_players(), [second] as Array[int])
+	current_match.submit(first, Command.place(Vector2i(2, 3)))
+	assert_true(current_match.submit(first, Command.pick_colour(BallColour.YELLOW)))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
+	assert_eq(current_match.turn(), 2)
+	assert_eq(current_match.current_player(), second)
+	assert_eq(current_match.current_colour(), BallColour.YELLOW)
+	assert_eq(current_match.awaiting_players(), [second] as Array[int])
 
 
 func test_a_colour_pick_before_placing_is_rejected() -> void:
-	var game: Match = _started(_r04_match(1))
-	assert_false(game.submit(game.first_player(), Command.pick_colour(BallColour.BLUE)))
-	assert_eq(game.phase(), Match.Phase.PLACE)
-	assert_eq(game.turn(), 1)
+	var current_match: Match = _started(_r04_match(1))
+	assert_false(current_match.submit(current_match.first_player(), Command.pick_colour(BallColour.BLUE)))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
+	assert_eq(current_match.turn(), 1)
 
 
 func test_the_opponent_cannot_pick_the_colour_on_the_current_players_turn() -> void:
-	var game: Match = _started(_r04_match(1))
-	game.submit(game.first_player(), Command.place(Vector2i(2, 3)))
-	assert_false(game.submit(Players.opponent(game.first_player()), Command.pick_colour(BallColour.BLUE)))
-	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
+	var current_match: Match = _started(_r04_match(1))
+	current_match.submit(current_match.first_player(), Command.place(Vector2i(2, 3)))
+	assert_false(current_match.submit(Players.opponent(current_match.first_player()), Command.pick_colour(BallColour.BLUE)))
+	assert_eq(current_match.phase(), Match.Phase.PICK_COLOUR)
 
 
 func test_turns_alternate_and_history_keeps_every_event_in_order() -> void:
-	var game: Match = _started(_r04_match(1))
-	var first: int = game.first_player()
+	var current_match: Match = _started(_r04_match(1))
+	var first: int = current_match.first_player()
 	var second: int = Players.opponent(first)
-	game.submit(first, Command.place(Vector2i(1, 1)))
-	game.submit(first, Command.pick_colour(BallColour.GREEN))
-	assert_false(game.submit(second, Command.place(Vector2i(1, 1))), "occupied cell")
-	game.submit(second, Command.place(Vector2i(2, 2)))
-	game.submit(second, Command.pick_colour(BallColour.GREEN))
-	game.submit(first, Command.place(Vector2i(3, 3)))
+	current_match.submit(first, Command.place(Vector2i(1, 1)))
+	current_match.submit(first, Command.pick_colour(BallColour.GREEN))
+	assert_false(current_match.submit(second, Command.place(Vector2i(1, 1))), "occupied cell")
+	current_match.submit(second, Command.place(Vector2i(2, 2)))
+	current_match.submit(second, Command.pick_colour(BallColour.GREEN))
+	current_match.submit(first, Command.place(Vector2i(3, 3)))
 	var lines: Array[String] = []
-	for entry: HistoryEntry in game.history():
+	for entry: HistoryEntry in current_match.history():
 		lines.append(str(entry))
 	assert_eq(lines, [
 		"player %d picks red" % second,
@@ -187,8 +187,8 @@ func test_turns_alternate_and_history_keeps_every_event_in_order() -> void:
 		"player %d picks green" % second,
 		"player %d places green at (3, 3)" % first,
 	] as Array[String])
-	assert_eq(game.turn(), 3)
-	assert_eq(game.current_player(), first)
+	assert_eq(current_match.turn(), 3)
+	assert_eq(current_match.current_player(), first)
 
 func _from_position(position: MatchPosition) -> Match:
 	var r04: Rule = _book.rule("R04")
@@ -217,36 +217,36 @@ func _late_position() -> MatchPosition:
 
 
 func test_a_match_starts_from_a_given_position() -> void:
-	var game: Match = _from_position(_late_position())
-	assert_eq(game.phase(), Match.Phase.PLACE)
-	assert_eq(game.turn(), 5)
-	assert_eq(game.first_player(), 1)
-	assert_eq(game.current_player(), 1, "odd turns belong to the first player")
-	assert_eq(game.current_colour(), BallColour.BLUE)
-	assert_eq(game.skip_count(0), 2)
-	assert_eq(game.skip_count(1), 1)
-	assert_eq(game.history().size(), 2)
-	assert_eq(game.legal_cells().size(), 14, "16 inner cells minus 2 occupied")
-	assert_false(game.submit(1, Command.place(Vector2i(1, 1))))
-	assert_true(game.submit(1, Command.place(Vector2i(4, 4))))
-	assert_eq(game.history().size(), 3)
+	var current_match: Match = _from_position(_late_position())
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
+	assert_eq(current_match.turn(), 5)
+	assert_eq(current_match.first_player(), 1)
+	assert_eq(current_match.current_player(), 1, "odd turns belong to the first player")
+	assert_eq(current_match.current_colour(), BallColour.BLUE)
+	assert_eq(current_match.skip_count(0), 2)
+	assert_eq(current_match.skip_count(1), 1)
+	assert_eq(current_match.history().size(), 2)
+	assert_eq(current_match.legal_cells().size(), 14, "16 inner cells minus 2 occupied")
+	assert_false(current_match.submit(1, Command.place(Vector2i(1, 1))))
+	assert_true(current_match.submit(1, Command.place(Vector2i(4, 4))))
+	assert_eq(current_match.history().size(), 3)
 
 
 func test_a_match_from_a_position_is_not_changed_by_later_edits_to_that_position() -> void:
 	var position: MatchPosition = _late_position()
-	var game: Match = _from_position(position)
+	var current_match: Match = _from_position(position)
 	position.board.place(Vector2i(4, 4), Ball.new(BallColour.RED, 0))
 	position.history.clear()
 	position.skips[0] = 0
-	assert_true(game.is_legal(Vector2i(4, 4)))
-	assert_eq(game.history().size(), 2)
-	assert_eq(game.skip_count(0), 2)
+	assert_true(current_match.is_legal(Vector2i(4, 4)))
+	assert_eq(current_match.history().size(), 2)
+	assert_eq(current_match.skip_count(0), 2)
 
 
 func test_a_position_before_the_first_colour_pick_waits_for_it() -> void:
-	var game: Match = _from_position(MatchPosition.from_board(Board.new(), 0))
-	assert_eq(game.phase(), Match.Phase.FIRST_COLOUR)
-	assert_eq(game.awaiting_players(), [1] as Array[int])
+	var current_match: Match = _from_position(MatchPosition.from_board(Board.new(), 0))
+	assert_eq(current_match.phase(), Match.Phase.FIRST_COLOUR)
+	assert_eq(current_match.awaiting_players(), [1] as Array[int])
 
 
 ## R04 for both: the 16 inner cells are all the legal cells there are. Here
@@ -268,37 +268,37 @@ func _one_inner_cell_left(skips: Array[int]) -> MatchPosition:
 
 
 ## Player 1 fills the last inner cell and hands player 0 red.
-func _fill_the_last_inner_cell(game: Match) -> void:
-	assert_true(game.submit(1, Command.place(Vector2i(4, 4))))
-	assert_true(game.submit(1, Command.pick_colour(BallColour.RED)))
+func _fill_the_last_inner_cell(current_match: Match) -> void:
+	assert_true(current_match.submit(1, Command.place(Vector2i(4, 4))))
+	assert_true(current_match.submit(1, Command.pick_colour(BallColour.RED)))
 
 
 func test_a_player_with_no_legal_cell_skips_as_their_turn_starts() -> void:
-	var game: Match = _from_position(_one_inner_cell_left([0, 0]))
-	_fill_the_last_inner_cell(game)
-	assert_eq(game.turn(), 17)
-	assert_eq(game.current_player(), 0)
-	assert_eq(game.skip_count(0), 1)
-	assert_eq(game.skip_count(1), 0)
-	var last: HistoryEntry = game.history().back()
+	var current_match: Match = _from_position(_one_inner_cell_left([0, 0]))
+	_fill_the_last_inner_cell(current_match)
+	assert_eq(current_match.turn(), 17)
+	assert_eq(current_match.current_player(), 0)
+	assert_eq(current_match.skip_count(0), 1)
+	assert_eq(current_match.skip_count(1), 0)
+	var last: HistoryEntry = current_match.history().back()
 	assert_eq(last.type, HistoryEntry.Type.SKIP)
 	assert_eq(last.player, 0)
 	assert_eq(last.colour, BallColour.RED, "history records the skipped colour")
 	assert_eq(str(last), "player 0 skips red")
-	assert_eq(game.public_view(0).position.board.empty_cells().size(), 20, "the skipped ball is not placed")
+	assert_eq(current_match.public_view(0).position.board.empty_cells().size(), 20, "the skipped ball is not placed")
 
 
 func test_after_a_skip_the_turn_goes_on_to_the_colour_pick() -> void:
-	var game: Match = _from_position(_one_inner_cell_left([0, 0]))
-	_fill_the_last_inner_cell(game)
-	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
-	assert_eq(game.awaiting_players(), [0] as Array[int])
-	assert_false(game.submit(0, Command.place(Vector2i(0, 0))), "nothing to place")
-	assert_true(game.submit(0, Command.pick_colour(BallColour.GREEN)))
-	assert_eq(game.turn(), 18)
-	assert_eq(game.skip_count(1), 1, "player 1 has no legal cell either")
-	assert_eq(str(game.history().back()), "player 1 skips green")
-	assert_eq(game.awaiting_players(), [1] as Array[int])
+	var current_match: Match = _from_position(_one_inner_cell_left([0, 0]))
+	_fill_the_last_inner_cell(current_match)
+	assert_eq(current_match.phase(), Match.Phase.PICK_COLOUR)
+	assert_eq(current_match.awaiting_players(), [0] as Array[int])
+	assert_false(current_match.submit(0, Command.place(Vector2i(0, 0))), "nothing to place")
+	assert_true(current_match.submit(0, Command.pick_colour(BallColour.GREEN)))
+	assert_eq(current_match.turn(), 18)
+	assert_eq(current_match.skip_count(1), 1, "player 1 has no legal cell either")
+	assert_eq(str(current_match.history().back()), "player 1 skips green")
+	assert_eq(current_match.awaiting_players(), [1] as Array[int])
 
 
 func test_a_match_from_a_position_with_no_legal_cell_starts_with_the_skip() -> void:
@@ -306,22 +306,22 @@ func test_a_match_from_a_position_with_no_legal_cell_starts_with_the_skip() -> v
 	position.board.place(Vector2i(4, 4), Ball.new(BallColour.BLUE, 1))
 	position.turn = 17
 	position.colour = BallColour.YELLOW
-	var game: Match = _from_position(position)
-	assert_eq(game.phase(), Match.Phase.PICK_COLOUR)
-	assert_eq(game.skip_count(0), 2)
-	assert_eq(str(game.history().back()), "player 0 skips yellow")
+	var current_match: Match = _from_position(position)
+	assert_eq(current_match.phase(), Match.Phase.PICK_COLOUR)
+	assert_eq(current_match.skip_count(0), 2)
+	assert_eq(str(current_match.history().back()), "player 0 skips yellow")
 
 
 func test_the_third_skip_loses_the_match_at_once() -> void:
-	var game: Match = _from_position(_one_inner_cell_left([2, 0]))
-	_fill_the_last_inner_cell(game)
-	assert_eq(game.skip_count(0), 3)
-	assert_eq(str(game.history().back()), "player 0 skips red")
-	assert_eq(game.phase(), Match.Phase.OVER)
-	var result: MatchResult = game.result()
+	var current_match: Match = _from_position(_one_inner_cell_left([2, 0]))
+	_fill_the_last_inner_cell(current_match)
+	assert_eq(current_match.skip_count(0), 3)
+	assert_eq(str(current_match.history().back()), "player 0 skips red")
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	var result: MatchResult = current_match.result()
 	assert_eq(result.winner, 1)
 	assert_eq(result.reason, MatchResult.Reason.THIRD_SKIP)
-	assert_eq(game.public_view(1).result.winner, 1, "both players see the result")
-	assert_eq(game.awaiting_players(), [] as Array[int], "no guess, no colour pick")
-	assert_false(game.submit(0, Command.pick_colour(BallColour.GREEN)))
-	assert_eq(game.history().size(), 3)
+	assert_eq(current_match.public_view(1).result.winner, 1, "both players see the result")
+	assert_eq(current_match.awaiting_players(), [] as Array[int], "no guess, no colour pick")
+	assert_false(current_match.submit(0, Command.pick_colour(BallColour.GREEN)))
+	assert_eq(current_match.history().size(), 3)

@@ -42,8 +42,8 @@ func test_the_ai_gets_5_distinct_rules_that_follow_the_seed() -> void:
 func test_the_tapped_rule_is_the_player_s_true_rule() -> void:
 	var setup: MatchSetup = _setup(2)
 	var r08: Rule = _book.rule("R08")
-	var game: Match = setup.start(setup.deck(PLAYER).rules[3])
-	assert_same(game.public_view(PLAYER).own_true_rule, r08)
+	var current_match: Match = setup.start(setup.deck(PLAYER).rules[3])
+	assert_same(current_match.public_view(PLAYER).own_true_rule, r08)
 
 
 func test_the_match_starts_with_both_decks_visible_to_the_player() -> void:
@@ -126,21 +126,21 @@ func test_a_rematch_numbers_rows_from_the_new_first_player_s_side() -> void:
 	for seed_value: int in 8:
 		var setup: MatchSetup = _setup(seed_value)
 		setup.start(_book.rule("R01"))
-		var game: Match = setup.rematch(_book.rule("R03"))
-		var even_rows_y: Array = [0, 2, 4] if game.first_player() == PLAYER else [1, 3, 5]
-		_play_until_the_player_places(game)
-		var legal: Array[Vector2i] = game.public_view(PLAYER).own_legal_cells()
+		var current_match: Match = setup.rematch(_book.rule("R03"))
+		var even_rows_y: Array = [0, 2, 4] if current_match.first_player() == PLAYER else [1, 3, 5]
+		_play_until_the_player_places(current_match)
+		var legal: Array[Vector2i] = current_match.public_view(PLAYER).own_legal_cells()
 		assert_gt(legal.size(), 0, "seed %d" % seed_value)
 		for cell: Vector2i in legal:
 			assert_has(even_rows_y, cell.y, "seed %d: %s is on an even row" % [seed_value, cell])
 
 
 ## Picks the first colour and, if the AI goes first, plays its first turn.
-func _play_until_the_player_places(game: Match) -> void:
-	game.submit(game.current_player(), Command.pick_colour(BallColour.RED))
-	if game.current_player() == AI:
-		game.submit(AI, Command.place(game.legal_cells()[0]))
-		game.submit(AI, Command.pick_colour(BallColour.BLUE))
+func _play_until_the_player_places(current_match: Match) -> void:
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
+	if current_match.current_player() == AI:
+		current_match.submit(AI, Command.place(current_match.legal_cells()[0]))
+		current_match.submit(AI, Command.pick_colour(BallColour.BLUE))
 
 
 func test_a_book_without_the_starter_deck_sets_up_nothing() -> void:

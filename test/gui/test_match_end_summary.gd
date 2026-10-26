@@ -15,21 +15,21 @@ func before_each() -> void:
 ## A match whose true rules are "AT" (player 0) and "BT" (player 1), past the
 ## first colour pick: the first player is to place.
 func _started(seed_value: int) -> Match:
-	var game: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
-	game.submit(Players.opponent(game.first_player()), Command.pick_colour(BallColour.RED))
-	return game
+	var current_match: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
+	current_match.submit(Players.opponent(current_match.first_player()), Command.pick_colour(BallColour.RED))
+	return current_match
 
 
 ## A match that ended when the guesser named this rule at the start of their
 ## first turn. The first seed whose coin toss lets the guesser go first.
 func _guessed(guesser: int, rule_id: String) -> Match:
-	var game: Match = _started(1)
+	var current_match: Match = _started(1)
 	var seed_value: int = 1
-	while game.current_player() != guesser:
+	while current_match.current_player() != guesser:
 		seed_value += 1
-		game = _started(seed_value)
-	assert_true(game.submit(guesser, Command.guess(rule_id)))
-	return game
+		current_match = _started(seed_value)
+	assert_true(current_match.submit(guesser, Command.guess(rule_id)))
+	return current_match
 
 
 func test_a_right_guess_wins_for_the_guesser() -> void:
@@ -61,11 +61,11 @@ func test_the_ais_wrong_guess_wins_for_the_viewer() -> void:
 
 
 func test_each_viewer_sees_both_true_rules_from_their_side() -> void:
-	var game: Match = _guessed(0, "B2")
-	var mine: MatchEndSummary = MatchEndSummary.from_view(game.public_view(0))
+	var current_match: Match = _guessed(0, "B2")
+	var mine: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(0))
 	assert_eq(mine.own_true_rule.id, "AT")
 	assert_eq(mine.opponent_true_rule.id, "BT")
-	var theirs: MatchEndSummary = MatchEndSummary.from_view(game.public_view(1))
+	var theirs: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(1))
 	assert_eq(theirs.own_true_rule.id, "BT")
 	assert_eq(theirs.opponent_true_rule.id, "AT")
 
@@ -92,9 +92,9 @@ func _third_skip_by_player_0() -> Match:
 	var bt: Rule = Fixtures.anywhere(_book, "BT")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, bt, "B")]
 	var true_rules: Array[Rule] = [r04, bt]
-	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
-	assert_eq(game.phase(), Match.Phase.OVER)
-	return game
+	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	return current_match
 
 
 func test_the_viewers_third_skip_loses() -> void:
@@ -113,11 +113,11 @@ func test_the_ais_third_skip_wins_for_the_viewer() -> void:
 ## A match that ended on a full board: player 0 placed the last ball, then
 ## player 0 and player 1 made these forced guesses.
 func _forced(rule_id_0: String, rule_id_1: String) -> Match:
-	var game: Match = Fixtures.nearly_full_match(_book)
-	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
-	assert_true(game.submit(0, Command.forced_guess(rule_id_0)))
-	assert_true(game.submit(1, Command.forced_guess(rule_id_1)))
-	return game
+	var current_match: Match = Fixtures.nearly_full_match(_book)
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	assert_true(current_match.submit(0, Command.forced_guess(rule_id_0)))
+	assert_true(current_match.submit(1, Command.forced_guess(rule_id_1)))
+	return current_match
 
 
 func test_two_wrong_forced_guesses_draw_and_list_the_viewers_guess_first() -> void:

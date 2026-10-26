@@ -28,22 +28,22 @@ func _init(p_true_rule_ids: Array[String], p_first_player: int, p_result: MatchR
 ## The record of a match as it stands (its result is null while it runs),
 ## turns counted from its history. The true rules are read from each
 ## player's own view.
-static func from_match(game: Match) -> MatchRecord:
+static func from_match(current_match: Match) -> MatchRecord:
 	var ids: Array[String] = []
 	var turns_played: Array[int] = []
 	var skipped: Array[int] = []
 	for player: int in Players.COUNT:
-		ids.append(game.public_view(player).own_true_rule.id)
+		ids.append(current_match.public_view(player).own_true_rule.id)
 		turns_played.append(0)
 		skipped.append(0)
-	for entry: HistoryEntry in game.history():
+	for entry: HistoryEntry in current_match.history():
 		match entry.type:
 			HistoryEntry.Type.PLACEMENT:
 				turns_played[entry.player] += 1
 			HistoryEntry.Type.SKIP:
 				turns_played[entry.player] += 1
 				skipped[entry.player] += 1
-	return MatchRecord.new(ids, game.first_player(), game.result(), turns_played, skipped)
+	return MatchRecord.new(ids, current_match.first_player(), current_match.result(), turns_played, skipped)
 
 
 func is_finished() -> bool:

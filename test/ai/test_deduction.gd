@@ -31,10 +31,10 @@ func _match(opponent_rules: Array[String], first_player: int) -> Match:
 
 
 ## Submits each command for the player the match awaits.
-func _play(game: Match, commands: Array[Command]) -> void:
+func _play(current_match: Match, commands: Array[Command]) -> void:
 	for command: Command in commands:
-		var player: int = game.awaiting_players()[0]
-		assert_true(game.submit(player, command), "player %d: %s" % [player, command])
+		var player: int = current_match.awaiting_players()[0]
+		assert_true(current_match.submit(player, command), "player %d: %s" % [player, command])
 
 
 ## Placements alternating with red colour picks, starting with the first colour.
@@ -46,55 +46,55 @@ func _placements(cells: Array[Vector2i]) -> Array[Command]:
 	return commands
 
 
-func _candidate_ids(game: Match) -> Array[String]:
+func _candidate_ids(current_match: Match) -> Array[String]:
 	var ids: Array[String] = []
-	for rule: Rule in Deduction.candidates(game.public_view(AI)):
+	for rule: Rule in Deduction.candidates(current_match.public_view(AI)):
 		ids.append(rule.id)
 	return ids
 
 
 func test_before_the_opponent_acts_every_rule_of_their_deck_is_a_candidate() -> void:
-	var game: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
-	assert_eq(_candidate_ids(game), ["OT", "R04", "R07", "R08", "R03"] as Array[String])
-	_play(game, [Command.pick_colour(BallColour.RED)])
-	assert_eq(_candidate_ids(game), ["OT", "R04", "R07", "R08", "R03"] as Array[String])
+	var current_match: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
+	assert_eq(_candidate_ids(current_match), ["OT", "R04", "R07", "R08", "R03"] as Array[String])
+	_play(current_match, [Command.pick_colour(BallColour.RED)])
+	assert_eq(_candidate_ids(current_match), ["OT", "R04", "R07", "R08", "R03"] as Array[String])
 
 
 func test_a_placement_rules_out_the_rules_it_breaks() -> void:
-	var game: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
+	var current_match: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
 	# (0, 0) is on the edge, and on row 6 counted from player 0's side.
-	_play(game, _placements([Vector2i(0, 0)]))
-	assert_eq(_candidate_ids(game), ["OT", "R07", "R08", "R03"] as Array[String])
+	_play(current_match, _placements([Vector2i(0, 0)]))
+	assert_eq(_candidate_ids(current_match), ["OT", "R07", "R08", "R03"] as Array[String])
 
 
 func test_a_placement_is_judged_on_the_board_as_it_was_then() -> void:
-	var game: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
+	var current_match: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
 	# The AI then places next to the opponent's ball: R07 allowed that
 	# placement when it was made.
-	_play(game, _placements([Vector2i(2, 2), Vector2i(2, 3)]))
-	assert_has(_candidate_ids(game), "R07")
-	_play(game, [Command.place(Vector2i(1, 4))])
-	assert_does_not_have(_candidate_ids(game), "R07", "placed next to the AI's ball")
+	_play(current_match, _placements([Vector2i(2, 2), Vector2i(2, 3)]))
+	assert_has(_candidate_ids(current_match), "R07")
+	_play(current_match, [Command.place(Vector2i(1, 4))])
+	assert_does_not_have(_candidate_ids(current_match), "R07", "placed next to the AI's ball")
 
 
 func test_the_last_ball_is_the_one_placed_before_that_placement() -> void:
-	var game: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
+	var current_match: Match = _match(["R04", "R07", "R08", "R03"], OPPONENT)
 	# Opponent: (1, 1), (4, 4), (2, 2). (2, 2) touches (1, 1) but not the ball
 	# placed just before it; the AI places far away.
-	_play(game, _placements([Vector2i(1, 1), Vector2i(5, 0), Vector2i(4, 4), Vector2i(5, 1), Vector2i(2, 2), Vector2i(5, 2)]))
-	assert_has(_candidate_ids(game), "R08")
-	_play(game, [Command.place(Vector2i(3, 3))])
-	assert_does_not_have(_candidate_ids(game), "R08", "(3, 3) touches (2, 2)")
+	_play(current_match, _placements([Vector2i(1, 1), Vector2i(5, 0), Vector2i(4, 4), Vector2i(5, 1), Vector2i(2, 2), Vector2i(5, 2)]))
+	assert_has(_candidate_ids(current_match), "R08")
+	_play(current_match, [Command.place(Vector2i(3, 3))])
+	assert_does_not_have(_candidate_ids(current_match), "R08", "(3, 3) touches (2, 2)")
 
 
 func test_rows_are_counted_from_the_first_players_side() -> void:
 	# The AI goes first, so rows count from the top: y 1 is row 2, y 4 row 5.
-	var game: Match = _match(["R04", "R07", "R08", "R03"], AI)
-	_play(game, _placements([Vector2i(5, 5), Vector2i(2, 1)]))
-	assert_has(_candidate_ids(game), "R03")
-	game = _match(["R04", "R07", "R08", "R03"], AI)
-	_play(game, _placements([Vector2i(5, 5), Vector2i(2, 4)]))
-	assert_does_not_have(_candidate_ids(game), "R03")
+	var current_match: Match = _match(["R04", "R07", "R08", "R03"], AI)
+	_play(current_match, _placements([Vector2i(5, 5), Vector2i(2, 1)]))
+	assert_has(_candidate_ids(current_match), "R03")
+	current_match = _match(["R04", "R07", "R08", "R03"], AI)
+	_play(current_match, _placements([Vector2i(5, 5), Vector2i(2, 4)]))
+	assert_does_not_have(_candidate_ids(current_match), "R03")
 
 
 ## The AI (player 1) is to place yellow in the last inner cell, (3, 3). The
@@ -120,18 +120,18 @@ func _skip_match() -> Match:
 
 
 func test_a_skip_rules_out_the_rules_that_would_have_allowed_a_cell_for_that_colour() -> void:
-	var game: Match = _skip_match()
-	_play(game, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED)])
-	assert_eq(str(game.history().back()), "player 0 skips red")
+	var current_match: Match = _skip_match()
+	_play(current_match, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED)])
+	assert_eq(str(current_match.history().back()), "player 0 skips red")
 	# R01 had no cell for red: every empty cell touches a red ball.
-	assert_eq(_candidate_ids(game), ["R04", "R01"] as Array[String])
+	assert_eq(_candidate_ids(current_match), ["R04", "R01"] as Array[String])
 
 
 func test_a_skip_stays_judged_for_the_skipped_colour() -> void:
-	var game: Match = _skip_match()
-	_play(game, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED), Command.pick_colour(BallColour.BLUE)])
-	assert_eq(game.current_player(), AI)
-	assert_eq(_candidate_ids(game), ["R04", "R01"] as Array[String], "R01 would allow blue, not red")
+	var current_match: Match = _skip_match()
+	_play(current_match, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED), Command.pick_colour(BallColour.BLUE)])
+	assert_eq(current_match.current_player(), AI)
+	assert_eq(_candidate_ids(current_match), ["R04", "R01"] as Array[String], "R01 would allow blue, not red")
 
 
 # Candidates only shrink as history grows, so checking each match's final
@@ -144,14 +144,14 @@ func test_over_many_seeded_matches_the_true_rule_is_never_ruled_out() -> void:
 		var true_rules: Array[Rule] = []
 		for deck: Deck in decks:
 			true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
-		var game: Match = Match.create(decks, true_rules, rng)
+		var current_match: Match = Match.create(decks, true_rules, rng)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
-		while game.phase() != Match.Phase.OVER:
-			var player: int = game.awaiting_players()[0]
-			assert_true(game.submit(player, await controllers[player].decide(game.public_view(player))))
+		while current_match.phase() != Match.Phase.OVER:
+			var player: int = current_match.awaiting_players()[0]
+			assert_true(current_match.submit(player, await controllers[player].decide(current_match.public_view(player))))
 		for viewer: int in Players.COUNT:
 			var opponent_true_rule: Rule = true_rules[Players.opponent(viewer)]
-			var candidates: Array[Rule] = Deduction.candidates(game.public_view(viewer))
+			var candidates: Array[Rule] = Deduction.candidates(current_match.public_view(viewer))
 			assert_has(candidates, opponent_true_rule, "seed %d, player %d" % [seed_value, viewer])
 			ruled_out += Deck.SIZE - candidates.size()
 	assert_gt(ruled_out, 100, "the matches rule some rules out")

@@ -37,23 +37,23 @@ static func play(book: RuleBook, seed_value: int) -> MatchRecord:
 		decks.append(deck)
 		true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
 		ais.append(AIController.new(rng))
-	var game: Match = Match.create(decks, true_rules, rng)
-	play_out(game, ais)
-	return MatchRecord.from_match(game)
+	var current_match: Match = Match.create(decks, true_rules, rng)
+	play_out(current_match, ais)
+	return MatchRecord.from_match(current_match)
 
 
 ## Asks the AI of every awaited player for a command and submits it until
 ## the match is over. Returns false, leaving the match unfinished, if an AI
 ## has no command, the match rejects one, or MAX_COMMANDS run out.
 ## AIs decide at once, so this needs no await.
-static func play_out(game: Match, ais: Array[AIController]) -> bool:
+static func play_out(current_match: Match, ais: Array[AIController]) -> bool:
 	var commands: int = 0
-	while game.phase() != Match.Phase.OVER:
-		for player: int in game.awaiting_players():
+	while current_match.phase() != Match.Phase.OVER:
+		for player: int in current_match.awaiting_players():
 			if commands >= MAX_COMMANDS:
 				return false
-			var command: Command = ais[player].decide(game.public_view(player))
-			if command == null or not game.submit(player, command):
+			var command: Command = ais[player].decide(current_match.public_view(player))
+			if command == null or not current_match.submit(player, command):
 				return false
 			commands += 1
 	return true

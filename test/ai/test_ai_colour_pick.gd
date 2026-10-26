@@ -61,12 +61,12 @@ func test_the_ai_picks_the_colour_expected_to_rule_out_the_most_candidates() -> 
 	# out; if R01 is true, nothing is ruled out: 4/34 expected. Blue: 3 cells
 	# next to the blue ball: 3/68. Yellow, green: 0.
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "OT"), _book.rule("R01"), _nowhere("N2"), _nowhere("N3"), _nowhere("N4")]
-	var game: Match = _match(MatchPosition.from_board(Board.new(), OPPONENT), deck)
-	assert_true(game.submit(AI, Command.pick_colour(BallColour.RED)))
-	assert_true(game.submit(OPPONENT, Command.place(Vector2i(2, 2))))
-	assert_true(game.submit(OPPONENT, Command.pick_colour(BallColour.BLUE)))
-	assert_true(game.submit(AI, Command.place(Vector2i(5, 5))))
-	for colour: String in await _colours_picked(game.public_view(AI), 20):
+	var current_match: Match = _match(MatchPosition.from_board(Board.new(), OPPONENT), deck)
+	assert_true(current_match.submit(AI, Command.pick_colour(BallColour.RED)))
+	assert_true(current_match.submit(OPPONENT, Command.place(Vector2i(2, 2))))
+	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.BLUE)))
+	assert_true(current_match.submit(AI, Command.place(Vector2i(5, 5))))
+	for colour: String in await _colours_picked(current_match.public_view(AI), 20):
 		assert_eq(colour, BallColour.RED)
 
 
@@ -98,10 +98,10 @@ func test_the_ai_counts_what_a_skip_would_rule_out() -> void:
 		HistoryEntry.colour_pick(OPPONENT, BallColour.YELLOW),
 	]
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "OT"), _book.rule("R01"), _book.rule("R04"), _nowhere("N3"), _nowhere("N4")]
-	var game: Match = _match(position, deck)
-	assert_true(game.submit(AI, Command.place(Vector2i(5, 5))))
-	assert_eq(Deduction.candidates(game.public_view(AI)).size(), 3, "N3 and N4 ruled out")
-	for colour: String in await _colours_picked(game.public_view(AI), 20):
+	var current_match: Match = _match(position, deck)
+	assert_true(current_match.submit(AI, Command.place(Vector2i(5, 5))))
+	assert_eq(Deduction.candidates(current_match.public_view(AI)).size(), 3, "N3 and N4 ruled out")
+	for colour: String in await _colours_picked(current_match.public_view(AI), 20):
 		assert_eq(colour, BallColour.BLUE)
 
 

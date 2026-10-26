@@ -30,8 +30,8 @@ var _stopped: bool = false
 ## paused_players the driver awaits wait.call(seconds), with seconds drawn
 ## from rng between MIN_PAUSE and MAX_PAUSE. The scene passes a timer; tests
 ## pass a function that only records the pause.
-func _init(game: Match, controllers: Array[Controller], paused_players: Array[int], rng: RandomNumberGenerator, wait: Callable) -> void:
-	_match = game
+func _init(current_match: Match, controllers: Array[Controller], paused_players: Array[int], rng: RandomNumberGenerator, wait: Callable) -> void:
+	_match = current_match
 	_controllers = controllers.duplicate()
 	_paused_players = paused_players.duplicate()
 	_rng = rng

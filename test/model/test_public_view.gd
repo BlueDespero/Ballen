@@ -24,25 +24,25 @@ func _match(opponent_true_rule_id: String) -> Match:
 
 
 ## Plays the same inner-cell moves in any match; legal under R04 and B1.
-func _play_some_turns(game: Match) -> void:
+func _play_some_turns(current_match: Match) -> void:
 	var cells: Array[Vector2i] = [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3)]
-	game.submit(game.current_player(), Command.pick_colour(BallColour.RED))
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
 	for cell: Vector2i in cells:
-		var player: int = game.current_player()
-		assert_true(game.submit(player, Command.place(cell)))
-		assert_true(game.submit(player, Command.pick_colour(BallColour.BLUE)))
+		var player: int = current_match.current_player()
+		assert_true(current_match.submit(player, Command.place(cell)))
+		assert_true(current_match.submit(player, Command.pick_colour(BallColour.BLUE)))
 
 
 func test_the_view_shows_the_viewers_own_true_rule_and_the_public_state() -> void:
-	var game: Match = _match("R04")
-	_play_some_turns(game)
-	var view: PublicView = game.public_view(0)
+	var current_match: Match = _match("R04")
+	_play_some_turns(current_match)
+	var view: PublicView = current_match.public_view(0)
 	assert_eq(view.viewer, 0)
 	assert_eq(view.own_true_rule.id, "R04")
-	assert_eq(view.phase, game.phase())
-	assert_eq(view.current_player, game.current_player())
-	assert_eq(view.position.turn, game.turn())
-	assert_eq(view.position.first_player, game.first_player())
+	assert_eq(view.phase, current_match.phase())
+	assert_eq(view.current_player, current_match.current_player())
+	assert_eq(view.position.turn, current_match.turn())
+	assert_eq(view.position.first_player, current_match.first_player())
 	assert_eq(view.position.colour, BallColour.BLUE)
 	assert_eq(view.position.skips, [0, 0] as Array[int])
 	assert_eq(view.position.history.size(), 7)
@@ -79,35 +79,35 @@ func _assert_player_0_sees_the_same(a: Match, b: Match) -> void:
 
 
 func test_the_view_holds_no_reference_back_to_the_match() -> void:
-	var game: Match = _match("R04")
-	_play_some_turns(game)
-	for object: Object in ObjectWalker.objects(game.public_view(1)):
+	var current_match: Match = _match("R04")
+	_play_some_turns(current_match)
+	for object: Object in ObjectWalker.objects(current_match.public_view(1)):
 		assert_false(object is Match, "reached a Match from the view")
-		assert_ne(object, game)
+		assert_ne(object, current_match)
 
 
 func test_changing_the_view_does_not_change_the_match() -> void:
-	var game: Match = _match("R04")
-	_play_some_turns(game)
-	var view: PublicView = game.public_view(game.current_player())
+	var current_match: Match = _match("R04")
+	_play_some_turns(current_match)
+	var view: PublicView = current_match.public_view(current_match.current_player())
 	view.position.board.place(Vector2i(4, 4), Ball.new(BallColour.RED, 0))
 	view.position.history.clear()
 	view.position.skips[0] = 2
 	view.decks[0].rules.clear()
-	assert_true(game.is_legal(Vector2i(4, 4)))
-	assert_eq(game.history().size(), 7)
-	assert_eq(game.skip_count(0), 0)
-	assert_eq(game.public_view(0).decks[0].rules.size(), Deck.SIZE)
+	assert_true(current_match.is_legal(Vector2i(4, 4)))
+	assert_eq(current_match.history().size(), 7)
+	assert_eq(current_match.skip_count(0), 0)
+	assert_eq(current_match.public_view(0).decks[0].rules.size(), Deck.SIZE)
 
 
 func test_both_true_rules_are_revealed_once_the_match_is_over() -> void:
-	var game: Match = _match("B1")
-	game.submit(game.current_player(), Command.pick_colour(BallColour.RED))
-	assert_eq(game.public_view(0).revealed_true_rules.size(), 0, "nothing revealed while the match runs")
-	var guesser: int = game.current_player()
-	game.submit(guesser, Command.guess("B3" if guesser == 0 else "A3"))
+	var current_match: Match = _match("B1")
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
+	assert_eq(current_match.public_view(0).revealed_true_rules.size(), 0, "nothing revealed while the match runs")
+	var guesser: int = current_match.current_player()
+	current_match.submit(guesser, Command.guess("B3" if guesser == 0 else "A3"))
 	for viewer: int in Players.COUNT:
-		var revealed: Array[Rule] = game.public_view(viewer).revealed_true_rules
+		var revealed: Array[Rule] = current_match.public_view(viewer).revealed_true_rules
 		assert_eq(revealed.size(), Players.COUNT)
 		assert_eq(revealed[0].id, "R04")
 		assert_eq(revealed[1].id, "B1")

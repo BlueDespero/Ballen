@@ -74,10 +74,10 @@ static func from_position(position: MatchPosition, decks: Array[Deck], true_rule
 	if position.turn > 0 and not BallColour.is_valid(position.colour):
 		push_error("Match.from_position: turn %d needs a colour, got '%s'" % [position.turn, position.colour])
 		return null
-	var game: Match = Match.new(position.copy(), decks, true_rules, rng)
+	var current_match: Match = Match.new(position.copy(), decks, true_rules, rng)
 	if position.turn > 0:
-		game._start_turn()
-	return game
+		current_match._start_turn()
+	return current_match
 
 
 static func _setup_is_valid(decks: Array[Deck], true_rules: Array[Rule]) -> bool:

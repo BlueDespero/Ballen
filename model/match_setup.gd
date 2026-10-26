@@ -72,7 +72,7 @@ func _start(player_true_rule: Rule, first_player: int) -> Match:
 	true_rules.resize(Players.COUNT)
 	true_rules[PLAYER] = player_true_rule
 	true_rules[AI] = _decks[AI].rules[_rng.randi_range(0, Deck.SIZE - 1)]
-	var game: Match = Match.create(_decks, true_rules, _rng, first_player)
-	if game != null:
-		_last_first_player = game.first_player()
-	return game
+	var current_match: Match = Match.create(_decks, true_rules, _rng, first_player)
+	if current_match != null:
+		_last_first_player = current_match.first_player()
+	return current_match

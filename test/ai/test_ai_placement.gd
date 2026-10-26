@@ -29,9 +29,9 @@ func _ai_to_place(ai_deck: Array[Rule]) -> Match:
 	var opponent_true_rule: Rule = Fixtures.anywhere(_book, "BT")
 	var decks: Array[Deck] = [Deck.new(ai_deck), Fixtures.deck_with(_book, opponent_true_rule, "B")]
 	var true_rules: Array[Rule] = [ai_deck[0], opponent_true_rule]
-	var game: Match = Match.from_position(MatchPosition.from_board(Board.new(), AI), decks, true_rules, Fixtures.rng(1))
-	assert_true(game.submit(OPPONENT, Command.pick_colour(BallColour.RED)))
-	return game
+	var current_match: Match = Match.from_position(MatchPosition.from_board(Board.new(), AI), decks, true_rules, Fixtures.rng(1))
+	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.RED)))
+	return current_match
 
 
 func _placed_cells(ai_deck: Array[Rule], seeds: int) -> Array[Vector2i]:

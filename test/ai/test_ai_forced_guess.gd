@@ -14,20 +14,20 @@ func before_each() -> void:
 
 ## The nearly full match after player 0 fills the board.
 func _full() -> Match:
-	var game: Match = Fixtures.nearly_full_match(_book)
-	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
-	return game
+	var current_match: Match = Fixtures.nearly_full_match(_book)
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	return current_match
 
 
 func test_the_ai_makes_its_forced_guess_naming_a_rule_of_the_opponents_deck() -> void:
 	for player: int in Players.COUNT:
-		var game: Match = _full()
+		var current_match: Match = _full()
 		if player == 1:
-			game.submit(0, Command.forced_guess("B1"))
-		var command: Command = await AIController.new(Fixtures.rng(1)).decide(game.public_view(player))
+			current_match.submit(0, Command.forced_guess("B1"))
+		var command: Command = await AIController.new(Fixtures.rng(1)).decide(current_match.public_view(player))
 		assert_eq(command.type, Command.Type.FORCED_GUESS, "player %d" % player)
-		assert_true(game.public_view(player).decks[Players.opponent(player)].has_id(command.rule_id))
-		assert_true(game.submit(player, command))
+		assert_true(current_match.public_view(player).decks[Players.opponent(player)].has_id(command.rule_id))
+		assert_true(current_match.submit(player, command))
 
 
 func test_the_ais_forced_guess_follows_its_seeded_rng() -> void:
@@ -52,10 +52,10 @@ func test_the_ais_forced_guess_names_a_random_remaining_candidate() -> void:
 	var start: PublicView = Fixtures.nearly_full_match(_book).public_view(1)
 	var decks: Array[Deck] = [Deck.new(deck_0), start.decks[1]]
 	var true_rules: Array[Rule] = [deck_0[0], start.own_true_rule]
-	var game: Match = Match.from_position(start.position, decks, true_rules, Fixtures.rng(1))
-	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
-	assert_true(game.submit(0, Command.forced_guess("B1")))
-	var view: PublicView = game.public_view(1)
+	var current_match: Match = Match.from_position(start.position, decks, true_rules, Fixtures.rng(1))
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	assert_true(current_match.submit(0, Command.forced_guess("B1")))
+	var view: PublicView = current_match.public_view(1)
 	var named: Array[String] = []
 	for seed_value: int in 20:
 		var command: Command = await AIController.new(Fixtures.rng(seed_value)).decide(view)
@@ -70,9 +70,9 @@ func test_with_no_candidate_left_the_ai_reports_it_and_makes_no_forced_guess() -
 	# Can't happen in a real match: the true rule always remains. The view is
 	# edited so that player 0's deck holds only rules their last placement broke.
 	_book.add_template("nowhere", {"blanks": {}, "tree": {"part": "count_at_most", "n": 0, "of": {"part": "target"}}})
-	var game: Match = _full()
-	assert_true(game.submit(0, Command.forced_guess("B1")))
-	var view: PublicView = game.public_view(1)
+	var current_match: Match = _full()
+	assert_true(current_match.submit(0, Command.forced_guess("B1")))
+	var view: PublicView = current_match.public_view(1)
 	var nowhere: Array[Rule] = []
 	for rule_id: String in ["N1", "N2", "N3", "N4", "N5"]:
 		nowhere.append(_book.make_rule({"id": rule_id, "text": "Nowhere", "template": "nowhere", "values": {}}))
@@ -84,12 +84,12 @@ func test_with_no_candidate_left_the_ai_reports_it_and_makes_no_forced_guess() -
 
 func test_two_ais_fill_the_board_and_end_on_their_forced_guesses() -> void:
 	for seed_value: int in 5:
-		var game: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
+		var current_match: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value)), AIController.new(Fixtures.rng(seed_value + 100))]
-		await MatchDriver.new(game, controllers, [], Fixtures.rng(seed_value), func(_seconds: float) -> void: pass).run()
-		assert_eq(game.phase(), Match.Phase.OVER)
-		assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
-		assert_true(game.public_view(0).position.board.is_full())
+		await MatchDriver.new(current_match, controllers, [], Fixtures.rng(seed_value), func(_seconds: float) -> void: pass).run()
+		assert_eq(current_match.phase(), Match.Phase.OVER)
+		assert_eq(current_match.result().reason, MatchResult.Reason.FORCED_GUESSES)
+		assert_true(current_match.public_view(0).position.board.is_full())
 
 
 func test_an_ai_that_fills_the_board_with_one_candidate_left_guesses_outright() -> void:
@@ -104,11 +104,11 @@ func test_an_ai_that_fills_the_board_with_one_candidate_left_guesses_outright() 
 	position.history = [HistoryEntry.placement(1, Vector2i(1, 0), BallColour.BLUE)]
 	var decks: Array[Deck] = [start.decks[0], Deck.new(deck_1)]
 	var true_rules: Array[Rule] = [start.own_true_rule, deck_1[0]]
-	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
-	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
-	var command: Command = await AIController.new(Fixtures.rng(1)).decide(game.public_view(0))
+	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	var command: Command = await AIController.new(Fixtures.rng(1)).decide(current_match.public_view(0))
 	assert_eq(command.type, Command.Type.GUESS, "an outright guess, not a sealed forced guess")
 	assert_eq(command.rule_id, "BT")
-	assert_true(game.submit(0, command))
-	assert_eq(game.result().winner, 0)
-	assert_eq(game.result().reason, MatchResult.Reason.RIGHT_GUESS)
+	assert_true(current_match.submit(0, command))
+	assert_eq(current_match.result().winner, 0)
+	assert_eq(current_match.result().reason, MatchResult.Reason.RIGHT_GUESS)

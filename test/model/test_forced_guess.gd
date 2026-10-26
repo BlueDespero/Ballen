@@ -23,74 +23,74 @@ func _nearly_full() -> Match:
 
 ## The nearly full match after player 0 fills the board.
 func _full() -> Match:
-	var game: Match = _nearly_full()
-	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
-	return game
+	var current_match: Match = _nearly_full()
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	return current_match
 
 
 func test_filling_the_board_starts_the_forced_guesses_with_the_placer() -> void:
-	var game: Match = _full()
-	assert_eq(game.phase(), Match.Phase.FORCED_GUESS)
-	assert_eq(game.awaiting_players(), [0] as Array[int])
+	var current_match: Match = _full()
+	assert_eq(current_match.phase(), Match.Phase.FORCED_GUESS)
+	assert_eq(current_match.awaiting_players(), [0] as Array[int])
 
 
 func test_a_full_board_has_no_colour_pick() -> void:
-	var game: Match = _full()
-	assert_false(game.submit(0, Command.pick_colour(BallColour.BLUE)))
-	assert_eq(game.phase(), Match.Phase.FORCED_GUESS)
+	var current_match: Match = _full()
+	assert_false(current_match.submit(0, Command.pick_colour(BallColour.BLUE)))
+	assert_eq(current_match.phase(), Match.Phase.FORCED_GUESS)
 
 
 func test_after_the_placers_forced_guess_the_match_awaits_the_opponents() -> void:
-	var game: Match = _full()
-	assert_true(game.submit(0, Command.forced_guess("B2")))
-	assert_eq(game.phase(), Match.Phase.FORCED_GUESS)
-	assert_eq(game.awaiting_players(), [1] as Array[int])
-	assert_false(game.submit(0, Command.forced_guess("BT")), "one forced guess each")
+	var current_match: Match = _full()
+	assert_true(current_match.submit(0, Command.forced_guess("B2")))
+	assert_eq(current_match.phase(), Match.Phase.FORCED_GUESS)
+	assert_eq(current_match.awaiting_players(), [1] as Array[int])
+	assert_false(current_match.submit(0, Command.forced_guess("BT")), "one forced guess each")
 
 
 ## The full match after player 0 names placer_rule_id and player 1 names
 ## opponent_rule_id as forced guesses.
 func _forced(placer_rule_id: String, opponent_rule_id: String) -> Match:
-	var game: Match = _full()
-	assert_true(game.submit(0, Command.forced_guess(placer_rule_id)))
-	assert_true(game.submit(1, Command.forced_guess(opponent_rule_id)))
-	return game
+	var current_match: Match = _full()
+	assert_true(current_match.submit(0, Command.forced_guess(placer_rule_id)))
+	assert_true(current_match.submit(1, Command.forced_guess(opponent_rule_id)))
+	return current_match
 
 
 func test_only_the_placers_right_forced_guess_wins_for_the_placer() -> void:
-	var game: Match = _forced("BT", "A2")
-	assert_eq(game.phase(), Match.Phase.OVER)
-	assert_eq(game.awaiting_players(), [] as Array[int])
-	assert_eq(game.result().winner, 0)
-	assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
+	var current_match: Match = _forced("BT", "A2")
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	assert_eq(current_match.awaiting_players(), [] as Array[int])
+	assert_eq(current_match.result().winner, 0)
+	assert_eq(current_match.result().reason, MatchResult.Reason.FORCED_GUESSES)
 
 
 func test_only_the_opponents_right_forced_guess_wins_for_the_opponent() -> void:
-	var game: Match = _forced("B2", "AT")
-	assert_eq(game.result().winner, 1)
-	assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
+	var current_match: Match = _forced("B2", "AT")
+	assert_eq(current_match.result().winner, 1)
+	assert_eq(current_match.result().reason, MatchResult.Reason.FORCED_GUESSES)
 
 
 func test_two_right_forced_guesses_draw() -> void:
-	var game: Match = _forced("BT", "AT")
-	assert_eq(game.phase(), Match.Phase.OVER)
-	assert_true(game.result().is_draw())
-	assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
+	var current_match: Match = _forced("BT", "AT")
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	assert_true(current_match.result().is_draw())
+	assert_eq(current_match.result().reason, MatchResult.Reason.FORCED_GUESSES)
 
 
 func test_two_wrong_forced_guesses_draw() -> void:
-	var game: Match = _forced("B2", "A3")
-	assert_true(game.result().is_draw())
-	assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
+	var current_match: Match = _forced("B2", "A3")
+	assert_true(current_match.result().is_draw())
+	assert_eq(current_match.result().reason, MatchResult.Reason.FORCED_GUESSES)
 
 
 func test_history_records_both_forced_guesses_once_both_are_in_the_placers_first() -> void:
-	var game: Match = _full()
-	var before: int = game.history().size()
-	game.submit(0, Command.forced_guess("BT"))
-	assert_eq(game.history().size(), before, "a sealed guess is not in the history")
-	game.submit(1, Command.forced_guess("A3"))
-	var history: Array[HistoryEntry] = game.history()
+	var current_match: Match = _full()
+	var before: int = current_match.history().size()
+	current_match.submit(0, Command.forced_guess("BT"))
+	assert_eq(current_match.history().size(), before, "a sealed guess is not in the history")
+	current_match.submit(1, Command.forced_guess("A3"))
+	var history: Array[HistoryEntry] = current_match.history()
 	assert_eq(history.size(), before + 2)
 	assert_eq(str(history[-2]), "player 0 guesses BT, right")
 	assert_eq(str(history[-1]), "player 1 guesses A3, wrong")
@@ -106,65 +106,65 @@ func test_a_sealed_forced_guess_is_in_no_public_view() -> void:
 
 
 func test_the_placer_may_still_guess_and_win_before_the_forced_guess() -> void:
-	var game: Match = _full()
-	assert_true(game.submit(0, Command.guess("BT")))
-	assert_eq(game.phase(), Match.Phase.OVER)
-	assert_eq(game.result().winner, 0)
-	assert_eq(game.result().reason, MatchResult.Reason.RIGHT_GUESS)
+	var current_match: Match = _full()
+	assert_true(current_match.submit(0, Command.guess("BT")))
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	assert_eq(current_match.result().winner, 0)
+	assert_eq(current_match.result().reason, MatchResult.Reason.RIGHT_GUESS)
 
 
 func test_the_placer_may_still_guess_and_lose_before_the_forced_guess() -> void:
-	var game: Match = _full()
-	assert_true(game.submit(0, Command.guess("B2")))
-	assert_eq(game.result().winner, 1)
-	assert_eq(game.result().reason, MatchResult.Reason.WRONG_GUESS)
+	var current_match: Match = _full()
+	assert_true(current_match.submit(0, Command.guess("B2")))
+	assert_eq(current_match.result().winner, 1)
+	assert_eq(current_match.result().reason, MatchResult.Reason.WRONG_GUESS)
 
 
 func test_after_the_placers_forced_guess_no_one_may_guess() -> void:
-	var game: Match = _full()
-	game.submit(0, Command.forced_guess("B2"))
-	assert_false(game.submit(0, Command.guess("BT")), "the placer's window closed with their forced guess")
-	assert_false(game.submit(1, Command.guess("AT")), "never on the opponent's turn")
-	assert_eq(game.phase(), Match.Phase.FORCED_GUESS)
+	var current_match: Match = _full()
+	current_match.submit(0, Command.forced_guess("B2"))
+	assert_false(current_match.submit(0, Command.guess("BT")), "the placer's window closed with their forced guess")
+	assert_false(current_match.submit(1, Command.guess("AT")), "never on the opponent's turn")
+	assert_eq(current_match.phase(), Match.Phase.FORCED_GUESS)
 
 
 func test_the_opponent_makes_their_forced_guess_after_the_placer() -> void:
-	var game: Match = _full()
-	assert_false(game.submit(1, Command.forced_guess("AT")))
-	assert_eq(game.awaiting_players(), [0] as Array[int])
+	var current_match: Match = _full()
+	assert_false(current_match.submit(1, Command.forced_guess("AT")))
+	assert_eq(current_match.awaiting_players(), [0] as Array[int])
 
 
 func test_a_forced_guess_must_name_a_rule_of_the_opponents_deck() -> void:
-	var game: Match = _full()
-	assert_false(game.submit(0, Command.forced_guess("AT")), "the guesser's own rule")
-	assert_false(game.submit(0, Command.forced_guess("R04")), "a rule in no deck")
-	assert_eq(game.awaiting_players(), [0] as Array[int])
+	var current_match: Match = _full()
+	assert_false(current_match.submit(0, Command.forced_guess("AT")), "the guesser's own rule")
+	assert_false(current_match.submit(0, Command.forced_guess("R04")), "a rule in no deck")
+	assert_eq(current_match.awaiting_players(), [0] as Array[int])
 
 
 func test_there_is_no_forced_guess_before_the_board_is_full() -> void:
-	var game: Match = _nearly_full()
-	assert_false(game.submit(0, Command.forced_guess("BT")))
-	assert_eq(game.phase(), Match.Phase.PLACE)
+	var current_match: Match = _nearly_full()
+	assert_false(current_match.submit(0, Command.forced_guess("BT")))
+	assert_eq(current_match.phase(), Match.Phase.PLACE)
 
 
 func test_the_view_shows_the_placer_their_forced_guess_is_due_and_they_may_still_guess() -> void:
-	var game: Match = _full()
-	var placer: PublicView = game.public_view(0)
+	var current_match: Match = _full()
+	var placer: PublicView = current_match.public_view(0)
 	assert_eq(placer.awaiting_players, [0] as Array[int])
 	assert_true(placer.forced_guess_due())
 	assert_true(placer.can_guess())
-	var opponent: PublicView = game.public_view(1)
+	var opponent: PublicView = current_match.public_view(1)
 	assert_false(opponent.forced_guess_due())
 	assert_false(opponent.can_guess())
 
 
 func test_the_view_shows_the_opponent_their_forced_guess_is_due_after_the_placers() -> void:
-	var game: Match = _full()
-	game.submit(0, Command.forced_guess("B2"))
-	var opponent: PublicView = game.public_view(1)
+	var current_match: Match = _full()
+	current_match.submit(0, Command.forced_guess("B2"))
+	var opponent: PublicView = current_match.public_view(1)
 	assert_eq(opponent.awaiting_players, [1] as Array[int])
 	assert_true(opponent.forced_guess_due())
 	assert_false(opponent.can_guess(), "only the placer may pull the trigger")
-	var placer: PublicView = game.public_view(0)
+	var placer: PublicView = current_match.public_view(0)
 	assert_false(placer.forced_guess_due())
 	assert_false(placer.can_guess())
