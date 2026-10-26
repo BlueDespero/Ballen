@@ -110,7 +110,7 @@ func _refresh() -> void:
 	var legal: Array[Vector2i] = []
 	if my_placement:
 		legal = _match.legal_cells()
-	_board_view.show_board(view.position.board, legal, HUMAN)
+	_board_view.show_board(view.position.board, legal, HUMAN, view.position.first_player)
 	_player_ball.reset()
 	_player_ball.colour = view.position.colour if view.current_player == HUMAN and view.phase == Match.Phase.PLACE else ""
 	_player_ball.draggable = my_placement

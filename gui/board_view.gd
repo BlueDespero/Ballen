@@ -1,9 +1,11 @@
 class_name BoardView
 extends Control
 
-## Draws the board: its cells, the balls on them and the glow on legal cells.
-## It shows what it is given and never decides what is legal. Row y = 0 is
-## drawn at the top (the AI's side), y = 5 at the bottom (the player's side).
+## Draws the board: its cells, the balls on them, the glow on legal cells and
+## the row numbers along its left edge. It shows what it is given and never
+## decides what is legal. Row y = 0 is drawn at the top (the AI's side), y = 5
+## at the bottom (the player's side); row numbers count from the first player's
+## side, so they run 1-6 upwards or downwards depending on who went first.
 
 const NO_CELL: Vector2i = Vector2i(-1, -1)
 const CELL_SIZE: float = 80.0
@@ -12,21 +14,29 @@ const BALL_TEXTURE: Texture2D = preload("res://assets/Tiles/Large tiles/Thin out
 const BALL_INSET: float = 8.0
 const GLOW_COLOUR: Color = Color(1.0, 0.92, 0.45)
 const OPPONENT_MARK_COLOUR: Color = Color(0.08, 0.09, 0.11, 0.85)
+## Row labels sit in a strip this wide left of the board, right-aligned with a gap.
+const ROW_LABEL_WIDTH: float = 20.0
+const ROW_LABEL_GAP: float = 4.0
+const ROW_LABEL_FONT_SIZE: int = 16
+const ROW_LABEL_COLOUR: Color = Color(0.78, 0.81, 0.86, 0.75)
 
 var _board: Board = Board.new()
 var _legal_cells: Array[Vector2i] = []
 var _viewer: int = Players.NONE
+var _first_player: int = 0
 
 
 func _ready() -> void:
 	custom_minimum_size = Vector2.ONE * CELL_SIZE * Board.SIZE
 
 
-## Shows a board. Glows on legal_cells; balls not owned by viewer are marked.
-func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int) -> void:
+## Shows a board. Glows on legal_cells; balls not owned by viewer are marked;
+## rows are numbered from first_player's side.
+func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int, first_player: int) -> void:
 	_board = board
 	_legal_cells = legal_cells.duplicate()
 	_viewer = viewer
+	_first_player = first_player
 	queue_redraw()
 
 
@@ -68,6 +78,17 @@ func _draw() -> void:
 		var ball: Ball = _board.ball_at(cell)
 		if ball != null:
 			draw_ball(self, rect.grow(-BALL_INSET), ball.colour, ball.owner != _viewer)
+	_draw_row_labels()
+
+
+func _draw_row_labels() -> void:
+	var font: Font = get_theme_default_font()
+	var baseline_offset: float = (font.get_ascent(ROW_LABEL_FONT_SIZE) - font.get_descent(ROW_LABEL_FONT_SIZE)) / 2.0
+	for y: int in Board.SIZE:
+		var row: int = Board.row_number(Vector2i(0, y), _first_player)
+		var baseline: Vector2 = Vector2(-ROW_LABEL_GAP - ROW_LABEL_WIDTH, (y + 0.5) * CELL_SIZE + baseline_offset)
+		draw_string(font, baseline, str(row), HORIZONTAL_ALIGNMENT_RIGHT, ROW_LABEL_WIDTH,
+			ROW_LABEL_FONT_SIZE, ROW_LABEL_COLOUR)
 
 
 func _cell_rect(cell: Vector2i) -> Rect2:
