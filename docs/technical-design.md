@@ -181,7 +181,33 @@ Planned implementation notes:
 - Easy and Normal use heuristics plus at most one-step lookahead (well under a frame).
 - Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
 - AI thinking pause: up to 5 s, scaled with decision difficulty; Hard adds random jitter so pauses carry no information.
-- A headless AI-vs-AI harness tunes randomisation and difficulty.
+
+## AI-vs-AI harness
+
+A headless script that plays matches between two AIs and prints balance numbers; it seeds the rule
+tiers and, later, tunes randomisation and difficulty. From the repo root, after an import
+(`godot --headless --path . --import`):
+
+```powershell
+godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+```
+
+| Class (`harness/`) | Does |
+| --- | --- |
+| `Harness` | `play(book, seed)`: one match between two default `AIController`s, each with a deck drawn at random from the built rules (`Deck.draw`) and a random true rule; the coin toss picks the first player. `run(book, n, seed)` plays n matches, match i seeded `match_seed(seed, i)`, so any match can be replayed alone |
+| `MatchRecord` | What a match leaves: each player's true rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
+| `HarnessStats` | The numbers over finished matches, and `summary()`, the text the script prints |
+| `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1) |
+
+- The summary: matches finished out of matches played; first player's wins, losses and draws; how
+  matches ended (right guess, wrong guess, third skip, forced guesses); average turns per match; and per
+  true rule, how often it was held, its holders' skip rate, win rate and wins / losses / draws.
+- `Harness.play_out` is its own synchronous loop, not `MatchDriver`: no pauses, no signals, no awaits.
+- Unfinished-match guard: the loop gives up on a match if an AI returns no command, the match rejects
+  a command, or the match runs past `Harness.MAX_COMMANDS` (500) commands. A given-up match counts as
+  played but not finished, and the script exits with code 1 if any match didn't finish (or an argument
+  is bad), 0 otherwise.
+- Same seed, same output. 100 matches take about 40 s (about 0.4 s a match).
 
 ## Daily duel
 
