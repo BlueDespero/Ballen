@@ -6,8 +6,10 @@ extends RefCounted
 ## no command), or stop() is called. The match alone decides what is legal.
 ##
 ## The scene drives the player and the AI with it, redrawing on `changed`; it
-## pauses the AI so the player can follow its turn. The harness can drive two
-## AIs with no pause.
+## pauses the AI so the player can follow its turn. Tests drive two AIs with
+## no pause. The AI-vs-AI harness has its own loop (Harness.play_out): it
+## needs no signals or awaits, and gives up on a rejected command instead of
+## asking again.
 
 ## The match accepted a command.
 signal changed
