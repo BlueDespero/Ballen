@@ -11,6 +11,7 @@ const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
 
 const AI_FLY_SECONDS: float = 0.3
+const MAIN_MENU_SCENE: String = "res://main.tscn"
 
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
@@ -19,6 +20,7 @@ const AI_FLY_SECONDS: float = 0.3
 @onready var _rules_panel: RulesPanel = %RulesPanel
 @onready var _status: Label = %Status
 @onready var _pre_match: PreMatchPanel = %PreMatch
+@onready var _match_end: MatchEndOverlay = %MatchEnd
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _setup: MatchSetup
@@ -35,6 +37,7 @@ func _ready() -> void:
 	_picker.picked.connect(_on_colour_picked)
 	_rules_panel.guess_requested.connect(_on_guess_requested)
 	_pre_match.rule_chosen.connect(_on_true_rule_chosen)
+	_match_end.main_menu_requested.connect(_on_main_menu_requested)
 	_show_pre_match()
 
 
@@ -97,6 +100,10 @@ func _on_guess_requested(rule_id: String) -> void:
 	_human.choose(Command.guess(rule_id))
 
 
+func _on_main_menu_requested() -> void:
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+
 func _on_match_changed() -> void:
 	var history: Array[HistoryEntry] = _match.history()
 	var last: HistoryEntry = history[-1]
@@ -128,14 +135,19 @@ func _refresh() -> void:
 	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
 	_rules_panel.guess_enabled = my_turn and view.can_guess()
 	_status.text = _status_text(view)
+	if view.phase == Match.Phase.OVER:
+		_rules_panel.show_match_over(view.revealed_true_rules[AI])
+		_match_end.show_summary(MatchEndSummary.from_view(view))
 
 
+## What to do now; empty once the match is over (the match-end screen says how
+## it went).
 func _status_text(view: PublicView) -> String:
 	if _stalled_player != Players.NONE:
 		var who: String = "You have" if _stalled_player == HUMAN else "The AI has"
 		return "%s no legal cell. Skips are not built yet, so the match stops here." % who
 	if view.phase == Match.Phase.OVER:
-		return _result_text(view)
+		return ""
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
 			return "You go first. The AI is picking your first colour…"
@@ -148,19 +160,3 @@ func _status_text(view: PublicView) -> String:
 		Match.Phase.PICK_COLOUR:
 			return "Pick the colour of the AI's next ball. That ends your turn."
 	return ""
-
-
-## The minimal result line until the match-end screen exists.
-func _result_text(view: PublicView) -> String:
-	var won: bool = view.result.winner == HUMAN
-	var outcome: String = "You win!" if won else "You lose."
-	if view.result.is_draw():
-		outcome = "A draw."
-	var last: HistoryEntry = view.position.history[-1]
-	match view.result.reason:
-		MatchResult.Reason.RIGHT_GUESS, MatchResult.Reason.WRONG_GUESS:
-			var who: String = "You" if last.player == HUMAN else "The AI"
-			var whose: String = "the AI's" if last.player == HUMAN else "your"
-			var verdict: String = "right" if last.right else "wrong"
-			return "%s named %s as %s true rule: %s. %s" % [who, last.rule_id, whose, verdict, outcome]
-	return "The match is over. %s" % outcome

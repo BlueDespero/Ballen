@@ -28,6 +28,8 @@ var guess_enabled: bool = false:
 ## The id of the AI's rule the player selected; "" for none.
 var selected_rule_id: String = ""
 
+var _match_over: bool = false
+
 @onready var _ai_rules: VBoxContainer = %AIRules
 @onready var _player_rules: VBoxContainer = %PlayerRules
 @onready var _guess_button: GuessButton = %GuessButton
@@ -50,8 +52,26 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 	_select("")
 
 
+## Once the match is over: marks the AI's true rule and closes guessing.
+func show_match_over(ai_true_rule: Rule) -> void:
+	if _match_over:
+		return
+	_match_over = true
+	guess_enabled = false
+	_select("")
+	for row: Node in _ai_rules.get_children():
+		var panel: PanelContainer = row as PanelContainer
+		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
+		if String(panel.name) == ai_true_rule.id:
+			panel.add_theme_stylebox_override("panel", _style(false, true))
+			panel.get_child(0).add_child(_label("TRUE", TRUE_BORDER_COLOUR))
+	_update_guess()
+
+
 ## Clicking an AI rule selects it; clicking it again clears the selection.
 func _on_ai_row_input(event: InputEvent, rule_id: String) -> void:
+	if _match_over:
+		return
 	var button: InputEventMouseButton = event as InputEventMouseButton
 	if button != null and button.button_index == MOUSE_BUTTON_LEFT and button.pressed:
 		_select("" if rule_id == selected_rule_id else rule_id)
@@ -74,7 +94,10 @@ func _update_guess() -> void:
 	if not is_node_ready():
 		return
 	_guess_button.enabled = guess_enabled and selected_rule_id != ""
-	if not guess_enabled:
+	_guess_button.visible = not _match_over
+	if _match_over:
+		_guess_hint.text = "The match is over. The AI's true rule is marked."
+	elif not guess_enabled:
 		_guess_hint.text = "You can guess at the start of your turn and until your colour pick."
 	elif selected_rule_id == "":
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
