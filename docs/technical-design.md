@@ -21,7 +21,7 @@ all run the same code.
 | --- | --- | --- |
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
-| AI (`ai/`) | Rule choice, placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal, Hard |
+| AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
 | Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
@@ -54,7 +54,6 @@ all run the same code.
   right wins, otherwise a draw. In the scene the player selects a rule and holds Seal, a second hold
   button beside Guess on a full board; while the player who filled it may still pull the trigger,
   Guess stays beside Seal, and the placer's opponent gets only Seal.
-  The placeholder AI names a random rule of the opponent's deck.
 - The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
   A test compares views from matches that differ only in the opponent's true rule. Once the match is
@@ -145,7 +144,37 @@ AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal 
 
 The AI's design (belief updating, colour picks as information probes, when to guess, hiding,
 difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
-and summarised in the README's "How the AI thinks". Implementation notes:
+and summarised in the README's "How the AI thinks".
+
+### As built (milestone 1)
+
+One level, using hard evidence only. `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a
+`PublicView`, returns a `Command`, and makes every random choice through an injected, seedable RNG.
+Each `decide()` works out the candidates once and hands them to the pieces below.
+
+| Piece | Does | Notes |
+| --- | --- | --- |
+| `Deduction` (`ai/deduction.gd`) | The opponent's rules not yet ruled out (`candidates(view)`), in deck order | Hard elimination: a placement rules out the rules it breaks, a skip the rules that would have allowed a cell in that colour. Each event is judged on the position just before it (`position_before`), so rules that read rows, the last ball or the board see what the match saw. Stateless: recomputed from the view's history on every call, so nothing to reset on a rematch |
+| `GuessPolicy` (`ai/guess_policy.gd`) | When to guess, and which rule | Names the top candidate once its `confidence()` reaches the threshold. Confidence is 1 / candidates and the threshold 1, so it guesses when one candidate is left. Asked whenever `view.can_guess()`: at the start of its turn, after placing or skipping, and as the placer on a full board |
+| `ColourPickStrategy` (`ai/colour_pick_strategy.gd`) | The colour the opponent places next | Highest `score()`, ties at random. The score is the expected number of candidates ruled out by the opponent's next turn in that colour, if each candidate is equally likely and the opponent places at random among its legal cells (or skips). On the empty board every colour scores the same, so the first pick is random |
+| Placement (`AIController`) | Where to place its own ball | Among its legal cells, those that satisfy the most of its own 5 rules, so any of them could be its true rule; ties at random |
+| Forced guess (`AIController`) | Its sealed guess on a full board | A random remaining candidate (all are equally likely) |
+
+The thinking pause is the scene's: `MatchDriver` waits a random 0.5–1.5 s before each AI command. Tests
+and the harness play AIs with no pause.
+
+### Later levels
+
+Easy, Normal and Hard plug into the same seams; none needs the model to change:
+
+- Soft evidence: a `GuessPolicy` subclass overrides `confidence()` with a belief, and the threshold sets how
+  sure a level must be. `Deduction` stays the hard elimination mask under it.
+- Colour picks: a `ColourPickStrategy` subclass overrides `score()` (another model of the opponent) or
+  `choose()` (e.g. a softer, more random pick for Easy).
+- Placement is a private method today; split it into a strategy object when levels need different hiding.
+- `AIController.new(rng, guess_policy, colour_pick)` takes both objects, so a level is a choice of objects.
+
+Planned implementation notes:
 
 - Exact Bayesian belief over the opponent's 5 rules, with a hard elimination mask and soft scores in
   log space.
