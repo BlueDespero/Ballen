@@ -66,6 +66,22 @@ func test_the_ais_forced_guess_names_a_random_remaining_candidate() -> void:
 	assert_gt(named.size(), 1, "different seeds name different candidates")
 
 
+func test_with_no_candidate_left_the_ai_reports_it_and_makes_no_forced_guess() -> void:
+	# Can't happen in a real match: the true rule always remains. The view is
+	# edited so that player 0's deck holds only rules their last placement broke.
+	_book.add_template("nowhere", {"blanks": {}, "tree": {"part": "count_at_most", "n": 0, "of": {"part": "target"}}})
+	var game: Match = _full()
+	assert_true(game.submit(0, Command.forced_guess("B1")))
+	var view: PublicView = game.public_view(1)
+	var nowhere: Array[Rule] = []
+	for rule_id: String in ["N1", "N2", "N3", "N4", "N5"]:
+		nowhere.append(_book.make_rule({"id": rule_id, "text": "Nowhere", "template": "nowhere", "values": {}}))
+	view.decks[0] = Deck.new(nowhere)
+	var command: Command = await AIController.new(Fixtures.rng(1)).decide(view)
+	assert_null(command)
+	assert_push_error("no candidate")
+
+
 func test_two_ais_fill_the_board_and_end_on_their_forced_guesses() -> void:
 	for seed_value: int in 5:
 		var game: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)

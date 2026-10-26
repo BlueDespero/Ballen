@@ -45,6 +45,11 @@ func decide(view: PublicView) -> Command:
 			return Command.place(_pick(cells))
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
+				# The true rule always remains, so this only guards a view that
+				# contradicts itself.
+				if candidates.is_empty():
+					push_error("AIController: no candidate left for the forced guess")
+					return null
 				return Command.forced_guess(_pick(candidates).id)
 	return null
 
