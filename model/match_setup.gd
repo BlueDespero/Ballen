@@ -25,14 +25,23 @@ func _init(decks: Array[Deck], rng: RandomNumberGenerator) -> void:
 
 
 ## The player gets the starter deck, the AI a random deck from the book's rules.
+## Returns null (and reports an error) if the book lacks a starter deck rule or
+## has too few rules for the AI's deck.
 static func against_ai(book: RuleBook, rng: RandomNumberGenerator) -> MatchSetup:
 	var starter: Array[Rule] = []
 	for rule_id: String in STARTER_DECK_IDS:
-		starter.append(book.rule(rule_id))
+		var rule: Rule = book.rule(rule_id)
+		if rule == null:
+			push_error("MatchSetup: the book has no %s for the starter deck" % rule_id)
+			return null
+		starter.append(rule)
+	var ai_deck: Deck = Deck.draw(book, rng)
+	if ai_deck == null:
+		return null
 	var decks: Array[Deck] = []
 	decks.resize(Players.COUNT)
 	decks[PLAYER] = Deck.new(starter)
-	decks[AI] = Deck.draw(book, rng)
+	decks[AI] = ai_deck
 	return MatchSetup.new(decks, rng)
 
 

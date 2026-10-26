@@ -143,6 +143,11 @@ func _play_until_the_player_places(game: Match) -> void:
 		game.submit(AI, Command.pick_colour(BallColour.BLUE))
 
 
+func test_a_book_without_the_starter_deck_sets_up_nothing() -> void:
+	assert_null(MatchSetup.against_ai(RuleBook.new(), Fixtures.rng(1)))
+	assert_push_error("starter deck")
+
+
 func test_a_rematch_before_any_match_starts_nothing() -> void:
 	assert_null(_setup(1).rematch(_book.rule("R01")))
 	assert_push_error("no match")
