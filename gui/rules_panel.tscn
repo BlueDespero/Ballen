@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" uid="uid://g5bb5ekp360h" path="res://gui/rules_panel.gd" id="1_panel"]
+[ext_resource type="Script" uid="uid://dj5bk8263ow43" path="res://gui/guess_button.gd" id="2_guess"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 16.0
@@ -47,7 +48,22 @@ theme_override_constants/separation = 4
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-alignment = 2
+theme_override_constants/separation = 16
+
+[node name="GuessHint" type="Label" parent="Sections/GuessSlot"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="GuessButton" type="Control" parent="Sections/GuessSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("2_guess")
 
 [node name="Divider" type="HSeparator" parent="Sections"]
 layout_mode = 2

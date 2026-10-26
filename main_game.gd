@@ -37,6 +37,7 @@ func _ready() -> void:
 	_player_ball.legality = _is_legal_for_player
 	_player_ball.dropped.connect(_on_player_ball_dropped)
 	_picker.picked.connect(_on_colour_picked)
+	_rules_panel.guess_requested.connect(_on_guess_requested)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait)
 	_driver.changed.connect(_on_match_changed)
@@ -88,6 +89,10 @@ func _on_colour_picked(colour: String) -> void:
 	_human.choose(Command.pick_colour(colour))
 
 
+func _on_guess_requested(rule_id: String) -> void:
+	_human.choose(Command.guess(rule_id))
+
+
 func _on_match_changed() -> void:
 	var history: Array[HistoryEntry] = _match.history()
 	var last: HistoryEntry = history[-1]
@@ -117,6 +122,7 @@ func _refresh() -> void:
 	_ai_ball.reset()
 	_ai_ball.colour = view.position.colour if ai_placement else ""
 	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
+	_rules_panel.guess_enabled = my_turn and view.can_guess()
 	_status.text = _status_text(view)
 
 
@@ -125,7 +131,7 @@ func _status_text(view: PublicView) -> String:
 		var who: String = "You have" if _stalled_player == HUMAN else "The AI has"
 		return "%s no legal cell. Skips are not built yet, so the match stops here." % who
 	if view.phase == Match.Phase.OVER:
-		return "The match is over."
+		return _result_text(view)
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
 			return "You go first. The AI is picking your first colour…"
@@ -138,3 +144,19 @@ func _status_text(view: PublicView) -> String:
 		Match.Phase.PICK_COLOUR:
 			return "Pick the colour of the AI's next ball. That ends your turn."
 	return ""
+
+
+## The minimal result line until the match-end screen exists.
+func _result_text(view: PublicView) -> String:
+	var won: bool = view.result.winner == HUMAN
+	var outcome: String = "You win!" if won else "You lose."
+	if view.result.is_draw():
+		outcome = "A draw."
+	var last: HistoryEntry = view.position.history[-1]
+	match view.result.reason:
+		MatchResult.Reason.RIGHT_GUESS, MatchResult.Reason.WRONG_GUESS:
+			var who: String = "You" if last.player == HUMAN else "The AI"
+			var whose: String = "the AI's" if last.player == HUMAN else "your"
+			var verdict: String = "right" if last.right else "wrong"
+			return "%s named %s as %s true rule: %s. %s" % [who, last.rule_id, whose, verdict, outcome]
+	return "The match is over. %s" % outcome
