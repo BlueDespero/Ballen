@@ -6,14 +6,15 @@ extends RefCounted
 ## To add a command: add a Type, a factory below with its payload, and a
 ## handler in Match.submit that checks the phase.
 
-enum Type { PLACE, PICK_COLOUR, GUESS }
+enum Type { PLACE, PICK_COLOUR, GUESS, FORCED_GUESS }
 
 var type: Type
 ## PLACE: the target cell.
 var cell: Vector2i
 ## PICK_COLOUR: the colour the opponent places next.
 var colour: String
-## GUESS: the id of the opponent's deck rule named as their true rule.
+## GUESS, FORCED_GUESS: the id of the opponent's deck rule named as their true
+## rule.
 var rule_id: String
 
 
@@ -43,6 +44,15 @@ static func guess(p_rule_id: String) -> Command:
 	return command
 
 
+## On a full board: name one of the opponent's deck rules as their true rule.
+## Sealed until both forced guesses are in; exactly one right wins, otherwise
+## the match is a draw.
+static func forced_guess(p_rule_id: String) -> Command:
+	var command: Command = Command.new(Type.FORCED_GUESS)
+	command.rule_id = p_rule_id
+	return command
+
+
 func _to_string() -> String:
 	match type:
 		Type.PLACE:
@@ -51,4 +61,6 @@ func _to_string() -> String:
 			return "pick %s" % colour
 		Type.GUESS:
 			return "guess %s" % rule_id
+		Type.FORCED_GUESS:
+			return "forced guess %s" % rule_id
 	return "command %d" % type

@@ -33,6 +33,29 @@ static func rng(seed_value: int) -> RandomNumberGenerator:
 	return generator
 
 
+## The one empty cell of nearly_full_match's board.
+const LAST_EMPTY_CELL: Vector2i = Vector2i(5, 5)
+
+
+## A match one placement from a full board: 35 balls, LAST_EMPTY_CELL empty,
+## player 0 went first and is to place red. Permissive true rules "AT"
+## (player 0) and "BT" (player 1) head decks filled with A1..A4 / B1..B4.
+static func nearly_full_match(rule_book: RuleBook) -> Match:
+	var position: MatchPosition = MatchPosition.from_board(Board.parse([
+		"YbRgYb",
+		"RgYbRg",
+		"YbRgYb",
+		"RgYbRg",
+		"YbRgYb",
+		"RgYbR.",
+	]), 0)
+	position.turn = 35
+	position.colour = BallColour.RED
+	var true_rules: Array[Rule] = [anywhere(rule_book, "AT"), anywhere(rule_book, "BT")]
+	var decks: Array[Deck] = [deck_with(rule_book, true_rules[0], "A"), deck_with(rule_book, true_rules[1], "B")]
+	return Match.from_position(position, decks, true_rules, rng(1))
+
+
 ## A new match whose true rules are the first rule of each deck.
 static func new_match(rule_book: RuleBook, true_rule_0: Rule, true_rule_1: Rule, seed_value: int) -> Match:
 	var decks: Array[Deck] = [deck_with(rule_book, true_rule_0, "A"), deck_with(rule_book, true_rule_1, "B")]

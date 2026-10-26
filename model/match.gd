@@ -12,18 +12,25 @@ extends RefCounted
 ##   FIRST_COLOUR  turn 0 only: the second player picks the first player's colour
 ##   PLACE         the current player places a ball of the current colour
 ##   PICK_COLOUR   the current player picks the opponent's colour, ending the turn
+##   FORCED_GUESS  the board is full: no colour pick; the placer, then the
+##                 opponent, makes a sealed forced guess
 ##   OVER          the match has a result and accepts no command
 ##
 ## Guess windows: the current player may name the opponent's true rule in
 ## PLACE (before placing) and in PICK_COLOUR (after placing or skipping, until
-## the colour pick). A right guess wins and a wrong guess loses at once.
+## the colour pick). A right guess wins and a wrong guess loses at once. After
+## the placement that fills the board, the placer's window stays open in
+## FORCED_GUESS until they make their forced guess.
 ##
 ## A turn whose player has no legal cell skips PLACE: the ball is removed, the
 ## player's skip count rises and history records the colour, all as the turn
 ## starts. The turn goes on to PICK_COLOUR, unless that was the player's third
 ## skip, which loses the match at once.
+##
+## Forced guesses are sealed: no view and no history shows one until both are
+## in. Then exactly one right wins; both right or both wrong is a draw.
 
-enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR, OVER }
+enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR, FORCED_GUESS, OVER }
 
 ## The skip that loses the match.
 const LOSING_SKIP: int = 3
@@ -34,6 +41,9 @@ var _true_rules: Array[Rule] = []
 var _rng: RandomNumberGenerator
 var _phase: Phase = Phase.FIRST_COLOUR
 var _result: MatchResult = null
+## Sealed forced guesses by player ("" until made); in no view and no history
+## until both are in.
+var _forced_guesses: Array[String] = ["", ""]
 
 
 func _init(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> void:
@@ -95,6 +105,8 @@ func current_player() -> int:
 func awaiting_players() -> Array[int]:
 	if _phase == Phase.OVER:
 		return []
+	if _phase == Phase.FORCED_GUESS and _forced_guesses[current_player()] != "":
+		return [Players.opponent(current_player())]
 	return [current_player()]
 
 
@@ -170,6 +182,8 @@ func submit(player: int, command: Command) -> bool:
 			return _pick_colour(player, command.colour)
 		Command.Type.GUESS:
 			return _guess(player, command.rule_id)
+		Command.Type.FORCED_GUESS:
+			return _forced_guess(player, command.rule_id)
 	return false
 
 
@@ -178,7 +192,7 @@ func _place(player: int, cell: Vector2i) -> bool:
 		return false
 	_position.board.place(cell, Ball.new(_position.colour, player))
 	_position.history.append(HistoryEntry.placement(player, cell, _position.colour))
-	_phase = Phase.PICK_COLOUR
+	_phase = Phase.FORCED_GUESS if _position.board.is_full() else Phase.PICK_COLOUR
 	return true
 
 
@@ -197,7 +211,8 @@ func _pick_colour(player: int, colour: String) -> bool:
 ## Accepted only in the current player's guess windows (see the class notes)
 ## and only naming a rule of the opponent's deck.
 func _guess(player: int, rule_id: String) -> bool:
-	if _phase != Phase.PLACE and _phase != Phase.PICK_COLOUR:
+	var placer_on_full_board: bool = _phase == Phase.FORCED_GUESS and player == current_player()
+	if _phase != Phase.PLACE and _phase != Phase.PICK_COLOUR and not placer_on_full_board:
 		return false
 	var opponent: int = Players.opponent(player)
 	if not _decks[opponent].has_id(rule_id):
@@ -208,6 +223,30 @@ func _guess(player: int, rule_id: String) -> bool:
 		_end(MatchResult.new(player, MatchResult.Reason.RIGHT_GUESS))
 	else:
 		_end(MatchResult.new(opponent, MatchResult.Reason.WRONG_GUESS))
+	return true
+
+
+## Seals the player's forced guess. Once both are in, history records them
+## (the placer's first) and the match ends: exactly one right wins, otherwise
+## a draw.
+func _forced_guess(player: int, rule_id: String) -> bool:
+	if _phase != Phase.FORCED_GUESS:
+		return false
+	var opponent: int = Players.opponent(player)
+	if not _decks[opponent].has_id(rule_id):
+		return false
+	_forced_guesses[player] = rule_id
+	if _forced_guesses.has(""):
+		return true
+	var placer: int = current_player()
+	var right: Array[bool] = [false, false]
+	for guesser: int in [placer, Players.opponent(placer)]:
+		right[guesser] = _forced_guesses[guesser] == _true_rules[Players.opponent(guesser)].id
+		_position.history.append(HistoryEntry.guess(guesser, _forced_guesses[guesser], right[guesser]))
+	var winner: int = Players.NONE
+	if right[0] != right[1]:
+		winner = 0 if right[0] else 1
+	_end(MatchResult.new(winner, MatchResult.Reason.FORCED_GUESSES))
 	return true
 
 
