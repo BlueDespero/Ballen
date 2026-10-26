@@ -98,3 +98,16 @@ func test_changing_the_view_does_not_change_the_match() -> void:
 	assert_eq(game.history().size(), 7)
 	assert_eq(game.skip_count(0), 0)
 	assert_eq(game.public_view(0).decks[0].rules.size(), Deck.SIZE)
+
+
+func test_both_true_rules_are_revealed_once_the_match_is_over() -> void:
+	var game: Match = _match("B1")
+	game.submit(game.current_player(), Command.pick_colour(BallColour.RED))
+	assert_eq(game.public_view(0).revealed_true_rules.size(), 0, "nothing revealed while the match runs")
+	var guesser: int = game.current_player()
+	game.submit(guesser, Command.guess("B3" if guesser == 0 else "A3"))
+	for viewer: int in Players.COUNT:
+		var revealed: Array[Rule] = game.public_view(viewer).revealed_true_rules
+		assert_eq(revealed.size(), Players.COUNT)
+		assert_eq(revealed[0].id, "R04")
+		assert_eq(revealed[1].id, "B1")

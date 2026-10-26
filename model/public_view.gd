@@ -3,8 +3,8 @@ extends RefCounted
 
 ## Everything one player may know about a match (ADR 0002): a snapshot built
 ## by Match.public_view(viewer), holding no reference back to the match. It
-## never holds the opponent's true rule or the opponent's legal cells.
-## Changing a view changes nothing in the match.
+## never holds the opponent's legal cells, nor the opponent's true rule while
+## the match runs. Changing a view changes nothing in the match.
 
 ## The player this view was built for.
 var viewer: int
@@ -19,6 +19,9 @@ var decks: Array[Deck] = []
 var own_true_rule: Rule
 ## Null while the match runs.
 var result: MatchResult
+## Both players' true rules, indexed by player, once the match is over; empty
+## while it runs.
+var revealed_true_rules: Array[Rule] = []
 
 
 func opponent() -> int:

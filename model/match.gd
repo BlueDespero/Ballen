@@ -106,6 +106,8 @@ func public_view(viewer: int) -> PublicView:
 		view.decks.append(deck.copy())
 	view.own_true_rule = _true_rules[viewer]
 	view.result = result()
+	if _phase == Phase.OVER:
+		view.revealed_true_rules = _true_rules.duplicate()
 	return view
 
 
