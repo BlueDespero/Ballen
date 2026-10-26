@@ -11,7 +11,21 @@ opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser fir
 
 ## Running the project
 
-Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.tscn`.
+Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.tscn`; **Single Player**
+starts a match against the AI.
+
+From the repo root, with Godot 4.7 on the path as `godot` (PowerShell):
+
+```powershell
+# Once per fresh checkout, and after adding a class_name
+godot --headless --path . --import
+# Run the GUT test suite headless; exit code 0 means every test passed
+godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+# Play 100 AI-vs-AI matches and print balance numbers; exit code 1 if any match didn't finish
+godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+```
+
+`CLAUDE.md` has the details.
 
 ## Project layout
 
