@@ -11,6 +11,8 @@ const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
 
 const AI_FLY_SECONDS: float = 0.3
+## Shorter than the AI's shortest pause, so a skip is shown before its next action.
+const SKIP_DISSOLVE_SECONDS: float = 0.4
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 
 @onready var _board_view: BoardView = %Board
@@ -27,6 +29,8 @@ var _setup: MatchSetup
 var _match: Match = null
 var _human: HumanController = HumanController.new()
 var _driver: MatchDriver = null
+## How many history events the screen has shown.
+var _shown_events: int = 0
 
 
 func _ready() -> void:
@@ -102,11 +106,19 @@ func _on_main_menu_requested() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 
+## One command can add several events (a colour pick, then the next player's
+## skip), so every event since the last redraw is shown in order.
 func _on_match_changed() -> void:
 	var history: Array[HistoryEntry] = _match.history()
-	var last: HistoryEntry = history[-1]
-	if last.type == HistoryEntry.Type.PLACEMENT and last.player == AI:
-		await _ai_ball.fly_to(_board_view.cell_centre(last.cell), AI_FLY_SECONDS)
+	var first_new: int = _shown_events
+	_shown_events = history.size()
+	for i: int in range(first_new, history.size()):
+		var event: HistoryEntry = history[i]
+		if event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
+			await _ai_ball.fly_to(_board_view.cell_centre(event.cell), AI_FLY_SECONDS)
+		elif event.type == HistoryEntry.Type.SKIP:
+			var ball: BallView = _player_ball if event.player == HUMAN else _ai_ball
+			await ball.dissolve(event.colour, SKIP_DISSOLVE_SECONDS)
 	_refresh()
 
 
@@ -139,6 +151,11 @@ func _refresh() -> void:
 func _status_text(view: PublicView) -> String:
 	if view.phase == Match.Phase.OVER:
 		return ""
+	var skip: HistoryEntry = _skip_this_turn(view)
+	if skip != null:
+		if skip.player == HUMAN:
+			return "You had no legal cell for %s, so your ball was skipped. Pick the colour of the AI's next ball." % skip.colour
+		return "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…" % skip.colour
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
 			return "You go first. The AI is picking your first colour…"
@@ -151,3 +168,14 @@ func _status_text(view: PublicView) -> String:
 		Match.Phase.PICK_COLOUR:
 			return "Pick the colour of the AI's next ball. That ends your turn."
 	return ""
+
+
+## The current player's skip, if their turn started with one; null otherwise.
+func _skip_this_turn(view: PublicView) -> HistoryEntry:
+	var history: Array[HistoryEntry] = view.position.history
+	if view.phase != Match.Phase.PICK_COLOUR or history.is_empty():
+		return null
+	var last: HistoryEntry = history[-1]
+	if last.type == HistoryEntry.Type.SKIP and last.player == view.current_player:
+		return last
+	return null

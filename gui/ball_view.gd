@@ -46,6 +46,20 @@ func reset() -> void:
 	_dragging = false
 	z_index = 0
 	position = _home
+	scale = Vector2.ONE
+	modulate.a = 1.0
+
+
+## Shows a ball of this colour on its waiting spot and fades it out while it
+## shrinks: a skipped ball. Await it; reset() brings the view back.
+func dissolve(ball_colour: String, seconds: float) -> void:
+	reset()
+	colour = ball_colour
+	pivot_offset = size / 2.0
+	var tween: Tween = create_tween().set_parallel().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "scale", Vector2(0.3, 0.3), seconds)
+	tween.tween_property(self, "modulate:a", 0.0, seconds)
+	await tween.finished
 
 
 ## Moves the ball to a point in canvas coordinates (e.g. a cell centre). Await it.
