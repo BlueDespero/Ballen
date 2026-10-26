@@ -24,36 +24,24 @@ func finished() -> int:
 
 
 func first_player_wins() -> int:
-	var count: int = 0
-	for record: MatchRecord in _finished:
-		if record.result.winner == record.first_player:
-			count += 1
-	return count
+	return _count(_finished, func(record: MatchRecord) -> bool:
+		return record.result.winner == record.first_player)
 
 
 func first_player_losses() -> int:
-	var count: int = 0
-	for record: MatchRecord in _finished:
-		if record.result.winner == Players.opponent(record.first_player):
-			count += 1
-	return count
+	return _count(_finished, func(record: MatchRecord) -> bool:
+		return record.result.winner == Players.opponent(record.first_player))
 
 
 func draws() -> int:
-	var count: int = 0
-	for record: MatchRecord in _finished:
-		if record.result.is_draw():
-			count += 1
-	return count
+	return _count(_finished, func(record: MatchRecord) -> bool:
+		return record.result.is_draw())
 
 
 ## Finished matches that ended for this reason.
 func ended_by(reason: MatchResult.Reason) -> int:
-	var count: int = 0
-	for record: MatchRecord in _finished:
-		if record.result.reason == reason:
-			count += 1
-	return count
+	return _count(_finished, func(record: MatchRecord) -> bool:
+		return record.result.reason == reason)
 
 
 ## Turns played per finished match, both players' turns counted.
@@ -101,22 +89,16 @@ func skip_rate(rule_id: String) -> float:
 
 ## Matches won by a holder of this true rule.
 func wins(rule_id: String) -> int:
-	var count: int = 0
-	for holding: Array in _holdings(rule_id):
+	return _count(_holdings(rule_id), func(holding: Array) -> bool:
 		var record: MatchRecord = holding[0]
-		if record.result.winner == holding[1]:
-			count += 1
-	return count
+		return record.result.winner == holding[1])
 
 
 ## Draws a holder of this true rule played.
 func draws_held(rule_id: String) -> int:
-	var count: int = 0
-	for holding: Array in _holdings(rule_id):
+	return _count(_holdings(rule_id), func(holding: Array) -> bool:
 		var record: MatchRecord = holding[0]
-		if record.result.is_draw():
-			count += 1
-	return count
+		return record.result.is_draw())
 
 
 ## Wins ÷ holdings of this true rule (a draw is not a win); 0 if never held.
@@ -150,6 +132,15 @@ func summary() -> String:
 			rule_id, held, skip_rate(rule_id) * 100.0, win_rate(rule_id) * 100.0, won, held - won - drawn, drawn,
 		])
 	return "\n".join(lines) + "\n"
+
+
+## How many items pass test, a func(item) -> bool.
+func _count(items: Array, test: Callable) -> int:
+	var count: int = 0
+	for item: Variant in items:
+		if test.call(item):
+			count += 1
+	return count
 
 
 ## Each [record, player] where that player held the rule as their true rule.
