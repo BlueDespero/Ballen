@@ -2,9 +2,9 @@ class_name RulesPanel
 extends PanelContainer
 
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
-## with their true rule highlighted. The player selects one of the AI's rules
-## by clicking it and names it by holding Guess under them. Slots are kept
-## free for the skip pips beside each title.
+## with their true rule highlighted, and each side's skip pips beside its
+## title. The player selects one of the AI's rules by clicking it and names it
+## by holding Guess under them.
 
 ## The player held Guess to the end with one of the AI's rules selected.
 signal guess_requested(rule_id: String)
@@ -17,6 +17,9 @@ const SELECTED_ROW_COLOUR: Color = Color(0.16, 0.24, 0.34)
 const SELECTED_BORDER_COLOUR: Color = Color(0.45, 0.72, 1.0)
 const ID_COLOUR: Color = Color(0.6, 0.64, 0.7)
 const HINT_COLOUR: Color = Color(0.7, 0.74, 0.8)
+const PIP_SIZE: float = 16.0
+const PIP_FILLED_COLOUR: Color = Color(0.92, 0.36, 0.32)
+const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -34,6 +37,8 @@ var _match_over: bool = false
 @onready var _player_rules: VBoxContainer = %PlayerRules
 @onready var _guess_button: GuessButton = %GuessButton
 @onready var _guess_hint: Label = %GuessHint
+@onready var _ai_skip_pips: HBoxContainer = %AISkipPips
+@onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
 
 
 func _ready() -> void:
@@ -103,6 +108,34 @@ func _update_guess() -> void:
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
 	else:
 		_guess_hint.text = "Hold Guess to name %s. Right wins, wrong loses." % selected_rule_id
+
+
+## One pip per skip that loses the match, filled for each skip taken.
+func show_skips(ai_skips: int, player_skips: int) -> void:
+	_fill_pips(_ai_skip_pips, ai_skips)
+	_fill_pips(_player_skip_pips, player_skips)
+
+
+func _fill_pips(pips: HBoxContainer, skips: int) -> void:
+	for child: Node in pips.get_children():
+		pips.remove_child(child)
+		child.queue_free()
+	for i: int in Match.LOSING_SKIP:
+		pips.add_child(_pip(i < skips))
+
+
+func _pip(filled: bool) -> Panel:
+	var pip: Panel = Panel.new()
+	pip.custom_minimum_size = Vector2(PIP_SIZE, PIP_SIZE)
+	pip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.set_corner_radius_all(int(PIP_SIZE / 2.0))
+	style.set_border_width_all(2)
+	style.border_color = PIP_FILLED_COLOUR if filled else PIP_EMPTY_COLOUR
+	style.bg_color = PIP_FILLED_COLOUR if filled else Color.TRANSPARENT
+	pip.add_theme_stylebox_override("panel", style)
+	return pip
 
 
 func _fill(list: VBoxContainer, deck: Deck, true_rule: Rule) -> void:

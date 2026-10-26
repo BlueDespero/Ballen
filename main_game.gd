@@ -127,6 +127,7 @@ func _refresh() -> void:
 	_ai_ball.colour = view.position.colour if ai_placement else ""
 	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
 	_rules_panel.guess_enabled = my_turn and view.can_guess()
+	_rules_panel.show_skips(view.position.skips[AI], view.position.skips[HUMAN])
 	_status.text = _status_text(view)
 	if view.phase == Match.Phase.OVER:
 		_rules_panel.show_match_over(view.revealed_true_rules[AI])
