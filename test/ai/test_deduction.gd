@@ -132,3 +132,26 @@ func test_a_skip_stays_judged_for_the_skipped_colour() -> void:
 	_play(game, [Command.place(Vector2i(3, 3)), Command.pick_colour(BallColour.RED), Command.pick_colour(BallColour.BLUE)])
 	assert_eq(game.current_player(), AI)
 	assert_eq(_candidate_ids(game), ["R04", "R01"] as Array[String], "R01 would allow blue, not red")
+
+
+# Candidates only shrink as history grows, so checking each match's final
+# view covers every view before it.
+func test_over_many_seeded_matches_the_true_rule_is_never_ruled_out() -> void:
+	var ruled_out: int = 0
+	for seed_value: int in 60:
+		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
+		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
+		var true_rules: Array[Rule] = []
+		for deck: Deck in decks:
+			true_rules.append(deck.rules[rng.randi_range(0, Deck.SIZE - 1)])
+		var game: Match = Match.create(decks, true_rules, rng)
+		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
+		while game.phase() != Match.Phase.OVER:
+			var player: int = game.awaiting_players()[0]
+			assert_true(game.submit(player, await controllers[player].decide(game.public_view(player))))
+		for viewer: int in Players.COUNT:
+			var opponent_true_rule: Rule = true_rules[Players.opponent(viewer)]
+			var candidates: Array[Rule] = Deduction.candidates(game.public_view(viewer))
+			assert_has(candidates, opponent_true_rule, "seed %d, player %d" % [seed_value, viewer])
+			ruled_out += Deck.SIZE - candidates.size()
+	assert_gt(ruled_out, 100, "the matches rule some rules out")
