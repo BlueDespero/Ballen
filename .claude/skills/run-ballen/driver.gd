@@ -8,6 +8,8 @@ extends SceneTree
 ##   wait:N               let N frames pass
 ##   until:PATH:PROP=VAL  wait until str(property) == VAL (at most 600 frames)
 ##   click:X,Y            left press + release at X,Y
+##   press:X,Y            left press at X,Y (hold: wait, then release)
+##   release:X,Y          left release at X,Y
 ##   drag:X1,Y1,X2,Y2     press at X1,Y1, move to X2,Y2 in steps, release
 ##   touch:X1,Y1,X2,Y2    the same drag with a finger (screen touch + drag events)
 ##   ss:NAME              save a screenshot to .claude/skills/run-ballen/out/NAME.png
@@ -46,6 +48,10 @@ func _run() -> void:
 				await _move(at)
 				await _button(at, true)
 				await _button(at, false)
+			"press", "release":
+				var at: Vector2 = Vector2(float(args[0]), float(args[1]))
+				await _move(at)
+				await _button(at, parts[0] == "press")
 			"drag":
 				var from: Vector2 = Vector2(float(args[0]), float(args[1]))
 				var to: Vector2 = Vector2(float(args[2]), float(args[3]))

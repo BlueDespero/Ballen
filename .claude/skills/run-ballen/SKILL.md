@@ -43,6 +43,7 @@ Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends yo
 | `wait:N` | let N frames pass |
 | `until:NODE/PATH:prop=VALUE` | wait until `str(prop) == VALUE`, at most 600 frames; prints `met` or `TIMED OUT` |
 | `click:X,Y` | left press + release at viewport pixel X,Y |
+| `press:X,Y` / `release:X,Y` | left press, or release, at X,Y; put `wait:N` between them to hold |
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
 | `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
@@ -75,10 +76,19 @@ layout and centres it, so these coordinates no longer hold.
   green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second).
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
 - `Layout/Status` (left column) says whose turn it is and what to do; read it with `get`.
-- Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (rows y≈94–286), a free slot
-  for Guess (y≈340), yours below (y≈454–646) with the true one highlighted.
-- Free room kept for later tickets: skip pips beside each
-  panel title (`%AISkipPips`, `%PlayerSkipPips`), the Guess slot (`%GuessSlot`).
+- Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
+  238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`),
+  then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
+  (y≈454–646) with the true one highlighted.
+- Guess: select an AI rule, then hold the button about 1 s: `press:1173,344 wait:90 release:1173,344`.
+  Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
+  your turn, after placing until your colour pick); the button also needs a selected rule. The ring's
+  fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
+  60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. The result
+  then shows in `Layout/Status`, e.g. `You named R04 as the AI's true rule: right. You win!`
+  (the scene's fixed true rule for both players is R04).
+- Free room kept for later tickets: skip pips beside each panel title (`%AISkipPips`,
+  `%PlayerSkipPips`).
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
