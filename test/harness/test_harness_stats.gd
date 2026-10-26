@@ -81,3 +81,22 @@ func test_counts_how_finished_matches_ended() -> void:
 	assert_eq(stats.ended_by(MatchResult.Reason.RIGHT_GUESS), 2)
 	assert_eq(stats.ended_by(MatchResult.Reason.THIRD_SKIP), 1)
 	assert_eq(stats.ended_by(MatchResult.Reason.FORCED_GUESSES), 0)
+
+
+func test_the_summary_reports_every_number() -> void:
+	var stats: HarnessStats = HarnessStats.new()
+	stats.add(_record(["R04", "R01"], 0, 1, [10, 9], [2, 0]))
+	stats.add(MatchRecord.new(["R04", "R10"] as Array[String], 1, MatchResult.new(Players.NONE, MatchResult.Reason.FORCED_GUESSES), [18, 18], [0, 0]))
+	stats.add(_unfinished(["R07", "R08"], [3, 3], [0, 0]))
+	var expected: Array[String] = [
+		"Matches finished: 2 / 3",
+		"First player wins / losses / draws: 0 / 1 / 1",
+		"Ended by: right guess 1, wrong guess 0, third skip 0, forced guesses 1",
+		"Average turns per match (both players): 27.5",
+		"",
+		"True rule  Held  Skip rate  Win rate  W / L / D",
+		"R01           1       0.0%    100.0%  1 / 0 / 0",
+		"R04           2       7.1%      0.0%  0 / 1 / 1",
+		"R10           1       0.0%      0.0%  0 / 0 / 1",
+	]
+	assert_eq(stats.summary(), "\n".join(expected) + "\n")

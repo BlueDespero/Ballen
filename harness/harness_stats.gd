@@ -127,6 +127,31 @@ func win_rate(rule_id: String) -> float:
 	return float(wins(rule_id)) / held
 
 
+## Every number as text, one true rule per row of the table.
+func summary() -> String:
+	var lines: Array[String] = [
+		"Matches finished: %d / %d" % [finished(), matches()],
+		"First player wins / losses / draws: %d / %d / %d" % [first_player_wins(), first_player_losses(), draws()],
+		"Ended by: right guess %d, wrong guess %d, third skip %d, forced guesses %d" % [
+			ended_by(MatchResult.Reason.RIGHT_GUESS),
+			ended_by(MatchResult.Reason.WRONG_GUESS),
+			ended_by(MatchResult.Reason.THIRD_SKIP),
+			ended_by(MatchResult.Reason.FORCED_GUESSES),
+		],
+		"Average turns per match (both players): %.1f" % average_turns(),
+		"",
+		"True rule  Held  Skip rate  Win rate  W / L / D",
+	]
+	for rule_id: String in true_rule_ids():
+		var held: int = holders(rule_id)
+		var won: int = wins(rule_id)
+		var drawn: int = draws_held(rule_id)
+		lines.append("%-9s  %4d  %8.1f%%  %7.1f%%  %d / %d / %d" % [
+			rule_id, held, skip_rate(rule_id) * 100.0, win_rate(rule_id) * 100.0, won, held - won - drawn, drawn,
+		])
+	return "\n".join(lines) + "\n"
+
+
 ## Each [record, player] where that player held the rule as their true rule.
 func _holdings(rule_id: String) -> Array[Array]:
 	var holdings: Array[Array] = []
