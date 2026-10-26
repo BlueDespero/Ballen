@@ -62,14 +62,17 @@ all run the same code.
 - The match-end screen (`gui/match_end_overlay.tscn`) shows what `MatchEndSummary.from_view()` makes
   of the player's finished view: win, lose or draw, how the match ended (a guess, a third skip or both
   forced guesses, read from the result and the guesses at the end of the history) and both true
-  rules. The rules panel marks the AI's true rule. Main menu returns to `main.tscn`.
+  rules. The rules panel marks the AI's true rule. Rematch goes back to the pre-match overlay on the
+  same decks; Main menu returns to `main.tscn`.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
 - `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
   AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`). Both decks are shown first;
   `MatchSetup.start(true_rule)` then draws the AI's true rule from its deck and creates the match,
-  whose coin toss picks the first player. The setup keeps both decks, so a rematch can start from it
-  again.
+  whose coin toss picks the first player. The setup keeps both decks: `MatchSetup.rematch(true_rule)`
+  starts the next match on them, with the player's new true rule, a new random true rule drawn from
+  the AI's deck and no coin toss: whoever went second last time goes first (`Match.create` takes an
+  optional first player), so rows are numbered from that player's side.
 
 ## Rules engine
 
