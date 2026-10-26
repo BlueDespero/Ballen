@@ -68,14 +68,7 @@ static func _closing_guesses(view: PublicView) -> Array[HistoryEntry]:
 ## "You named R04 "Never on the edge", the AI's true rule." and the like.
 static func _guess_sentence(view: PublicView, guess: HistoryEntry) -> String:
 	var by_viewer: bool = guess.player == view.viewer
-	var rule: Rule = _rule(view.decks[Players.opponent(guess.player)], guess.rule_id)
+	var rule: Rule = view.decks[Players.opponent(guess.player)].rule(guess.rule_id)
 	return "%s named %s \"%s\", %s%s true rule." % [
 		"You" if by_viewer else "The AI", rule.id, rule.text,
 		"" if guess.right else "but it isn't ", "the AI's" if by_viewer else "your"]
-
-
-static func _rule(deck: Deck, rule_id: String) -> Rule:
-	for rule: Rule in deck.rules:
-		if rule.id == rule_id:
-			return rule
-	return null
