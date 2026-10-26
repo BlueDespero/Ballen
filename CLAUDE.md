@@ -65,16 +65,19 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 ## Layout
 
-- `main.tscn` / `main_game.tscn` — entry scenes
-- `gui/` — board, ball, colour picker, rules panel and menu scenes and scripts
-- `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Command`,
-  `HistoryEntry`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`; plain `RefCounted`,
-  no scene nodes
-- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `RuleChecker`; rule and template data in `rules/data/`
-- `ai/` — AI controller
+- `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
+- `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
+  menus (`gui/menus/`)
+- `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
+  `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
+  `MatchSetup`; plain `RefCounted`, no scene nodes
+- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
+  rule and template data in `rules/data/`
+- `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`
 - `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`
 - `assets/` — Kenney art assets
-- `test/` — GUT tests; `addons/gut/` — vendored GUT 9.7.1
+- `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
+  `addons/gut/` — vendored GUT 9.7.1
 
 ## Agent skills
 
