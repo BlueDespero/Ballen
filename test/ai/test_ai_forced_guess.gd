@@ -74,3 +74,25 @@ func test_two_ais_fill_the_board_and_end_on_their_forced_guesses() -> void:
 		assert_eq(game.phase(), Match.Phase.OVER)
 		assert_eq(game.result().reason, MatchResult.Reason.FORCED_GUESSES)
 		assert_true(game.public_view(0).position.board.is_full())
+
+
+func test_an_ai_that_fills_the_board_with_one_candidate_left_guesses_outright() -> void:
+	# Player 1's deck: the permissive true rule "BT" and N1..N4, which allow no
+	# cell. Player 1's recorded placement at (1, 0) rules N1..N4 out.
+	_book.add_template("nowhere", {"blanks": {}, "tree": {"part": "count_at_most", "n": 0, "of": {"part": "target"}}})
+	var deck_1: Array[Rule] = [Fixtures.anywhere(_book, "BT")]
+	for i: int in range(1, Deck.SIZE):
+		deck_1.append(_book.make_rule({"id": "N%d" % i, "text": "Nowhere", "template": "nowhere", "values": {}}))
+	var start: PublicView = Fixtures.nearly_full_match(_book).public_view(0)
+	var position: MatchPosition = start.position
+	position.history = [HistoryEntry.placement(1, Vector2i(1, 0), BallColour.BLUE)]
+	var decks: Array[Deck] = [start.decks[0], Deck.new(deck_1)]
+	var true_rules: Array[Rule] = [start.own_true_rule, deck_1[0]]
+	var game: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	var command: Command = await AIController.new(Fixtures.rng(1)).decide(game.public_view(0))
+	assert_eq(command.type, Command.Type.GUESS, "an outright guess, not a sealed forced guess")
+	assert_eq(command.rule_id, "BT")
+	assert_true(game.submit(0, command))
+	assert_eq(game.result().winner, 0)
+	assert_eq(game.result().reason, MatchResult.Reason.RIGHT_GUESS)
