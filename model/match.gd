@@ -53,13 +53,15 @@ func _init(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule],
 	_rng = rng
 
 
-## A new match on an empty board. A coin toss on the rng picks the first
-## player; the second player then picks the first colour.
-## Returns null (and reports an error) if the decks or true rules don't fit.
-static func create(decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> Match:
+## A new match on an empty board. Unless a first player is given (a rematch),
+## a coin toss on the rng picks one; the second player then picks the first
+## colour. Returns null (and reports an error) if the decks or true rules
+## don't fit.
+static func create(decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator, first_player: int = Players.NONE) -> Match:
 	if not _setup_is_valid(decks, true_rules):
 		return null
-	var first_player: int = rng.randi_range(0, Players.COUNT - 1)
+	if not Players.is_valid(first_player):
+		first_player = rng.randi_range(0, Players.COUNT - 1)
 	return Match.new(MatchPosition.new(Board.new(), first_player), decks, true_rules, rng)
 
 
