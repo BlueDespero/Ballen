@@ -85,14 +85,18 @@ layout and centres it, so these coordinates no longer hold.
 - Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
   green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second).
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
-- `Layout/Status` (left column) says whose turn it is and what to do; read it with `get`.
+- A skipped ball appears on its owner's waiting spot in the skipped colour and shrinks and fades
+  (0.4 s); the skip pips fill after it.
+- `Layout/Status` (left column) says whose turn it is and what to do, and names a skipped colour
+  (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
   238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`),
   then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
-  (y≈454–646) with the true one highlighted.
+  (y≈454–646) with the true one highlighted. Three skip pips at the right of each title
+  (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
 - Guess: select an AI rule, then hold the button about 1 s: `press:1173,344 wait:90 release:1173,344`.
   Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
-  your turn, after placing until your colour pick); the button also needs a selected rule. The ring's
+  your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
   60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. A guess ends
   the match (the AI's true rule is random, so a guess is right about one time in five).
@@ -103,8 +107,8 @@ layout and centres it, so these coordinates no longer hold.
   `Layout/Status` is empty. Main menu button centre (364,540); it returns to `Main`. To guess the
   AI's first rule and go back to the menu:
   `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 wait:40 ss:end click:364,540`.
-- Free room kept for later tickets: skip pips beside each panel title (`%AISkipPips`,
-  `%PlayerSkipPips`).
+  A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
+  `The AI skipped for the third time.`
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
@@ -136,8 +140,14 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   for is your colour pick (`Layout/Status` says so), so `until:Layout/PlayerBall:draggable=true` times
   out; click a colour first. Clicking a disabled picker does nothing, so `wait:150 click:624,660` right
   after the pre-match tap is safe either way.
-- **Skips aren't built yet** (#47): once a side has no legal cell the match stops, with
-  `Layout/Status` saying who has no legal cell.
+- **Reaching skips**: you can't see legal cells from the driver, so play blind. Each turn:
+  `until:Layout/PlayerBall:draggable=true`, then drag onto every cell, `wait:12` after each (illegal
+  drops snap back; once one lands the ball is no longer draggable and the rest do nothing), then
+  `until:Layout/ColourPicker:enabled=true` and click a colour. On a turn you skip, the first `until`
+  times out (harmless: your ball has already dissolved) and the picker opens for your colour. Skips
+  come late (a blind R03 game went 12 turns without one) and depend on the AI's random rule and
+  colours, so allow many turns, and call the Godot exe directly rather than the `godot.cmd` shim: a
+  long command list overflows cmd.exe's 8 KB line. Read `Layout/Status` to see who skipped.
 - Files under `.claude/` are invisible to Godot's import (dot-folder), so `out/` PNGs and the driver
   get no `.uid`/`.import` files. `-s` and `res://.claude/...` paths still load fine.
 
