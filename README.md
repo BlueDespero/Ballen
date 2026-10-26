@@ -17,12 +17,16 @@ Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.ts
 
 | Path | What it holds |
 | --- | --- |
-| `main.tscn`, `main_game.tscn` | Entry scenes |
-| `gui/` | Ball, board, rules box and menu scenes and scripts |
-| `event_bus.gd`, `constants.gd`, `utils.gd` | Autoloads: global signals, ball colours, turn state |
+| `main.tscn`, `main_game.tscn` | Entry scenes: main menu and match |
+| `model/` | The match as plain GDScript: board, turns, commands, history, public views, controllers |
+| `rules/` | Rules engine; rules and templates as data in `rules/data/` |
+| `ai/` | The AI opponent: deduction, guessing, colour picks, placement |
+| `harness/` | Headless AI-vs-AI harness for balance numbers |
+| `gui/` | Board, ball, colour picker, guess button, rules panel, pre-match, match-end and menu scenes |
+| `event_bus.gd`, `constants.gd` | Autoloads: global signals, ball colours |
 | `assets/` | Kenney art assets |
 | `test/`, `addons/gut/` | GUT tests and the vendored GUT addon |
-| `docs/` | Design document and research notes |
+| `docs/` | Design documents, rules library, research notes, milestone briefs, ADRs |
 
 ## How the AI thinks
 
