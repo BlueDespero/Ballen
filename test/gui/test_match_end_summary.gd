@@ -110,34 +110,36 @@ func test_the_ais_third_skip_wins_for_the_viewer() -> void:
 	assert_eq(summary.reason, "The AI skipped for the third time.")
 
 
-## The view of a match that ended with this result after the closing history
-## entries. Forced guesses (#50) can't be played to the end yet, so their views
-## are built from a running match's view; switch to real matches once they can.
-func _ended_view(viewer: int, result: MatchResult, closing: Array[HistoryEntry]) -> PublicView:
-	var view: PublicView = _started(1).public_view(viewer)
-	view.phase = Match.Phase.OVER
-	view.result = result
-	var true_rules: Array[Rule] = [view.decks[0].rules[0], view.decks[1].rules[0]]
-	view.revealed_true_rules = true_rules
-	view.position.history.append_array(closing)
-	return view
+## A match that ended on a full board: player 0 placed the last ball, then
+## player 0 and player 1 made these forced guesses.
+func _forced(rule_id_0: String, rule_id_1: String) -> Match:
+	var game: Match = Fixtures.nearly_full_match(_book)
+	assert_true(game.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	assert_true(game.submit(0, Command.forced_guess(rule_id_0)))
+	assert_true(game.submit(1, Command.forced_guess(rule_id_1)))
+	return game
 
 
 func test_two_wrong_forced_guesses_draw_and_list_the_viewers_guess_first() -> void:
-	var result: MatchResult = MatchResult.new(Players.NONE, MatchResult.Reason.FORCED_GUESSES)
-	var closing: Array[HistoryEntry] = [HistoryEntry.guess(1, "A3", false), HistoryEntry.guess(0, "B2", false)]
-	var summary: MatchEndSummary = MatchEndSummary.from_view(_ended_view(0, result, closing))
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("B2", "A3").public_view(1))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
 	assert_eq(summary.headline, "Draw")
 	assert_eq(summary.reason, "The board is full. "
-		+ "You named B2 \"Anywhere (B2)\", but it isn't the AI's true rule. "
-		+ "The AI named A3 \"Anywhere (A3)\", but it isn't your true rule.")
+		+ "You named A3 \"Anywhere (A3)\", but it isn't the AI's true rule. "
+		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your true rule.")
+
+
+func test_two_right_forced_guesses_draw() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("BT", "AT").public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
+	assert_eq(summary.headline, "Draw")
+	assert_eq(summary.reason, "The board is full. "
+		+ "You named BT \"Anywhere (BT)\", the AI's true rule. "
+		+ "The AI named AT \"Anywhere (AT)\", your true rule.")
 
 
 func test_the_only_right_forced_guess_wins() -> void:
-	var result: MatchResult = MatchResult.new(1, MatchResult.Reason.FORCED_GUESSES)
-	var closing: Array[HistoryEntry] = [HistoryEntry.guess(0, "B2", false), HistoryEntry.guess(1, "AT", true)]
-	var summary: MatchEndSummary = MatchEndSummary.from_view(_ended_view(1, result, closing))
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("B2", "AT").public_view(1))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
 	assert_eq(summary.reason, "The board is full. "
 		+ "You named AT \"Anywhere (AT)\", the AI's true rule. "
