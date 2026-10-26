@@ -5,10 +5,10 @@ extends Controller
 ##
 ## It works out the opponent's true rule by hard elimination (Deduction) and
 ## names it once its guess policy fires, which it checks at the start of its
-## turn and after it places or skips. Otherwise it places on a random legal
-## cell and picks a random colour; on a full board its forced guess names a
-## random rule of the opponent's deck. Placement preference and the
-## colour-pick strategy replace these choices in later tickets.
+## turn and after it places or skips; on a full board its forced guess names a
+## random remaining candidate. Otherwise it places on a random legal cell and
+## picks a random colour: placement preference and the colour-pick strategy
+## replace these choices in later tickets.
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
@@ -37,7 +37,7 @@ func decide(view: PublicView) -> Command:
 			return Command.place(_pick(cells))
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
-				return Command.forced_guess(_pick(view.decks[view.opponent()].rules).id)
+				return Command.forced_guess(_pick(Deduction.candidates(view)).id)
 	return null
 
 
