@@ -27,7 +27,6 @@ var _setup: MatchSetup
 var _match: Match = null
 var _human: HumanController = HumanController.new()
 var _driver: MatchDriver = null
-var _stalled_player: int = Players.NONE
 
 
 func _ready() -> void:
@@ -73,7 +72,6 @@ func _on_true_rule_chosen(true_rule: Rule) -> void:
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait)
 	_driver.changed.connect(_on_match_changed)
-	_driver.stalled.connect(_on_match_stalled)
 	_refresh()
 	_driver.run()
 
@@ -112,15 +110,10 @@ func _on_match_changed() -> void:
 	_refresh()
 
 
-func _on_match_stalled(player: int) -> void:
-	_stalled_player = player
-	_refresh()
-
-
 ## Redraws everything from the player's view of the match.
 func _refresh() -> void:
 	var view: PublicView = _match.public_view(HUMAN)
-	var my_turn: bool = view.current_player == HUMAN and _stalled_player == Players.NONE
+	var my_turn: bool = view.current_player == HUMAN
 	var my_placement: bool = my_turn and view.phase == Match.Phase.PLACE
 	var ai_placement: bool = view.current_player == AI and view.phase == Match.Phase.PLACE
 	var legal: Array[Vector2i] = []
@@ -143,9 +136,6 @@ func _refresh() -> void:
 ## What to do now; empty once the match is over (the match-end screen says how
 ## it went).
 func _status_text(view: PublicView) -> String:
-	if _stalled_player != Players.NONE:
-		var who: String = "You have" if _stalled_player == HUMAN else "The AI has"
-		return "%s no legal cell. Skips are not built yet, so the match stops here." % who
 	if view.phase == Match.Phase.OVER:
 		return ""
 	if view.current_player == AI:

@@ -137,7 +137,6 @@ func test_a_guess_ends_the_match_and_the_run() -> void:
 	assert_eq(game.result().winner, 0)
 	assert_eq(_last(game).type, HistoryEntry.Type.GUESS)
 	assert_signal_emit_count(driver, "changed", 2, "the first colour and the guess")
-	assert_signal_not_emitted(driver, "stalled")
 	assert_eq(_waits.size(), 1, "the AI is not asked again after the guess")
 
 

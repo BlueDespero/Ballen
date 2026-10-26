@@ -8,10 +8,7 @@ extends Controller
 signal _chosen(command: Command)
 
 
-func decide(view: PublicView) -> Command:
-	# Until skips exist, a player with no legal cell has nothing to choose.
-	if view.phase == Match.Phase.PLACE and view.own_legal_cells().is_empty():
-		return null
+func decide(_view: PublicView) -> Command:
 	var command: Command = await _chosen
 	return command
 

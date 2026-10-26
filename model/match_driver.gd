@@ -2,8 +2,8 @@ class_name MatchDriver
 extends RefCounted
 
 ## Plays a match: asks the controller of every player the match awaits for a
-## command and submits it, until the match is over, a controller has no
-## command, or stop() is called. The match alone decides what is legal.
+## command and submits it, until the match is over, a controller gives up (has
+## no command), or stop() is called. The match alone decides what is legal.
 ##
 ## The scene drives the player and the AI with it, redrawing on `changed`; it
 ## pauses the AI so the player can follow its turn. The harness can drive two
@@ -11,9 +11,6 @@ extends RefCounted
 
 ## The match accepted a command.
 signal changed
-## The player's controller returned no command, so the match can't go on.
-## Until skips exist this happens when the player has no legal cell.
-signal stalled(player: int)
 
 ## Bounds of the random pause before a paused player's command, in seconds.
 const MIN_PAUSE: float = 0.5
@@ -39,7 +36,8 @@ func _init(game: Match, controllers: Array[Controller], paused_players: Array[in
 	_wait = wait
 
 
-## Runs until the match is over, stalls or is stopped. A coroutine: await it.
+## Runs until the match is over, a controller gives up or the driver is
+## stopped. A coroutine: await it.
 ## A command the match rejects changes nothing and the same player is asked
 ## again.
 func run() -> void:
@@ -53,7 +51,6 @@ func run() -> void:
 			if _stopped:
 				return
 			if command == null:
-				stalled.emit(player)
 				return
 			if _match.submit(player, command):
 				changed.emit()
