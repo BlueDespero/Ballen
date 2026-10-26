@@ -104,9 +104,9 @@ layout and centres it, so these coordinates no longer hold.
   the rules panel stays lit, marks the AI's true rule and says the match is over. Read
   `Layout/MatchEnd/Centre/Card/Content/Headline:text` (`You win`, `You lose`, `Draw`) and
   `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's true rule.`);
-  `Layout/Status` is empty. Main menu button centre (364,540); it returns to `Main`. To guess the
-  AI's first rule and go back to the menu:
-  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 wait:40 ss:end click:364,540`.
+  `Layout/Status` is empty. Buttons: Rematch centre (271,540), Main menu centre (457,540); Main menu
+  returns to `Main`. To guess the AI's first rule and go back to the menu:
+  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
   A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
   `The AI skipped for the third time.`
 - Full board: the placement that fills it brings no colour pick. When your forced guess is due,
@@ -118,6 +118,11 @@ layout and centres it, so these coordinates no longer hold.
   `You lose` or `Draw`. A full board takes 36 placements; to
   check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full
   `MatchPosition` (see `Fixtures.nearly_full_match` in `test/helpers/fixtures.gd`) and don't commit it.
+- Rematch: hides the match-end screen and shows the pre-match overlay again on the same decks
+  (`Layout/Status` `Choose your true rule.`, Guess back in the rules panel). After the tap the overlay
+  reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other player goes
+  first) and the row numbers flip with it. Continue from the end screen with
+  `click:271,540 until:Layout/PreMatch:visible=true wait:30 click:428,422 until:Layout/PreMatch:visible=false`.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
@@ -157,6 +162,14 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   come late (a blind R03 game went 12 turns without one) and depend on the AI's random rule and
   colours, so allow many turns, and call the Godot exe directly rather than the `godot.cmd` shim: a
   long command list overflows cmd.exe's 8 KB line. Read `Layout/Status` to see who skipped.
+- **Fixed `wait:N` counts can fall out of step** when the window is slow to start, so a click lands on
+  the wrong screen (e.g. a Rematch click picking a pre-match rule). Gate each screen with `until:` on
+  its state (`Layout/PreMatch:visible`, `Layout/MatchEnd:visible`), and put a `wait:60` between the
+  Single Player click and the first `until:`: right after a scene change there is no current scene
+  and `until:` errors out, leaving the window open (kill that Godot process).
+- **One windowed run at a time**: two windowed runs (e.g. from parallel agents) fight over the real
+  cursor and misplace each other's clicks. Check for a running `Godot_v4.7.1-stable_win64_console`
+  with a `driver.gd` command line first.
 - Files under `.claude/` are invisible to Godot's import (dot-folder), so `out/` PNGs and the driver
   get no `.uid`/`.import` files. `-s` and `res://.claude/...` paths still load fine.
 
