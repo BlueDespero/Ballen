@@ -4,8 +4,9 @@ extends Control
 ## The match-end screen over the board: the result for the player, how the
 ## match ended, both true rules revealed, and the way out. It dims the whole
 ## layout but sits below the rules panel in the tree, so the panel stays lit.
-## Rematch (#56) goes in the Buttons row.
 
+## The player pressed Rematch.
+signal rematch_requested
 ## The player pressed Main menu.
 signal main_menu_requested
 
@@ -20,11 +21,13 @@ const DRAW_COLOUR: Color = Color(0.65, 0.78, 0.95)
 @onready var _ai_rule_text: Label = %AIRuleText
 @onready var _player_rule_id: Label = %PlayerRuleId
 @onready var _player_rule_text: Label = %PlayerRuleText
+@onready var _rematch_button: Button = %RematchButton
 @onready var _main_menu_button: Button = %MainMenuButton
 
 
 func _ready() -> void:
 	visible = false
+	_rematch_button.pressed.connect(rematch_requested.emit)
 	_main_menu_button.pressed.connect(main_menu_requested.emit)
 
 
@@ -42,6 +45,11 @@ func show_summary(summary: MatchEndSummary) -> void:
 	visible = true
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, FADE_SECONDS)
+
+
+## Takes the screen away (for a rematch).
+func hide_summary() -> void:
+	visible = false
 
 
 func _outcome_colour(outcome: MatchEndSummary.Outcome) -> Color:

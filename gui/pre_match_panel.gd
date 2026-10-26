@@ -32,14 +32,16 @@ func show_deck(deck: Deck) -> void:
 
 
 ## Shows who goes first, waits COIN_TOSS_SECONDS, then hides. A coroutine.
-func show_coin_toss(player_goes_first: bool) -> void:
+## In a rematch no coin is tossed: the other player goes first.
+func show_coin_toss(player_goes_first: bool, is_rematch: bool = false) -> void:
 	_choice.visible = false
 	_coin_toss.visible = true
+	var prefix: String = "Rematch" if is_rematch else "Coin toss"
 	if player_goes_first:
-		_coin_title.text = "Coin toss: you go first"
+		_coin_title.text = "%s: you go first" % prefix
 		_coin_detail.text = "The AI picks the colour of your first ball."
 	else:
-		_coin_title.text = "Coin toss: the AI goes first"
+		_coin_title.text = "%s: the AI goes first" % prefix
 		_coin_detail.text = "You pick the colour of its first ball."
 	_timer.start(COIN_TOSS_SECONDS)
 	await _timer.timeout

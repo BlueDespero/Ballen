@@ -65,7 +65,9 @@ func _ready() -> void:
 	_update_guess()
 
 
+## Shows both decks for a new match (also a rematch: the match-over marks go).
 func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> void:
+	_match_over = false
 	_fill(_ai_rules, ai_deck, null)
 	_fill(_player_rules, player_deck, player_true_rule)
 	for row: Node in _ai_rules.get_children():

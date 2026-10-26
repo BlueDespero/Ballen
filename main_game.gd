@@ -5,7 +5,8 @@ extends Control
 ## choose a true rule from the starter deck while both decks are shown; then
 ## the coin toss is shown and play starts. The match decides what is legal; a
 ## MatchDriver runs the player's HumanController and the AI, pausing before
-## each AI action.
+## each AI action. At match end, Rematch goes back to choosing a true rule
+## on the same decks.
 
 const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
@@ -41,7 +42,9 @@ func _ready() -> void:
 	_rules_panel.guess_requested.connect(_on_guess_requested)
 	_rules_panel.seal_requested.connect(_on_seal_requested)
 	_pre_match.rule_chosen.connect(_on_true_rule_chosen)
+	_match_end.rematch_requested.connect(_on_rematch_requested)
 	_match_end.main_menu_requested.connect(_on_main_menu_requested)
+	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
 	_show_pre_match()
 
 
@@ -51,10 +54,11 @@ func _exit_tree() -> void:
 	_human.choose(null)
 
 
-## Both decks on show and an empty board; the player chooses a true rule.
+## Both decks on show and an empty board; the player chooses a true rule
+## (again, in a rematch: the setup keeps both decks).
 func _show_pre_match() -> void:
-	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
 	_rules_panel.show_decks(_setup.deck(AI), _setup.deck(HUMAN), null)
+	_rules_panel.show_skips(0, 0)
 	_board_view.show_board(Board.new(), [], HUMAN, HUMAN)
 	_player_ball.colour = ""
 	_player_ball.draggable = false
@@ -64,16 +68,18 @@ func _show_pre_match() -> void:
 	_status.text = "Choose your true rule."
 
 
-## Starts the match (its coin toss picks the first player), shows the toss,
-## then lets the driver play.
+## Starts the match (its coin toss picks the first player; in a rematch the
+## other player goes first), shows who goes first, then lets the driver play.
 func _on_true_rule_chosen(true_rule: Rule) -> void:
-	_match = _setup.start(true_rule)
+	var is_rematch: bool = _match != null
+	_match = _setup.rematch(true_rule) if is_rematch else _setup.start(true_rule)
+	_shown_events = 0
 	var view: PublicView = _match.public_view(HUMAN)
 	_rules_panel.show_decks(view.decks[AI], view.decks[HUMAN], view.own_true_rule)
 	_board_view.show_board(view.position.board, [], HUMAN, view.position.first_player)
 	var player_goes_first: bool = view.position.first_player == HUMAN
 	_status.text = "You go first." if player_goes_first else "The AI goes first."
-	await _pre_match.show_coin_toss(player_goes_first)
+	await _pre_match.show_coin_toss(player_goes_first, is_rematch)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait)
 	_driver.changed.connect(_on_match_changed)
@@ -107,6 +113,12 @@ func _on_guess_requested(rule_id: String) -> void:
 ## On a full board, Seal makes the player's sealed forced guess.
 func _on_seal_requested(rule_id: String) -> void:
 	_human.choose(Command.forced_guess(rule_id))
+
+
+## Back to choosing a true rule for the next match on the same decks.
+func _on_rematch_requested() -> void:
+	_match_end.hide_summary()
+	_show_pre_match()
 
 
 func _on_main_menu_requested() -> void:
