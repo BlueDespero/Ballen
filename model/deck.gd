@@ -17,6 +17,14 @@ func has(rule: Rule) -> bool:
 	return rules.has(rule)
 
 
+## Whether a rule with this id is in the deck.
+func has_id(rule_id: String) -> bool:
+	for rule: Rule in rules:
+		if rule.id == rule_id:
+			return true
+	return false
+
+
 ## A copy of the deck; rules are immutable values, so they are shared.
 func copy() -> Deck:
 	return Deck.new(rules)

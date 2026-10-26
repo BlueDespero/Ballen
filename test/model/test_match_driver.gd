@@ -120,6 +120,22 @@ func test_a_rejected_command_is_asked_for_again() -> void:
 	human.choose(null) # gives up the decision, ending run()
 
 
+func test_a_guess_ends_the_match_and_the_run() -> void:
+	var game: Match = _player_0_first()
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, AIController.new(Fixtures.rng(2))]
+	var driver: MatchDriver = _driver(game, controllers, [1], 3)
+	watch_signals(driver)
+	driver.run()
+	human.choose(Command.guess("R04"))
+	assert_eq(game.phase(), Match.Phase.OVER)
+	assert_eq(game.result().winner, 0)
+	assert_eq(_last(game).type, HistoryEntry.Type.GUESS)
+	assert_signal_emit_count(driver, "changed", 2, "the first colour and the guess")
+	assert_signal_not_emitted(driver, "stalled")
+	assert_eq(_waits.size(), 1, "the AI is not asked again after the guess")
+
+
 func test_the_player_stalls_the_driver_when_they_have_no_legal_cell() -> void:
 	var position: MatchPosition = MatchPosition.from_board(Board.parse([
 		"......",

@@ -13,6 +13,10 @@ extends RefCounted
 ##   PLACE         the current player places a ball of the current colour
 ##   PICK_COLOUR   the current player picks the opponent's colour, ending the turn
 ##   OVER          the match has a result and accepts no command
+##
+## Guess windows: the current player may name the opponent's true rule in
+## PLACE (before placing) and in PICK_COLOUR (after placing or skipping, until
+## the colour pick). A right guess wins and a wrong guess loses at once.
 
 enum Phase { FIRST_COLOUR, PLACE, PICK_COLOUR, OVER }
 
@@ -154,6 +158,8 @@ func submit(player: int, command: Command) -> bool:
 			return _place(player, command.cell)
 		Command.Type.PICK_COLOUR:
 			return _pick_colour(player, command.colour)
+		Command.Type.GUESS:
+			return _guess(player, command.rule_id)
 	return false
 
 
@@ -176,6 +182,28 @@ func _pick_colour(player: int, colour: String) -> bool:
 	_position.colour = colour
 	_start_turn()
 	return true
+
+
+## Accepted only in the current player's guess windows (see the class notes)
+## and only naming a rule of the opponent's deck.
+func _guess(player: int, rule_id: String) -> bool:
+	if _phase != Phase.PLACE and _phase != Phase.PICK_COLOUR:
+		return false
+	var opponent: int = Players.opponent(player)
+	if not _decks[opponent].has_id(rule_id):
+		return false
+	var right: bool = rule_id == _true_rules[opponent].id
+	_position.history.append(HistoryEntry.guess(player, rule_id, right))
+	if right:
+		_end(MatchResult.new(player, MatchResult.Reason.RIGHT_GUESS))
+	else:
+		_end(MatchResult.new(opponent, MatchResult.Reason.WRONG_GUESS))
+	return true
+
+
+func _end(result: MatchResult) -> void:
+	_result = result
+	_phase = Phase.OVER
 
 
 func _start_turn() -> void:
