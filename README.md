@@ -49,6 +49,11 @@ The AI opponent is built on decision making under uncertainty, following Mykel K
 (MIT Press, 2015). Section numbers below refer to that book. The AI sees only what a human
 opponent would see: it never peeks at your true rule.
 
+This is the design the AI grows into. The prototype builds one level on hard evidence only: it rules
+out your rules, gives you the colour expected to rule out the most, guesses once one rule is left, and
+places where most of its own rules allow. Soft evidence, difficulty levels and scaled thinking time
+come later ([technical design](docs/technical-design.md#ai-opponent)).
+
 ### A belief over your rules
 
 Your secret is small: one of your 5 public rules is true. The AI keeps a **belief**, five
