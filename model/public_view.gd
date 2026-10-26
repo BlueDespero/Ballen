@@ -25,6 +25,14 @@ func opponent() -> int:
 	return Players.opponent(viewer)
 
 
+## Whether one of the viewer's guess windows is open: their turn, before
+## placing or after placing or skipping, until they pick a colour.
+func can_guess() -> bool:
+	if current_player != viewer:
+		return false
+	return phase == Match.Phase.PLACE or phase == Match.Phase.PICK_COLOUR
+
+
 ## The viewer's legal cells for the current colour when it is their turn to
 ## place; empty otherwise. Computed from the viewer's own true rule only.
 func own_legal_cells() -> Array[Vector2i]:

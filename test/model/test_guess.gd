@@ -154,3 +154,19 @@ func test_a_guess_naming_a_rule_outside_the_opponents_deck_is_rejected() -> void
 	assert_eq(game.phase(), Match.Phase.PLACE)
 	assert_eq(game.history().size(), 1)
 	assert_null(game.result())
+
+
+func test_the_view_shows_when_the_viewer_may_guess() -> void:
+	var game: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), 1)
+	var first: int = game.first_player()
+	var second: int = Players.opponent(first)
+	assert_false(game.public_view(second).can_guess(), "first colour pick")
+	game.submit(second, Command.pick_colour(BallColour.RED))
+	assert_true(game.public_view(first).can_guess(), "before placing")
+	assert_false(game.public_view(second).can_guess(), "opponent's turn")
+	game.submit(first, Command.place(Vector2i(2, 3)))
+	assert_true(game.public_view(first).can_guess(), "after placing")
+	assert_false(game.public_view(second).can_guess(), "opponent's turn")
+	game.submit(first, Command.guess(_fake_id(second)))
+	assert_false(game.public_view(first).can_guess(), "match over")
+	assert_false(game.public_view(second).can_guess(), "match over")
