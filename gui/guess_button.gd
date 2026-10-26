@@ -1,9 +1,10 @@
 class_name GuessButton
 extends Control
 
-## The Guess trigger: press and hold for HOLD_SECONDS while a ring fills, then
-## it fires `guessed`. Releasing early cancels and empties the ring. Touch
-## works through the mouse events Godot emulates from touches.
+## A hold-to-pull trigger (Guess, or Seal for a forced guess): press and hold
+## for HOLD_SECONDS while a ring fills, then it fires `guessed`. Releasing
+## early cancels and empties the ring. Touch works through the mouse events
+## Godot emulates from touches.
 
 ## The ring is full: the player pulled the trigger.
 signal guessed
@@ -16,6 +17,9 @@ const FILL_COLOUR: Color = Color(0.62, 0.16, 0.18)
 const BORDER_COLOUR: Color = Color(0.93, 0.4, 0.4)
 const RING_COLOUR: Color = Color(1.0, 0.86, 0.86)
 const TRACK_COLOUR: Color = Color(1.0, 1.0, 1.0, 0.22)
+
+## The word beside the ring.
+@export var label: String = "Guess"
 
 ## Whether a hold may start; turning it off cancels a hold in progress.
 var enabled: bool = false:
@@ -32,7 +36,8 @@ var _holding: bool = false
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(150, 48)
+	if custom_minimum_size == Vector2.ZERO:
+		custom_minimum_size = Vector2(150, 48)
 	set_process(false)
 	enabled = enabled
 
@@ -79,4 +84,4 @@ func _draw() -> void:
 	var font: Font = get_theme_default_font()
 	var text_left: float = centre.x + RING_RADIUS + 12.0
 	var baseline: float = (size.y + font.get_ascent(FONT_SIZE) - font.get_descent(FONT_SIZE)) / 2.0
-	draw_string(font, Vector2(text_left, baseline), "Guess", HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, Color.WHITE)
+	draw_string(font, Vector2(text_left, baseline), label, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, Color.WHITE)

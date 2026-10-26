@@ -4,10 +4,13 @@ extends PanelContainer
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
 ## with their true rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
-## by holding Guess under them.
+## by holding Guess under them. On a full board, holding Seal beside Guess
+## makes the player's sealed forced guess instead.
 
 ## The player held Guess to the end with one of the AI's rules selected.
 signal guess_requested(rule_id: String)
+## The player held Seal to the end with one of the AI's rules selected.
+signal seal_requested(rule_id: String)
 
 const ROW_HEIGHT: float = 44.0
 const ROW_COLOUR: Color = Color(0.17, 0.19, 0.23)
@@ -28,6 +31,19 @@ var guess_enabled: bool = false:
 		guess_enabled = value
 		_update_guess()
 
+## Whether the player's forced guess is due, so Seal is offered; Seal also
+## needs a selected rule.
+var seal_enabled: bool = false:
+	set(value):
+		seal_enabled = value
+		_update_guess()
+
+## Whether the board is full (the match is in its forced guesses).
+var board_full: bool = false:
+	set(value):
+		board_full = value
+		_update_guess()
+
 ## The id of the AI's rule the player selected; "" for none.
 var selected_rule_id: String = ""
 
@@ -36,6 +52,7 @@ var _match_over: bool = false
 @onready var _ai_rules: VBoxContainer = %AIRules
 @onready var _player_rules: VBoxContainer = %PlayerRules
 @onready var _guess_button: GuessButton = %GuessButton
+@onready var _seal_button: GuessButton = %SealButton
 @onready var _guess_hint: Label = %GuessHint
 @onready var _ai_skip_pips: HBoxContainer = %AISkipPips
 @onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
@@ -43,6 +60,7 @@ var _match_over: bool = false
 
 func _ready() -> void:
 	_guess_button.guessed.connect(_on_guessed)
+	_seal_button.guessed.connect(_on_sealed)
 	_guess_hint.add_theme_color_override("font_color", HINT_COLOUR)
 	_update_guess()
 
@@ -63,6 +81,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 		return
 	_match_over = true
 	guess_enabled = false
+	seal_enabled = false
 	_select("")
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
@@ -95,17 +114,32 @@ func _on_guessed() -> void:
 		guess_requested.emit(selected_rule_id)
 
 
+func _on_sealed() -> void:
+	if seal_enabled and selected_rule_id != "":
+		seal_requested.emit(selected_rule_id)
+
+
+## On a full board Guess shows only while the player (the placer) may still
+## guess outright, and Seal only while their forced guess is due.
 func _update_guess() -> void:
 	if not is_node_ready():
 		return
 	_guess_button.enabled = guess_enabled and selected_rule_id != ""
-	_guess_button.visible = not _match_over
+	_guess_button.visible = not _match_over and (guess_enabled or not board_full)
+	_seal_button.enabled = seal_enabled and selected_rule_id != ""
+	_seal_button.visible = not _match_over and board_full and seal_enabled
 	if _match_over:
 		_guess_hint.text = "The match is over. The AI's true rule is marked."
-	elif not guess_enabled:
+	elif board_full and not guess_enabled and not seal_enabled:
+		_guess_hint.text = "The board is full. Both forced guesses are revealed together."
+	elif not guess_enabled and not seal_enabled:
 		_guess_hint.text = "You can guess at the start of your turn and until your colour pick."
 	elif selected_rule_id == "":
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
+	elif guess_enabled and seal_enabled:
+		_guess_hint.text = "Hold Guess to name %s now (right wins, wrong loses), or Seal for your forced guess." % selected_rule_id
+	elif seal_enabled:
+		_guess_hint.text = "Hold Seal to seal %s as your forced guess. One right guess wins; else a draw." % selected_rule_id
 	else:
 		_guess_hint.text = "Hold Guess to name %s. Right wins, wrong loses." % selected_rule_id
 

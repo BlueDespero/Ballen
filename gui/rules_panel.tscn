@@ -58,6 +58,15 @@ theme_override_font_sizes/font_size = 15
 vertical_alignment = 1
 autowrap_mode = 3
 
+[node name="SealButton" type="Control" parent="Sections/GuessSlot"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("2_guess")
+label = "Seal"
+
 [node name="GuessButton" type="Control" parent="Sections/GuessSlot"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 48)

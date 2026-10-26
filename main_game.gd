@@ -39,6 +39,7 @@ func _ready() -> void:
 	_player_ball.dropped.connect(_on_player_ball_dropped)
 	_picker.picked.connect(_on_colour_picked)
 	_rules_panel.guess_requested.connect(_on_guess_requested)
+	_rules_panel.seal_requested.connect(_on_seal_requested)
 	_pre_match.rule_chosen.connect(_on_true_rule_chosen)
 	_match_end.main_menu_requested.connect(_on_main_menu_requested)
 	_show_pre_match()
@@ -98,8 +99,14 @@ func _on_colour_picked(colour: String) -> void:
 	_human.choose(Command.pick_colour(colour))
 
 
+## Guess names the AI's true rule outright: right wins, wrong loses.
 func _on_guess_requested(rule_id: String) -> void:
 	_human.choose(Command.guess(rule_id))
+
+
+## On a full board, Seal makes the player's sealed forced guess.
+func _on_seal_requested(rule_id: String) -> void:
+	_human.choose(Command.forced_guess(rule_id))
 
 
 func _on_main_menu_requested() -> void:
@@ -138,7 +145,9 @@ func _refresh() -> void:
 	_ai_ball.reset()
 	_ai_ball.colour = view.position.colour if ai_placement else ""
 	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
+	_rules_panel.board_full = view.phase == Match.Phase.FORCED_GUESS
 	_rules_panel.guess_enabled = my_turn and view.can_guess()
+	_rules_panel.seal_enabled = view.forced_guess_due()
 	_rules_panel.show_skips(view.position.skips[AI], view.position.skips[HUMAN])
 	_status.text = _status_text(view)
 	if view.phase == Match.Phase.OVER:
@@ -151,6 +160,8 @@ func _refresh() -> void:
 func _status_text(view: PublicView) -> String:
 	if view.phase == Match.Phase.OVER:
 		return ""
+	if view.phase == Match.Phase.FORCED_GUESS:
+		return _forced_guess_text(view)
 	var skip: HistoryEntry = _skip_this_turn(view)
 	if skip != null:
 		if skip.player == HUMAN:
@@ -179,3 +190,14 @@ func _skip_this_turn(view: PublicView) -> HistoryEntry:
 	if last.type == HistoryEntry.Type.SKIP and last.player == view.current_player:
 		return last
 	return null
+
+
+## The board is full: whose forced guess is due. A sealed guess is never shown.
+func _forced_guess_text(view: PublicView) -> String:
+	if view.forced_guess_due() and view.can_guess():
+		return "The board is full. Guess the AI's true rule now, or seal your forced guess until both are in."
+	if view.forced_guess_due():
+		return "The board is full. Name the AI's true rule: it stays sealed until both guesses are in."
+	if view.current_player == HUMAN:
+		return "The board is full and your forced guess is sealed. The AI is guessing…"
+	return "The board is full. The AI is making its forced guess…"
