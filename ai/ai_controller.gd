@@ -6,9 +6,9 @@ extends Controller
 ## It works out the opponent's true rule by hard elimination (Deduction) and
 ## names it once its guess policy fires, which it checks at the start of its
 ## turn and after it places or skips; on a full board its forced guess names a
-## random remaining candidate. Otherwise it places on a random legal cell and
-## picks a random colour: placement preference and the colour-pick strategy
-## replace these choices in later tickets.
+## random remaining candidate. To hide its true rule it places on a legal
+## cell satisfying the most of its own deck rules, ties broken at random. It
+## picks a random colour for now.
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
@@ -31,7 +31,7 @@ func decide(view: PublicView) -> Command:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
 			return Command.pick_colour(_pick(BallColour.ALL))
 		Match.Phase.PLACE:
-			var cells: Array[Vector2i] = view.own_legal_cells()
+			var cells: Array[Vector2i] = _best_cells(view)
 			if cells.is_empty():
 				return null
 			return Command.place(_pick(cells))
@@ -39,6 +39,25 @@ func decide(view: PublicView) -> Command:
 			if view.forced_guess_due():
 				return Command.forced_guess(_pick(Deduction.candidates(view)).id)
 	return null
+
+
+## The legal cells that satisfy the most of the AI's own deck rules, so its
+## placements look like any of them could be its true rule.
+func _best_cells(view: PublicView) -> Array[Vector2i]:
+	var best: Array[Vector2i] = []
+	var best_count: int = -1
+	var own_rules: Array[Rule] = view.decks[view.viewer].rules
+	for cell: Vector2i in view.own_legal_cells():
+		var count: int = 0
+		for rule: Rule in own_rules:
+			if RuleChecker.is_legal(rule, view.position, view.viewer, view.position.colour, cell):
+				count += 1
+		if count > best_count:
+			best = []
+			best_count = count
+		if count == best_count:
+			best.append(cell)
+	return best
 
 
 func _pick(options: Array) -> Variant:
