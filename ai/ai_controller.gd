@@ -4,7 +4,8 @@ extends Controller
 ## The AI player. It sees only the PublicView it is handed (ADR 0002).
 ##
 ## Placeholder for milestone 1's first ticket: it places on a random legal cell
-## and picks a random colour. Deduction, placement preference, colour-pick
+## and picks a random colour; on a full board its forced guess names a random
+## rule of the opponent's deck. Deduction, placement preference, colour-pick
 ## strategy and guessing replace these choices in later tickets.
 
 var _rng: RandomNumberGenerator
@@ -24,6 +25,9 @@ func decide(view: PublicView) -> Command:
 			if cells.is_empty():
 				return null
 			return Command.place(_pick(cells))
+		Match.Phase.FORCED_GUESS:
+			if view.forced_guess_due():
+				return Command.forced_guess(_pick(view.decks[view.opponent()].rules).id)
 	return null
 
 
