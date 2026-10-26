@@ -30,9 +30,10 @@ godot --headless --path . --import
 One process per script of commands; read the `[driver]` lines on stdout, look at the PNGs.
 
 ```powershell
-# Menu -> Single Player -> (pick the AI's first colour if you go second) -> wait for your turn
+# Menu -> Single Player -> tap R03 to make it your true rule -> wait out the coin toss
+# -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:120 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:30 click:428,364 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends your turn.` and writes
@@ -56,8 +57,10 @@ Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends yo
 Headless runs read state only: clicks, drags and touches reach no control, so play needs a window.
 
 ```powershell
-godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:120 get:Layout/Status:text get:Layout/PlayerBall:draggable
+godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:60 get:Layout/Status:text get:Layout/PreMatch:visible
 ```
+
+Headless, the match never starts: it waits on the pre-match tap, which needs a window.
 
 ### Layout (landscape: 1280×720 base, stretch `canvas_items`, aspect `expand`)
 
@@ -66,6 +69,13 @@ layout and centres it, so these coordinates no longer hold.
 
 - Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414.
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
+- Pre-match overlay: `Layout/PreMatch`, over the board (x 176–680, y 120–600), visible when the scene
+  opens. Your starter deck as buttons (x 200–656, centre x≈428): R01 y=306, R03 y=364, R05 y=422,
+  R08 y=480, R18 y=538 (nodes `Layout/PreMatch/Choice/RuleButtons/R01` …). Tapping one makes it your
+  true rule and starts the match; the overlay then shows the coin toss ("Coin toss: you go first" /
+  "…the AI goes first") for 2 s (`wait:150` covers it) and hides. Both decks are in the rules panel
+  from the start; `Layout/Status` reads `Choose your true rule.`, then `You go first.` /
+  `The AI goes first.` during the toss.
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
   bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
 - Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the
@@ -86,7 +96,7 @@ layout and centres it, so these coordinates no longer hold.
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
   60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. The result
   then shows in `Layout/Status`, e.g. `You named R04 as the AI's true rule: right. You win!`
-  (the scene's fixed true rule for both players is R04).
+  (the AI's true rule is random, so a guess is right about one time in five).
 - Free room kept for later tickets: skip pips beside each panel title (`%AISkipPips`,
   `%PlayerSkipPips`).
 - After Single Player, the current scene is `MainGame`; before it, `Main`
@@ -115,12 +125,13 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   the mouse during a windowed run.
 - **`ss` under `--headless` used to hang forever**: nothing draws, so `frame_post_draw` never fires.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
-- **Every match is random**: the coin toss, the AI's colours, cells and pauses are unseeded. If you go
-  second, the first thing the match waits for is your colour pick (`Layout/Status` says so), so
-  `until:Layout/PlayerBall:draggable=true` times out; click a colour first. Clicking a disabled picker
-  does nothing, so `wait:120 click:624,660` at the start is safe either way.
-- **Skips aren't built yet** (#47): with R04 as both true rules the 16 inner cells fill up and the
-  match stops, with `Layout/Status` saying who has no legal cell.
+- **Every match is random**: the AI's deck and true rule, the coin toss, the AI's colours, cells and
+  pauses are unseeded (your starter deck is fixed). If you go second, the first thing the match waits
+  for is your colour pick (`Layout/Status` says so), so `until:Layout/PlayerBall:draggable=true` times
+  out; click a colour first. Clicking a disabled picker does nothing, so `wait:150 click:624,660` right
+  after the pre-match tap is safe either way.
+- **Skips aren't built yet** (#47): once a side has no legal cell the match stops, with
+  `Layout/Status` saying who has no legal cell.
 - Files under `.claude/` are invisible to Godot's import (dot-folder), so `out/` PNGs and the driver
   get no `.uid`/`.import` files. `-s` and `res://.claude/...` paths still load fine.
 
