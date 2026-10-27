@@ -24,6 +24,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"target": _target,
 	"neighbours": _neighbours,
 	"same_axis": _same_axis,
+	"whole_board": _whole_board,
 	# Filters
 	"in_zone": _in_zone,
 	"with_parity": _with_parity,
@@ -31,11 +32,13 @@ static var _parts: Dictionary[String, Callable] = {
 	"opponent_ball": _opponent_ball,
 	"my_last_ball": _my_last_ball,
 	"empty": _empty,
+	"of_colour": _of_colour,
 	# Conditions
 	"count_at_most": _count_at_most,
 	"count_at_least": _count_at_least,
 	# Combiners
 	"all": _all,
+	"any": _any,
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
@@ -89,6 +92,11 @@ static func _same_axis(node: Dictionary, ctx: PlacementContext) -> Array[Vector2
 			if not cells.has(cell):
 				cells.append(cell)
 	return cells
+
+
+## Every cell of the board. {"part": "whole_board"}
+static func _whole_board(_node: Dictionary, _ctx: PlacementContext) -> Array[Vector2i]:
+	return Board.all_cells()
 
 
 # Filters --------------------------------------------------------------------
@@ -167,6 +175,18 @@ static func _empty(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
 	return kept
 
 
+## Cells holding a ball of a fixed colour, either owner. The target holds the
+## placed ball, so of_colour over the target keeps it exactly when a ball of
+## that colour is placed. {"part": "of_colour", "colour": "red", "of": ...}
+static func _of_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.colour == node.colour:
+			kept.append(cell)
+	return kept
+
+
 # Conditions -----------------------------------------------------------------
 
 ## At most n cells. {"part": "count_at_most", "n": 0, "of": ...}
@@ -189,3 +209,12 @@ static func _all(node: Dictionary, ctx: PlacementContext) -> bool:
 		if not evaluate(condition, ctx):
 			return false
 	return true
+
+
+## Passes when at least one condition passes; an empty list never passes.
+## {"part": "any", "of": [<condition>, ...]}
+static func _any(node: Dictionary, ctx: PlacementContext) -> bool:
+	for condition: Dictionary in node.of:
+		if evaluate(condition, ctx):
+			return true
+	return false

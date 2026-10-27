@@ -34,6 +34,20 @@
 			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }
 		}
 	},
+	"colour_only_next_to": {
+		"blanks": { "colour": ["yellow", "blue", "red", "green"], "other": ["yellow", "blue", "red", "green"] },
+		"tree": {
+			"part": "any",
+			"of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$colour", "of": { "part": "target" } } },
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$other", "of": { "part": "whole_board" } } },
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "of_colour", "colour": "$other", "of": { "part": "neighbours", "of": { "part": "target" } } } }
+			]
+		}
+	},
 	"min_empty_neighbours": {
 		"blanks": { "n": [1, 2, 3, 4, 5, 6, 7, 8] },
 		"tree": {
