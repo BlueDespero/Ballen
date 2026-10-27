@@ -48,6 +48,17 @@ func is_read_only(deck_name: String) -> bool:
 	return deck_name == STARTER_DECK_NAME
 
 
+## Why a deck can't take this name (blank, or another deck's); "" if it can.
+## own_name is the name the deck has now, which it may keep.
+func name_problem(deck_name: String, own_name: String = "") -> String:
+	var trimmed: String = deck_name.strip_edges()
+	if trimmed == "":
+		return "Name the deck"
+	if trimmed != own_name and names().has(trimmed):
+		return "A deck named %s already exists" % trimmed
+	return ""
+
+
 ## Saves the deck under this name, replacing a saved deck of the same name,
 ## and writes the file. Returns false (and reports an error, saving nothing)
 ## for a deck that wouldn't load (see _problem_with), the starter deck's name
@@ -63,6 +74,70 @@ func save(deck_name: String, deck_to_save: Deck) -> bool:
 	var decks: Dictionary[String, Array] = _decks.duplicate()
 	decks[deck_name] = rule_ids
 	return _replace_decks(decks)
+
+
+## Deletes a saved deck and writes the file. Returns false (and reports an
+## error) for the starter deck, an unknown name or a file that can't be written.
+func delete(deck_name: String) -> bool:
+	var problem: String = _change_problem(deck_name)
+	if problem != "":
+		push_error("DeckStore: did not delete: %s" % problem)
+		return false
+	var decks: Dictionary[String, Array] = _decks.duplicate()
+	decks.erase(deck_name)
+	return _replace_decks(decks)
+
+
+## Renames a saved deck, keeping its place, and writes the file. Returns false
+## (and reports an error) for the starter deck, an unknown name, a new name
+## that is blank or taken (see name_problem) or a file that can't be written.
+func rename(old_name: String, new_name: String) -> bool:
+	if old_name == new_name and _decks.has(old_name):
+		return true
+	var problem: String = _change_problem(old_name)
+	if problem == "":
+		problem = name_problem(new_name)
+	if problem != "":
+		push_error("DeckStore: did not rename %s: %s" % [old_name, problem])
+		return false
+	var decks: Dictionary[String, Array] = {}
+	for deck_name: String in _decks:
+		decks[new_name if deck_name == old_name else deck_name] = _decks[deck_name]
+	return _replace_decks(decks)
+
+
+## Replaces a saved deck by this deck under new_name (which may be its old
+## name), keeping its place, in one write of the file. Returns false (and
+## reports an error, changing nothing) when a rename to new_name or a save of
+## the deck would be refused, or the file can't be written.
+func replace(old_name: String, new_name: String, deck_to_save: Deck) -> bool:
+	var rule_ids: Array[String] = []
+	for rule: Rule in deck_to_save.rules:
+		rule_ids.append(rule.id)
+	var problem: String = _change_problem(old_name)
+	if problem == "":
+		problem = name_problem(new_name, old_name)
+	if problem == "":
+		problem = _problem_with({"name": new_name, "rules": rule_ids})
+	if problem != "":
+		push_error("DeckStore: did not replace %s: %s" % [old_name, problem])
+		return false
+	var decks: Dictionary[String, Array] = {}
+	for deck_name: String in _decks:
+		if deck_name == old_name:
+			decks[new_name] = rule_ids
+		else:
+			decks[deck_name] = _decks[deck_name]
+	return _replace_decks(decks)
+
+
+## Why the deck by this name can't be renamed, replaced or deleted; "" if it can.
+func _change_problem(deck_name: String) -> String:
+	if is_read_only(deck_name):
+		return "%s is the built-in deck" % deck_name
+	if not _decks.has(deck_name):
+		return "there is no deck named %s" % deck_name
+	return ""
 
 
 ## Writes these decks to the file and keeps them; false (keeping the old ones)

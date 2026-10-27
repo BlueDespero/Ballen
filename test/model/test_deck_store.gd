@@ -89,6 +89,96 @@ func test_the_starter_deck_can_t_be_saved_over() -> void:
 	assert_false(FileAccess.file_exists(_path))
 
 
+func test_a_deck_is_deleted_from_the_store_and_the_file() -> void:
+	var store: DeckStore = _store_with(["One", "Two", "Three"])
+	assert_true(store.delete("Two"))
+	assert_eq(store.names(), [STARTER, "One", "Three"] as Array[String])
+	assert_null(store.deck("Two"))
+	assert_eq(DeckStore.new(_book, _path).names(), [STARTER, "One", "Three"] as Array[String])
+
+
+func test_the_starter_deck_and_unknown_decks_can_t_be_deleted() -> void:
+	var store: DeckStore = _store_with(["Mine"])
+	assert_false(store.delete(STARTER))
+	assert_false(store.delete("Nope"))
+	assert_push_error_count(2)
+	assert_eq(store.names(), [STARTER, "Mine"] as Array[String])
+
+
+func test_a_deck_is_renamed_in_place_in_the_store_and_the_file() -> void:
+	var store: DeckStore = _store_with(["One", "Two", "Three"])
+	assert_true(store.rename("Two", "Deux"))
+	assert_eq(store.names(), [STARTER, "One", "Deux", "Three"] as Array[String])
+	assert_eq(_ids(store.deck("Deux")), MIXED_IDS)
+	assert_null(store.deck("Two"))
+	assert_eq(DeckStore.new(_book, _path).names(), [STARTER, "One", "Deux", "Three"] as Array[String])
+
+
+func test_renaming_a_deck_to_its_own_name_changes_nothing() -> void:
+	var store: DeckStore = _store_with(["One"])
+	assert_true(store.rename("One", "One"))
+	assert_eq(store.names(), [STARTER, "One"] as Array[String])
+
+
+func test_a_rename_is_refused_for_the_starter_deck_unknown_decks_and_taken_or_empty_names() -> void:
+	var store: DeckStore = _store_with(["One", "Two"])
+	assert_false(store.rename(STARTER, "Mine"))
+	assert_false(store.rename("Nope", "Mine"))
+	assert_false(store.rename("One", "Two"))
+	assert_false(store.rename("One", STARTER))
+	assert_false(store.rename("One", ""))
+	assert_push_error_count(5)
+	assert_eq(store.names(), [STARTER, "One", "Two"] as Array[String])
+	assert_eq(DeckStore.new(_book, _path).names(), [STARTER, "One", "Two"] as Array[String])
+
+
+func test_a_deck_is_replaced_in_place_under_a_new_name_with_new_rules() -> void:
+	var store: DeckStore = _store_with(["One", "Two", "Three"])
+	assert_true(store.replace("Two", "Deux", _deck(STARTER_IDS)))
+	assert_eq(store.names(), [STARTER, "One", "Deux", "Three"] as Array[String])
+	assert_eq(_ids(store.deck("Deux")), STARTER_IDS)
+	assert_null(store.deck("Two"))
+	var reloaded: DeckStore = DeckStore.new(_book, _path)
+	assert_eq(reloaded.names(), [STARTER, "One", "Deux", "Three"] as Array[String])
+	assert_eq(_ids(reloaded.deck("Deux")), STARTER_IDS)
+
+
+func test_a_deck_can_be_replaced_under_its_own_name() -> void:
+	var store: DeckStore = _store_with(["One"])
+	assert_true(store.replace("One", "One", _deck(STARTER_IDS)))
+	assert_eq(_ids(store.deck("One")), STARTER_IDS)
+
+
+func test_a_replace_is_refused_like_a_rename_and_a_save() -> void:
+	var store: DeckStore = _store_with(["One", "Two"])
+	assert_false(store.replace(STARTER, "Mine", _deck(STARTER_IDS)))
+	assert_false(store.replace("Nope", "Mine", _deck(STARTER_IDS)))
+	assert_false(store.replace("One", "Two", _deck(STARTER_IDS)))
+	assert_false(store.replace("One", STARTER, _deck(STARTER_IDS)))
+	assert_false(store.replace("One", "", _deck(STARTER_IDS)))
+	assert_false(store.replace("One", "Mine", _deck(["R01", "R03", "R05", "R08"] as Array[String])))
+	assert_push_error_count(6)
+	assert_eq(store.names(), [STARTER, "One", "Two"] as Array[String])
+	assert_eq(_ids(store.deck("One")), MIXED_IDS)
+
+
+func test_a_free_name_has_no_problem() -> void:
+	var store: DeckStore = _store_with(["One"])
+	assert_eq(store.name_problem("Two"), "")
+
+
+func test_an_empty_or_blank_name_is_a_problem() -> void:
+	var store: DeckStore = DeckStore.new(_book, _path)
+	assert_eq(store.name_problem(""), "Name the deck")
+	assert_eq(store.name_problem("   "), "Name the deck")
+
+
+func test_a_taken_name_is_a_problem_unless_it_is_the_deck_s_own() -> void:
+	var store: DeckStore = _store_with(["One"])
+	assert_eq(store.name_problem("One"), "A deck named One already exists")
+	assert_eq(store.name_problem(STARTER), "A deck named Starter already exists")
+	assert_eq(store.name_problem("One", "One"), "")
+
 
 func _write_file(text: String) -> void:
 	var file: FileAccess = FileAccess.open(_path, FileAccess.WRITE)
@@ -181,11 +271,19 @@ func test_a_deck_that_wouldn_t_load_is_not_saved() -> void:
 	assert_eq(DeckStore.new(_book, _path).names(), [STARTER, "Kept"] as Array[String])
 
 
-func test_a_deck_that_can_t_be_written_is_not_saved() -> void:
-	var store: DeckStore = DeckStore.new(_book, "user://no_such_folder_%d/decks.json" % OS.get_process_id())
+func test_a_deck_that_can_t_be_written_is_not_saved_renamed_replaced_or_deleted() -> void:
+	var store: DeckStore = DeckStore.new(_book, _path)
+	store.save("Kept", _deck(STARTER_IDS))
+	DirAccess.remove_absolute(_path)
+	DirAccess.make_dir_absolute(_path) # a folder where the file should be: writes fail
 	assert_false(store.save("Lost", _deck(STARTER_IDS)))
-	assert_push_error("could not write")
-	assert_eq(store.names(), [STARTER] as Array[String])
+	assert_false(store.rename("Kept", "Moved"))
+	assert_false(store.replace("Kept", "Moved", _deck(MIXED_IDS)))
+	assert_false(store.delete("Kept"))
+	assert_push_error_count(4)
+	assert_eq(store.names(), [STARTER, "Kept"] as Array[String])
+	assert_eq(_ids(store.deck("Kept")), STARTER_IDS)
+	DirAccess.remove_absolute(_path)
 
 
 func test_there_is_no_deck_under_an_unknown_name() -> void:
