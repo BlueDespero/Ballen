@@ -28,6 +28,8 @@ const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
 const CROSS_TEXT_ALPHA: float = 0.45
 ## How far down a line of text a ✗ rule's strike runs (0 top, 1 bottom).
 const STRIKE_HEIGHT: float = 0.55
+## The yellow left edge of a rule marked ?.
+const SUSPECT_EDGE_WIDTH: int = 4
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -74,6 +76,8 @@ var marks: Dictionary[String, int]:
 
 var _match_over: bool = false
 var _marks: Dictionary[String, int] = {}
+## The AI's true rule once the match is over; "" before.
+var _ai_true_rule_id: String = ""
 
 @onready var _ai_rules: VBoxContainer = %AIRules
 @onready var _player_rules: VBoxContainer = %PlayerRules
@@ -94,6 +98,7 @@ func _ready() -> void:
 ## Shows both decks for a new match (also a rematch: the match-over marks go).
 func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> void:
 	_match_over = false
+	_ai_true_rule_id = ""
 	_fill(_ai_rules, ai_deck, null)
 	_fill(_player_rules, player_deck, player_true_rule)
 	_marks.clear()
@@ -123,10 +128,12 @@ func _add_mark_buttons(row: PanelContainer) -> void:
 		buttons.add_child(button)
 	var text_label: Label = row.get_node("Line/Text") as Label
 	text_label.draw.connect(_strike_through.bind(text_label, String(row.name)))
+	row.draw.connect(_draw_suspect_edge.bind(row))
 
 
-## A press sets, switches or clears the row's mark; a rule marked ✗ fades and
-## is struck through, so the rules the player still considers stand out.
+## A press sets, switches or clears the row's mark. A rule marked ✗ fades and
+## is struck through, so the rules the player still considers stand out; one
+## marked ? gets a yellow left edge.
 func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	var mark: NoteMark.Mark = NoteMark.toggled(_marks[rule_id] as NoteMark.Mark, pressed)
 	_marks[rule_id] = mark
@@ -136,6 +143,7 @@ func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	var text_label: Label = row.get_node("Line/Text") as Label
 	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
 	text_label.queue_redraw()
+	_style_ai_row(row as PanelContainer)
 
 
 ## Over a ✗ rule's text: a line through the middle of each line of text, as
@@ -171,6 +179,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 	if _match_over:
 		return
 	_match_over = true
+	_ai_true_rule_id = ai_true_rule.id
 	guess_enabled = false
 	seal_enabled = false
 	_select("")
@@ -178,7 +187,6 @@ func show_match_over(ai_true_rule: Rule) -> void:
 		var panel: PanelContainer = row as PanelContainer
 		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		if String(panel.name) == ai_true_rule.id:
-			panel.add_theme_stylebox_override("panel", _style(false, true))
 			# Right after the text, before the mark buttons.
 			var true_label: Label = _label("TRUE", TRUE_BORDER_COLOUR)
 			panel.get_node("Line").add_child(true_label)
@@ -202,9 +210,29 @@ func _select(rule_id: String) -> void:
 	_guess_button.cancel()
 	_seal_button.cancel()
 	for row: Node in _ai_rules.get_children():
-		var panel: PanelContainer = row as PanelContainer
-		panel.add_theme_stylebox_override("panel", _style(String(panel.name) == rule_id, false))
+		_style_ai_row(row as PanelContainer)
 	_update_guess()
+
+
+## An AI rule row's look: selected, marked ?, or the AI's true rule once the
+## match is over.
+func _style_ai_row(row: PanelContainer) -> void:
+	var rule_id: String = String(row.name)
+	row.add_theme_stylebox_override("panel", _style(rule_id == selected_rule_id, rule_id == _ai_true_rule_id))
+	row.queue_redraw()
+
+
+## Over a rule marked ?: a yellow left edge, drawn on top of the row's box so
+## a selected or true row keeps its own border.
+func _draw_suspect_edge(row: PanelContainer) -> void:
+	if _marks.get(String(row.name), NoteMark.Mark.NONE) != NoteMark.Mark.QUESTION:
+		return
+	var edge: StyleBoxFlat = StyleBoxFlat.new()
+	edge.draw_center = false
+	edge.set_corner_radius_all(8)
+	edge.border_width_left = SUSPECT_EDGE_WIDTH
+	edge.border_color = NoteMarkButton.QUESTION_COLOUR
+	row.draw_style_box(edge, Rect2(Vector2.ZERO, row.size))
 
 
 func _on_guessed() -> void:
@@ -307,6 +335,7 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	return row
 
 
+## A rule row's box. Selected rows turn blue and the true rule gold.
 func _style(is_selected: bool, is_true: bool) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = ROW_COLOUR
