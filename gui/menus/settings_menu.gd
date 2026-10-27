@@ -19,6 +19,7 @@ func _ready() -> void:
 	_volume.value_changed.connect(_on_volume_changed)
 	_bind(%ColourBlindSymbols, "colour_blind_symbols")
 	_bind(%ReducedMotion, "reduced_motion")
+	_bind(%GuessWithoutHolding, "guess_without_holding")
 	_symbol_preview.custom_minimum_size = Vector2(
 		(PREVIEW_BALL_SIZE + PREVIEW_GAP) * BallColour.ALL.size() - PREVIEW_GAP, PREVIEW_BALL_SIZE)
 	_symbol_preview.draw.connect(_draw_symbol_preview)

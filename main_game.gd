@@ -90,6 +90,7 @@ func _apply_settings() -> void:
 	_player_ball.reduced_motion = Settings.reduced_motion
 	_ai_ball.reduced_motion = Settings.reduced_motion
 	_picker.reduced_motion = Settings.reduced_motion
+	_rules_panel.guess_without_holding = Settings.guess_without_holding
 
 
 ## Both decks on show and an empty board; the player chooses a true rule

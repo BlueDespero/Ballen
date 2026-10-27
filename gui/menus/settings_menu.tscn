@@ -120,6 +120,18 @@ text = "Glows and rings hold still, balls jump instead of flying, skipped balls 
 label_settings = SubResource("LabelSettings_hint")
 autowrap_mode = 3
 
+[node name="GuessWithoutHolding" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Guess without holding"
+alignment = 0
+
+[node name="GuessWithoutHoldingHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Tap Guess (or Seal), then tap Confirm, instead of holding it while the ring fills."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
 [node name="Buttons" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16

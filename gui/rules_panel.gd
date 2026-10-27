@@ -4,7 +4,8 @@ extends PanelContainer
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
 ## with their true rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
-## by holding Guess under them. A small button on the left of each AI rule
+## by holding Guess under them (or tapping it, then Confirm, with the "guess
+## without holding" setting). A small button on the left of each AI rule
 ## keeps the player's private note mark on it. On a full board, holding Seal
 ## beside Guess makes the player's sealed forced guess instead.
 
@@ -44,6 +45,15 @@ var seal_enabled: bool = false:
 var board_full: bool = false:
 	set(value):
 		board_full = value
+		_update_guess()
+
+## Guess and Seal fire on a tap and a Confirm tap instead of a hold.
+var guess_without_holding: bool = false:
+	set(value):
+		guess_without_holding = value
+		if is_node_ready():
+			_guess_button.tap_to_confirm = value
+			_seal_button.tap_to_confirm = value
 		_update_guess()
 
 ## The id of the AI's rule the player selected; "" for none.
@@ -139,6 +149,9 @@ func _on_ai_row_input(event: InputEvent, rule_id: String) -> void:
 
 func _select(rule_id: String) -> void:
 	selected_rule_id = rule_id
+	# An armed Confirm was for the rule selected before.
+	_guess_button.cancel()
+	_seal_button.cancel()
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
 		panel.add_theme_stylebox_override("panel", _style(String(panel.name) == rule_id, false))
@@ -173,11 +186,17 @@ func _update_guess() -> void:
 	elif selected_rule_id == "":
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
 	elif guess_enabled and seal_enabled:
-		_guess_hint.text = "Hold Guess to name %s now (right wins, wrong loses), or Seal for your forced guess." % selected_rule_id
+		_guess_hint.text = "%s to name %s now (right wins, wrong loses), or Seal for your forced guess." % [_how("Guess"), selected_rule_id]
 	elif seal_enabled:
-		_guess_hint.text = "Hold Seal to seal %s as your forced guess. One right guess wins; else a draw." % selected_rule_id
+		_guess_hint.text = "%s to seal %s as your forced guess. One right guess wins; else a draw." % [_how("Seal"), selected_rule_id]
 	else:
-		_guess_hint.text = "Hold Guess to name %s. Right wins, wrong loses." % selected_rule_id
+		_guess_hint.text = "%s to name %s. Right wins, wrong loses." % [_how("Guess"), selected_rule_id]
+
+
+## How to pull a trigger, for the hint: "Hold Guess", or "Tap Guess, then
+## Confirm," without holding.
+func _how(trigger: String) -> String:
+	return "Tap %s, then Confirm," % trigger if guess_without_holding else "Hold %s" % trigger
 
 
 ## One pip per skip that loses the match, filled for each skip taken.
