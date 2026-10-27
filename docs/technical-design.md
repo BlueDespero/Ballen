@@ -64,6 +64,17 @@ all run the same code.
   same decks; Main menu returns to `main.tscn`.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
+- Past positions are rebuilt from a position's history: `MatchPosition.before(index)` is the position
+  just before a placement or skip (the AI's deduction judges each event on it), `after_turn(n)` the
+  position right after turn n's placement or skip, with that event last in its history. The match
+  scene's history view (◀ Live ▶ under the board, or ← →) steps through `after_turn` boards of the
+  player's view, ringing that turn's ball or showing its skipped ball at its owner's side. It only
+  shows: the glow and dragging pause. Only the player's own actions return to the live board (pressing
+  their ball, a colour pick, Guess or Seal, Live, or stepping past the latest turn); the colour picker,
+  Guess and Seal keep following the live match meanwhile. When the AI plays on while a past board is on
+  show, nothing animates: the board stays and Live lights up and pulses until the player returns (the
+  match ending returns at once, for the match-end screen). New history events are shown by one run of
+  the scene's event loop at a time, so the history view never opens mid-animation.
 - `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
   AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`). Both decks are shown first;
   `MatchSetup.start(true_rule)` then draws the AI's true rule from its deck and creates the match,

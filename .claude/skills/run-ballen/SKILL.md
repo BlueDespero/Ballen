@@ -87,6 +87,18 @@ layout and centres it, so these coordinates no longer hold.
   green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second):
   then a yellow ring pulses around each button and `Layout/Status` contains `Pick the AI's next colour.`;
   otherwise the buttons are dimmed (`Layout/ColourPicker:enabled`).
+- History view: `Layout/HistoryNav`, left of `You` under the board (x 200–336, y 642–678): ◀ centre
+  (218,660), Live (268,660), ▶ (318,660); `key:Left` / `key:Right` do the same. ◀ (from the live
+  board) shows the latest turn with a placement or skip, then earlier ones; ▶ past the latest returns to
+  live. A past board rings that turn's ball (a skipped ball shows at its owner's waiting spot), fades
+  the waiting balls, shows no glow, sets `Layout/PlayerBall:draggable` false and the skip pips as they
+  were; `Layout/Status` reads `Turn 3 of 4: you placed blue. …` / `…the AI had no legal cell for blue,
+  so the ball was skipped. …`. Only your own actions return to live: pressing your ball (the press
+  then drags), a colour pick, Guess or Seal (these stay enabled as in the live match), Live, or ▶ past
+  the latest turn. When the AI plays meanwhile the past board stays (its `of N` count grows) and Live
+  lights up yellow and pulses (`get:Layout/HistoryNav:live_lit` true) until you return; the match
+  ending returns to live. `Layout/HistoryNav/Live:disabled` is false only while viewing; the buttons
+  are disabled before the match starts, during the AI's animations and once the match is over.
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
 - A skipped ball appears on its owner's waiting spot in the skipped colour with the note
   `No legal cell, skipped` left of the side name (`Layout/AISkipNote` / `Layout/PlayerSkipNote`,

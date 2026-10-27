@@ -63,7 +63,7 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
 | Full board | Both players must guess. The guesses are sealed and revealed together, so neither side can react to the other. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
-| History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; any action returns to the live board. |
+| History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; your own action (or Live) returns to the live board. If the opponent plays meanwhile, the past board stays on show and Live lights up. |
 
 **Open questions**
 
@@ -161,9 +161,9 @@ New players are never forced through the tutorial: How to Play glows until first
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
 | Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Prototype: an overlay over the board offers the fixed starter deck to tap a true rule, then shows the coin toss; no deck or level choice (`gui/pre_match_panel.tscn`) |
-| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | Prototype built without history arrows; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`) |
+| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | Prototype; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
-| History | Arrows under the board step through past boards; view-only, any action returns to live | Not started |
+| History | Arrows under the board step through past boards; view-only, your own action returns to live; the opponent playing on lights up Live | Built: ◀ Live ▶ under the board and the ← → keys; the turn's ball is ringed, a skipped ball shows at its owner's side (`gui/history_nav.gd`, `MatchPosition.after_turn`) |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
 | Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
 
