@@ -42,6 +42,11 @@ One of the up to 8 cells touching a cell, diagonals included. "Next to" in rule 
 "on a neighbour".
 _Avoid_: Adjacent, touching
 
+**Distance**:
+How many king moves apart two cells are: one step reaches any neighbour, diagonals included, so
+neighbours are at distance 1 and "within 2 cells" is the 5 × 5 square around a cell.
+_Avoid_: Manhattan or straight-line distance
+
 **Ball**:
 A piece with one colour and one owner, placed on a cell.
 _Avoid_: Piece, token, stone
