@@ -20,7 +20,9 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 
 - Type everything: variables (`var x: int`), parameters, and return types (`-> void`).
 - Tabs for indentation.
-- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors). Turn state lives in the match.
+- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Settings` (`game_settings.gd`:
+  player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`). Turn state
+  lives in the match.
 
 ## Tests
 
@@ -67,7 +69,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 - `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
-  menus (`gui/menus/`)
+  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`),
+  menus (`gui/menus/`: main menu, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
   `MatchSetup`; plain `RefCounted`, no scene nodes

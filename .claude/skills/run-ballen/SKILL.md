@@ -68,7 +68,24 @@ Headless, the match never starts: it waits on the pre-match tap, which needs a w
 At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
 layout and centres it, so these coordinates no longer hold.
 
-- Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414.
+- Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414
+  (with Larger text on: 301, 341, 381, 421).
+- Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
+  nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y≈172), switches
+  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
+  (y≈514); click x≈500 on the row. Credits (702,595), Back (857,595). Every change is saved to
+  `user://settings.cfg` at once (`%APPDATA%\Godot\app_userdata\Ballen\settings.cfg`); Back or Escape
+  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns). Larger text makes
+  the card taller, so these y values drift; read positions with `get:…:global_position` (headless runs
+  centre the card in a 1280×1280 window: subtract 280 from y).
+- Settings in a match: the match reads the `Settings` autoload when the scene opens. To play with an
+  option on, write `settings.cfg` before the run (UTF-8 **without** BOM: PowerShell
+  `[IO.File]::WriteAllText($cfg, "[accessibility]`n`nreduced_motion=true`n")`; `Set-Content -Encoding
+  utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
+  the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
+  `guess_without_holding`, `larger_text`. With guess without holding, a click on Guess arms it
+  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
+  panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
 - Pre-match overlay: `Layout/PreMatch`, over the board (x 176–680, y 120–600), visible when the scene
   opens. Your starter deck as buttons (x 200–656, centre x≈428): R01 y=306, R03 y=364, R05 y=422,

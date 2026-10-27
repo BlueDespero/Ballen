@@ -22,7 +22,7 @@ all run the same code.
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
 | Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
-| Autoloads | `EventBus` (global signals), `Constants` (colour table) | Turn state lives in `Match`, not in an autoload |
+| Autoloads | `EventBus` (global signals), `Constants` (colour table), `Settings` (player settings, `user://settings.cfg`) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
 ### Key decisions
