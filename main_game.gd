@@ -115,7 +115,7 @@ func _on_true_rule_chosen(true_rule: Rule) -> void:
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
-	_refresh()
+	_redraw_from_match()
 	_driver.run()
 
 
@@ -185,7 +185,7 @@ func _on_match_changed() -> void:
 	_showing_events = false
 	if _match.phase() == Match.Phase.OVER:
 		_viewed_turn = LIVE
-	_refresh()
+	_redraw_from_match()
 
 
 ## The skipped ball appears at its owner's side with a note, stays, then
@@ -238,7 +238,7 @@ func _step_back() -> void:
 	if turn < 1 or _live_view.position.after_turn(turn) == null:
 		return
 	_viewed_turn = turn
-	_show()
+	_show_viewed_board()
 
 
 ## Forward a turn; past the latest one, back to the live board.
@@ -246,14 +246,14 @@ func _step_forward() -> void:
 	if _viewed_turn == LIVE:
 		return
 	_viewed_turn = _viewed_turn + 1 if _viewed_turn < _latest_turn() else LIVE
-	_show()
+	_show_viewed_board()
 
 
 func _go_live() -> void:
 	if _viewed_turn == LIVE:
 		return
 	_viewed_turn = LIVE
-	_show()
+	_show_viewed_board()
 
 
 ## Past boards can be viewed while the match runs, between animations.
@@ -277,18 +277,18 @@ func _update_history_nav() -> void:
 	_history_nav.set_state(can_go_back, viewing, _live_moved_on)
 
 
-## Redraws everything from the player's view of the match.
-func _refresh() -> void:
+## Takes the player's view of the match afresh and redraws everything from it.
+func _redraw_from_match() -> void:
 	_live_view = _match.public_view(HUMAN)
-	_show()
+	_show_viewed_board()
 
 
 ## Shows the live board, or the past turn the history view is on. Either way
 ## the player's actions (colour pick, Guess, Seal) follow the live match.
-func _show() -> void:
+func _show_viewed_board() -> void:
 	_show_actions(_live_view)
 	if _viewed_turn == LIVE:
-		_show_live(_live_view)
+		_show_live_match(_live_view)
 	else:
 		_show_past_turn(_viewed_turn)
 	_update_history_nav()
@@ -333,7 +333,7 @@ func _past_turn_text(turn: int, event: HistoryEntry) -> String:
 
 
 ## The live board and everything around it, from the player's view.
-func _show_live(view: PublicView) -> void:
+func _show_live_match(view: PublicView) -> void:
 	var my_turn: bool = view.current_player == HUMAN
 	var my_placement: bool = my_turn and view.phase == Match.Phase.PLACE
 	var ai_placement: bool = view.current_player == AI and view.phase == Match.Phase.PLACE
