@@ -188,7 +188,7 @@ func _show_skip(skip: HistoryEntry) -> void:
 	_rules_panel.guess_enabled = false
 	_rules_panel.seal_enabled = false
 	_status.text = ""
-	var ball: BallView = _player_ball if skip.player == HUMAN else _ai_ball
+	var ball: BallView = _waiting_ball(skip.player)
 	var note: Label = _player_skip_note if skip.player == HUMAN else _ai_skip_note
 	note.modulate.a = 1.0
 	note.visible = true
@@ -200,6 +200,11 @@ func _show_skip(skip: HistoryEntry) -> void:
 	await ball.dissolve(skip.colour, SKIP_HOLD_SECONDS, SKIP_DISSOLVE_SECONDS)
 	note.visible = false
 	_history_nav.visible = true
+
+
+## The player's waiting ball under the board, or the AI's above it.
+func _waiting_ball(player: int) -> BallView:
+	return _player_ball if player == HUMAN else _ai_ball
 
 
 ## Pressing your ball while a past board is on show is an action: back to the
@@ -279,7 +284,7 @@ func _show_past_turn() -> void:
 	_ai_ball.reset()
 	_ai_ball.modulate.a = PAUSED_BALL_ALPHA
 	if not placed:
-		var owner_ball: BallView = _player_ball if event.player == HUMAN else _ai_ball
+		var owner_ball: BallView = _waiting_ball(event.player)
 		owner_ball.colour = event.colour
 		owner_ball.modulate.a = 1.0
 	_rules_panel.show_skips(past.skips[AI], past.skips[HUMAN])
