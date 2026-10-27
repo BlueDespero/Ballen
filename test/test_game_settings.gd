@@ -107,6 +107,30 @@ func test_the_running_settings_set_the_master_volume() -> void:
 	AudioServer.set_bus_volume_db(master, before)
 
 
+func test_the_note_marks_hint_shows_until_the_player_has_seen_it() -> void:
+	var settings: GameSettings = _settings()
+	settings.load_settings()
+	assert_false(settings.note_marks_seen, "a new player has not used a note mark")
+	settings.note_marks_seen = true
+	assert_eq(settings.save_settings(), OK)
+	var next_session: GameSettings = _settings()
+	next_session.load_settings()
+	assert_true(next_session.note_marks_seen, "once seen, the hint stays away in later sessions")
+	var file: ConfigFile = ConfigFile.new()
+	file.load(PATH)
+	assert_true(file.get_value("hints", "note_marks_seen", false), "kept as [hints] note_marks_seen")
+
+
+func test_marking_the_note_marks_seen_saves_it() -> void:
+	var settings: GameSettings = _settings()
+	settings.load_settings()
+	settings.mark_note_marks_seen()
+	assert_true(settings.note_marks_seen)
+	var next_session: GameSettings = _settings()
+	next_session.load_settings()
+	assert_true(next_session.note_marks_seen, "written to the file at once")
+
+
 func test_larger_text_makes_text_a_quarter_bigger() -> void:
 	var settings: GameSettings = _settings()
 	assert_eq(settings.text_scale(), 1.0)
