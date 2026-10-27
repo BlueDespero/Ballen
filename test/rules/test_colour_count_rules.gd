@@ -84,7 +84,7 @@ func test_r02_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R02")
 	assert_eq(rule.text, "Red only next to blue")
 	assert_eq(rule.to_data(), {"id": "R02", "text": "Red only next to blue", "template": "colour_only_next_to",
-		"values": {"colour": "red", "other": "blue"}})
+		"values": {"colour": "red", "other": "blue"}, "tier": "intermediate"})
 
 
 # R06 Never more red than blue on the board ----------------------------------
@@ -141,4 +141,4 @@ func test_r06_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R06")
 	assert_eq(rule.text, "Never more red than blue on the board")
 	assert_eq(rule.to_data(), {"id": "R06", "text": "Never more red than blue on the board",
-		"template": "never_more_than", "values": {"a": "red", "b": "blue"}})
+		"template": "never_more_than", "values": {"a": "red", "b": "blue"}, "tier": "hardcore"})

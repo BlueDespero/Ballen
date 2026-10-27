@@ -16,6 +16,8 @@ skipped ones included: your first turn is turn 1, whoever went first.
 **Strictness** is the share of placements the rule forbids on random boards; target roughly 20–60%.
 **Tier** ranks how much a rule restricts the player who holds it: Simple, Intermediate or Hardcore.
 Tiers are assigned from AI-vs-AI tuning; the guided deck builder offers only Simple rules.
+Each built rule's `tier` in `rules/data/rules.json` mirrors this table's Tier column (lowercase); a test
+checks they match, so change both together.
 A dash means not measured yet.
 
 **Strictness and Tier are provisional** (#17): strictness from the strictness check on 2000 random

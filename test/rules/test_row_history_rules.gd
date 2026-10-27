@@ -74,7 +74,7 @@ func test_r09_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R09")
 	assert_eq(rule.text, "Never in the same row as your last ball")
 	assert_eq(rule.to_data(), {"id": "R09", "text": "Never in the same row as your last ball",
-		"template": "not_same_axis_as", "values": {"axis": "row", "ball": "my_last_ball"}})
+		"template": "not_same_axis_as", "values": {"axis": "row", "ball": "my_last_ball"}, "tier": "simple"})
 
 
 # R15 Only in a row numbered higher than your last ball's row ------------------
@@ -126,7 +126,7 @@ func test_r15_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R15")
 	assert_eq(rule.text, "Only in a row numbered higher than your last ball's row")
 	assert_eq(rule.to_data(), {"id": "R15", "text": "Only in a row numbered higher than your last ball's row",
-		"template": "relative_to_last", "values": {"direction": "higher"}})
+		"template": "relative_to_last", "values": {"direction": "higher"}, "tier": "hardcore"})
 
 
 # R16 Only in a row numbered lower than your last ball's row -------------------
@@ -168,7 +168,7 @@ func test_r16_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R16")
 	assert_eq(rule.text, "Only in a row numbered lower than your last ball's row")
 	assert_eq(rule.to_data(), {"id": "R16", "text": "Only in a row numbered lower than your last ball's row",
-		"template": "relative_to_last", "values": {"direction": "lower"}})
+		"template": "relative_to_last", "values": {"direction": "lower"}, "tier": "hardcore"})
 
 
 # R19 Never fill a row completely ----------------------------------------------
@@ -196,4 +196,4 @@ func test_r19_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R19")
 	assert_eq(rule.text, "Never fill a row completely")
 	assert_eq(rule.to_data(), {"id": "R19", "text": "Never fill a row completely",
-		"template": "never_fill_axis", "values": {"axis": "row"}})
+		"template": "never_fill_axis", "values": {"axis": "row"}, "tier": "simple"})
