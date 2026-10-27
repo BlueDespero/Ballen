@@ -1,0 +1,217 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://gui/menus/deck_editor.gd" id="1_editor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 28.0
+content_margin_top = 20.0
+content_margin_right = 28.0
+content_margin_bottom = 20.0
+bg_color = Color(0.105, 0.118, 0.141, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.27, 0.3, 0.36, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_field"]
+content_margin_left = 14.0
+content_margin_right = 14.0
+bg_color = Color(0.17, 0.19, 0.23, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.47, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.23, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.47, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.26, 0.3, 0.37, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.72, 0.82, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save"]
+bg_color = Color(0.33, 0.27, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.3, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save_disabled"]
+bg_color = Color(0.17, 0.19, 0.23, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.27, 0.3, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="DeckEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_editor")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.141, 0.161, 0.196, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 16
+
+[node name="Card" type="PanelContainer" parent="Margin"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Margin/Card"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Margin/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Card/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "New deck"
+vertical_alignment = 1
+
+[node name="NameField" type="LineEdit" parent="Margin/Card/Content/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_field")
+theme_override_styles/focus = SubResource("StyleBoxFlat_field")
+placeholder_text = "Deck name"
+max_length = 24
+
+[node name="Counter" type="Label" parent="Margin/Card/Content/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "0 / 5"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Filters" type="HBoxContainer" parent="Margin/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FilterCaption" type="Label" parent="Margin/Card/Content/Filters"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.74, 0.8, 1)
+theme_override_font_sizes/font_size = 17
+text = "Show"
+vertical_alignment = 1
+
+[node name="Chips" type="HBoxContainer" parent="Margin/Card/Content/Filters"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Card/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RuleList" type="VBoxContainer" parent="Margin/Card/Content/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Hint" type="Label" parent="Margin/Card/Content/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 18
+text = "Pick 5 rules (0 picked)"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="CancelButton" type="Button" parent="Margin/Card/Content/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+text = "Cancel"
+
+[node name="SaveButton" type="Button" parent="Margin/Card/Content/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_save")
+theme_override_styles/hover = SubResource("StyleBoxFlat_save")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_save")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_save_disabled")
+disabled = true
+text = "Save"
