@@ -47,6 +47,7 @@ Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` an
 | `press:X,Y` / `release:X,Y` | left press, or release, at X,Y; put `wait:N` between them to hold |
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
 | `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
+| `key:NAME` | press and release a key by name (`Left`, `Right`, `Space`; `OS.find_keycode_from_string`) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
 | `tree` | print the current scene tree |
 | `get:NODE/PATH:prop` | print a property; path is relative to the current scene |
