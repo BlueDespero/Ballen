@@ -105,7 +105,7 @@ layout and centres it, so these coordinates no longer hold.
   `[IO.File]::WriteAllText($cfg, "[accessibility]`n`nreduced_motion=true`n")`; `Set-Content -Encoding
   utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
   the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
-  `guess_without_holding`, `larger_text`. With guess without holding, a click on Guess arms it
+  `guess_without_holding`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). With guess without holding, a click on Guess arms it
   (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
   panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
@@ -156,12 +156,20 @@ layout and centres it, so these coordinates no longer hold.
   (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
   238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`;
-  a note mark button at x≈790 on the left of each row cycles none → ✗ ruled out → ? suspect → none
-  without selecting the row; `get:Layout/RulesPanel:marks` prints `{ "R10": 1, … }`, 0 none, 1 ✗
-  (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match end and cleared by a rematch),
-  then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
-  (y≈454–646) with the true one highlighted. Three skip pips at the right of each title
-  (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
+  two note mark buttons at the right end of each row, ✗ "Rule out" x≈1180 and ? "Suspect" x≈1218
+  (nodes `…/AIRules/<id>/Line/Marks/Cross|Question`, `lit` true while on): a tap sets that mark,
+  switches from the other or clears it when lit, without selecting the row; a ✗ row fades and is
+  struck through, a ? row gets a yellow left edge. `get:Layout/RulesPanel:marks` prints
+  `{ "R10": 1, … }`, 0 none, 1 ✗ (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match
+  end and cleared by a rematch), then the Guess slot (hint text and the Guess button, centre
+  (1173,344)), yours below (y≈454–646) with the true one highlighted. Three skip pips at the right of
+  each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
+- Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
+  `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
+  explains the marks and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
+  your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
+  `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
+  taps a mark, and restore it afterwards.
 - Guess: select an AI rule, then hold the button about 1 s: `press:1173,344 wait:90 release:1173,344`.
   Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
   your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
