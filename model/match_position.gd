@@ -70,6 +70,27 @@ func before(index: int) -> MatchPosition:
 	return earlier
 
 
+## The position right after turn n's placement or skip, with that event last
+## in its history (the history view steps through these); null when the
+## history holds no placement or skip for turn n: turn 0, a turn not reached,
+## or the current turn before its ball is placed.
+func after_turn(n: int) -> MatchPosition:
+	var later_picks: int = 0
+	for i: int in range(history.size() - 1, -1, -1):
+		var event: HistoryEntry = history[i]
+		if event.type == HistoryEntry.Type.COLOUR_PICK:
+			later_picks += 1
+		elif _is_placement_or_skip(event) and turn - later_picks == n:
+			var after: MatchPosition = before(i)
+			if event.type == HistoryEntry.Type.PLACEMENT:
+				after.board.place(event.cell, Ball.new(event.colour, event.player))
+			else:
+				after.skips[event.player] += 1
+			after.history.append(event)
+			return after
+	return null
+
+
 ## A deep copy that shares no mutable state with this position.
 func copy() -> MatchPosition:
 	var position: MatchPosition = MatchPosition.new(board.copy(), first_player)
@@ -79,3 +100,7 @@ func copy() -> MatchPosition:
 	for entry: HistoryEntry in history:
 		position.history.append(entry.copy())
 	return position
+
+
+static func _is_placement_or_skip(event: HistoryEntry) -> bool:
+	return event.type == HistoryEntry.Type.PLACEMENT or event.type == HistoryEntry.Type.SKIP
