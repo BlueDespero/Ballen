@@ -12,8 +12,10 @@ const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
 
 const AI_FLY_SECONDS: float = 0.3
-## Shorter than the AI's shortest pause, so a skip is shown before its next action.
-const SKIP_DISSOLVE_SECONDS: float = 0.4
+## A skipped ball stays at its owner's side this long, labelled, then
+## dissolves; the driver holds the match until it is gone.
+const SKIP_HOLD_SECONDS: float = 1.5
+const SKIP_DISSOLVE_SECONDS: float = 0.8
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 ## On the status line whenever the player's colour pick is due.
 const PICK_PROMPT: String = "Pick the AI's next colour."
@@ -21,6 +23,8 @@ const PICK_PROMPT: String = "Pick the AI's next colour."
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
 @onready var _ai_ball: BallView = %AIBall
+@onready var _player_skip_note: Label = %PlayerSkipNote
+@onready var _ai_skip_note: Label = %AISkipNote
 @onready var _picker: ColourPicker = %ColourPicker
 @onready var _rules_panel: RulesPanel = %RulesPanel
 @onready var _status: Label = %Status
@@ -83,13 +87,13 @@ func _on_true_rule_chosen(true_rule: Rule) -> void:
 	_status.text = "You go first." if player_goes_first else "The AI goes first."
 	await _pre_match.show_coin_toss(player_goes_first, is_rematch)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
-	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait)
+	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
 	_refresh()
 	_driver.run()
 
 
-## The driver awaits this before each AI action.
+## The driver awaits this before each AI action and while a skip is shown.
 func _wait(seconds: float) -> Signal:
 	return get_tree().create_timer(seconds).timeout
 
@@ -138,9 +142,28 @@ func _on_match_changed() -> void:
 		if event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
 			await _ai_ball.fly_to(_board_view.cell_centre(event.cell), AI_FLY_SECONDS)
 		elif event.type == HistoryEntry.Type.SKIP:
-			var ball: BallView = _player_ball if event.player == HUMAN else _ai_ball
-			await ball.dissolve(event.colour, SKIP_DISSOLVE_SECONDS)
+			await _show_skip(event)
 	_refresh()
+
+
+## The skipped ball appears at its owner's side with a note, stays, then
+## dissolves with it. No input meanwhile; the skip pip fills on the redraw
+## after.
+func _show_skip(skip: HistoryEntry) -> void:
+	_player_ball.draggable = false
+	_picker.enabled = false
+	_rules_panel.guess_enabled = false
+	_rules_panel.seal_enabled = false
+	_status.text = ""
+	var ball: BallView = _player_ball if skip.player == HUMAN else _ai_ball
+	var note: Label = _player_skip_note if skip.player == HUMAN else _ai_skip_note
+	note.modulate.a = 1.0
+	note.visible = true
+	var fade: Tween = note.create_tween()
+	fade.tween_interval(SKIP_HOLD_SECONDS)
+	fade.tween_property(note, "modulate:a", 0.0, SKIP_DISSOLVE_SECONDS)
+	await ball.dissolve(skip.colour, SKIP_HOLD_SECONDS, SKIP_DISSOLVE_SECONDS)
+	note.visible = false
 
 
 ## Redraws everything from the player's view of the match.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://j82ghhnsoume"]
+[gd_scene load_steps=10 format=3 uid="uid://j82ghhnsoume"]
 
 [ext_resource type="Script" uid="uid://2lk7otc6o7ex" path="res://main_game.gd" id="1_game"]
 [ext_resource type="Script" uid="uid://c4ypi10kpqevf" path="res://gui/board_view.gd" id="2_board"]
@@ -11,6 +11,10 @@
 [sub_resource type="LabelSettings" id="LabelSettings_side"]
 font_size = 20
 font_color = Color(0.78, 0.81, 0.86, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_skip"]
+font_size = 20
+font_color = Color(0.96, 0.72, 0.42, 1)
 
 [node name="MainGame" type="Control"]
 layout_mode = 3
@@ -87,6 +91,32 @@ offset_right = 392.0
 offset_bottom = 676.0
 text = "You"
 label_settings = SubResource("LabelSettings_side")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="AISkipNote" type="Label" parent="Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 340.0
+offset_bottom = 76.0
+text = "No legal cell, skipped"
+label_settings = SubResource("LabelSettings_skip")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="PlayerSkipNote" type="Label" parent="Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 644.0
+offset_right = 340.0
+offset_bottom = 676.0
+text = "No legal cell, skipped"
+label_settings = SubResource("LabelSettings_skip")
 horizontal_alignment = 2
 vertical_alignment = 1
 
