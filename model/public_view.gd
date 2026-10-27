@@ -41,6 +41,14 @@ func can_guess() -> bool:
 	return phase == Match.Phase.PLACE or phase == Match.Phase.PICK_COLOUR
 
 
+## Whether the match is waiting for the viewer's colour pick: the opponent's
+## first colour, or the colour that ends the viewer's turn.
+func colour_pick_due() -> bool:
+	if current_player != viewer:
+		return false
+	return phase == Match.Phase.FIRST_COLOUR or phase == Match.Phase.PICK_COLOUR
+
+
 ## Whether the board is full and the match is waiting for the viewer's forced
 ## guess.
 func forced_guess_due() -> bool:

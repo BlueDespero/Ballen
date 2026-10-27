@@ -111,3 +111,21 @@ func test_both_true_rules_are_revealed_once_the_match_is_over() -> void:
 		assert_eq(revealed.size(), Players.COUNT)
 		assert_eq(revealed[0].id, "R04")
 		assert_eq(revealed[1].id, "B1")
+
+
+func test_the_first_colour_pick_is_due_for_the_second_player_only() -> void:
+	var current_match: Match = _match("R04")
+	var second_player: int = Players.opponent(current_match.first_player())
+	assert_true(current_match.public_view(second_player).colour_pick_due())
+	assert_false(current_match.public_view(current_match.first_player()).colour_pick_due())
+
+
+func test_after_placing_the_colour_pick_is_due_for_the_placer_only() -> void:
+	var current_match: Match = _match("R04")
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
+	var placer: int = current_match.current_player()
+	assert_false(current_match.public_view(placer).colour_pick_due(), "not while placing")
+	assert_false(current_match.public_view(Players.opponent(placer)).colour_pick_due())
+	assert_true(current_match.submit(placer, Command.place(Vector2i(1, 1))))
+	assert_true(current_match.public_view(placer).colour_pick_due())
+	assert_false(current_match.public_view(Players.opponent(placer)).colour_pick_due())
