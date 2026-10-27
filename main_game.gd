@@ -71,7 +71,7 @@ func _ready() -> void:
 	_apply_settings()
 	var book: RuleBook = RuleBook.load_default()
 	var decks: DeckStore = DeckStore.new(book)
-	_setup = MatchSetup.against_ai(book, decks.deck(decks.names()[0]), _rng)
+	_setup = MatchSetup.against_ai(book, decks.deck(decks.names()[0]), AILevel.Level.NORMAL, _rng)
 	_show_pre_match()
 
 

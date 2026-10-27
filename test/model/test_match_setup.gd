@@ -7,6 +7,7 @@ const Fixtures := preload("res://test/helpers/fixtures.gd")
 
 const PLAYER: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
+const NORMAL: AILevel.Level = AILevel.Level.NORMAL
 
 var _book: RuleBook
 
@@ -29,16 +30,34 @@ func _deck(ids: Array[String]) -> Deck:
 	return Deck.new(rules)
 
 
-## The player's deck in most tests: R01 R03 R05 R08 R18.
+func _starter() -> Deck:
+	return _deck(["R01", "R03", "R05", "R08", "R18"])
+
+
+## Most tests: the player has R01 R03 R05 R08 R18 and the AI plays at Normal.
 func _setup(seed_value: int) -> MatchSetup:
-	return MatchSetup.against_ai(_book, _deck(["R01", "R03", "R05", "R08", "R18"]), Fixtures.rng(seed_value))
+	return MatchSetup.against_ai(_book, _starter(), NORMAL, Fixtures.rng(seed_value))
 
 
 func test_the_player_gets_the_deck_they_picked() -> void:
 	var picked: Array[String] = ["R02", "R04", "R09", "R10", "R20"]
-	var setup: MatchSetup = MatchSetup.against_ai(_book, _deck(picked), Fixtures.rng(1))
+	var setup: MatchSetup = MatchSetup.against_ai(_book, _deck(picked), NORMAL, Fixtures.rng(1))
 	assert_eq(_ids(setup.deck(PLAYER)), picked)
 	assert_eq(_ids(setup.start(_book.rule("R10")).public_view(PLAYER).decks[PLAYER]), picked)
+
+
+func test_the_setup_keeps_the_ai_level_for_rematches() -> void:
+	var setup: MatchSetup = _setup(1)
+	setup.start(_book.rule("R01"))
+	setup.rematch(_book.rule("R03"))
+	assert_eq(setup.ai_level(), NORMAL)
+
+
+func test_a_level_not_built_yet_sets_up_nothing() -> void:
+	assert_null(MatchSetup.against_ai(_book, _starter(), AILevel.Level.EASY, Fixtures.rng(1)))
+	assert_push_error("Easy is not built")
+	assert_null(MatchSetup.against_ai(_book, _starter(), AILevel.Level.HARD, Fixtures.rng(1)))
+	assert_push_error("Hard is not built")
 
 
 func test_the_ai_gets_5_distinct_rules_that_follow_the_seed() -> void:
@@ -155,8 +174,7 @@ func _play_until_the_player_places(current_match: Match) -> void:
 
 
 func test_a_book_too_small_for_the_ai_s_deck_sets_up_nothing() -> void:
-	var player_deck: Deck = _deck(["R01", "R03", "R05", "R08", "R18"])
-	assert_null(MatchSetup.against_ai(RuleBook.new(), player_deck, Fixtures.rng(1)))
+	assert_null(MatchSetup.against_ai(RuleBook.new(), _starter(), NORMAL, Fixtures.rng(1)))
 	assert_push_error("a deck needs 5")
 
 
