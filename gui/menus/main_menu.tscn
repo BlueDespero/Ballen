@@ -45,10 +45,10 @@ layout_mode = 2
 size_flags_vertical = 3
 text = "Online Play"
 
-[node name="LoadoutButton" type="Button" parent="GameButtons"]
+[node name="DecksButton" type="Button" parent="GameButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-text = "Loadout"
+text = "Decks"
 
 [node name="OptionButton" type="Button" parent="GameButtons"]
 layout_mode = 2
@@ -62,5 +62,6 @@ text = "Quit"
 script = ExtResource("1_06t4h")
 
 [connection signal="pressed" from="GameButtons/SinglePlayerButton" to="." method="_on_single_player_button_pressed"]
+[connection signal="pressed" from="GameButtons/DecksButton" to="." method="_on_decks_button_pressed"]
 [connection signal="pressed" from="GameButtons/OptionButton" to="." method="_on_option_button_pressed"]
 [connection signal="pressed" from="GameButtons/QuitButton" to="GameButtons/QuitButton" method="_on_pressed"]
