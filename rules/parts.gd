@@ -26,6 +26,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"same_axis": _same_axis,
 	"whole_board": _whole_board,
 	"other_cells": _other_cells,
+	"within_distance": _within_distance,
 	# Filters
 	"in_zone": _in_zone,
 	"with_parity": _with_parity,
@@ -89,6 +90,22 @@ static func _neighbours(node: Dictionary, ctx: PlacementContext) -> Array[Vector
 		for cell: Vector2i in Board.neighbours(centre):
 			if not centres.has(cell) and not cells.has(cell):
 				cells.append(cell)
+	return cells
+
+
+## The cells within n steps (king moves, see Board.distance) of the cells of
+## "of", each listed once, leaving out the cells of "of" themselves. With n 1
+## these are the neighbours. {"part": "within_distance", "n": 2, "of": ...}
+static func _within_distance(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var centres: Array[Vector2i] = _cells(node.of, ctx)
+	var cells: Array[Vector2i] = []
+	for cell: Vector2i in Board.all_cells():
+		if centres.has(cell):
+			continue
+		for centre: Vector2i in centres:
+			if Board.distance(cell, centre) <= int(node.n):
+				cells.append(cell)
+				break
 	return cells
 
 

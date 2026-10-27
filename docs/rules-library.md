@@ -30,7 +30,7 @@ A dash means not measured yet.
 | R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my_last_ball | Built | – | – |
 | R09 | Never in the same row as your last ball | History | `not_same_axis_as` | axis = row, ball = my_last_ball | Built | – | – |
 | R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | – | – |
-| R11 | At least 2 cells from any red | Geometry | `min_distance_from` | ball = red, n = 2 | Idea | – | – |
+| R11 | At least 2 cells from any red | Geometry | `min_distance_from` | colour = red, n = 2 | Built | – | – |
 | R12 | Diagonal check | Geometry | `diagonal_check` | – | Idea | – | – |
 | R13 | Must touch an existing ball | Connection | `must_touch` | ball = any_ball | Built | – | – |
 | R14 | Must join your own group | Connection | `must_touch` | ball = my_ball | Built | – | – |
