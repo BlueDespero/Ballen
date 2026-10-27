@@ -95,7 +95,7 @@ How the AI decides is in the [AI research notes](ai-decision-theory-research.md)
 
 The rules library is Ballen's main content. Every rule is plain data assembled from shared parts, so a new rule needs no code, and a new mechanic is one new part that leaves existing rules untouched.
 
-**How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips. How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
+**How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips; a turn number in rule text counts only its holder's turns ("for your first 5 turns, only rows 3 and 4"). How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
 
 **Rule text reads the same for both players.** It names rows by number, 1–6 from the first player's side, and never uses perspective words such as "above", "own half" or "towards the opponent": "only in a row numbered higher than your last ball's row", not "above your last ball".
 

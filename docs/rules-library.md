@@ -9,6 +9,9 @@ of one colour), and `ball` names which balls count (built values are filter part
 Rule text reads the same for both players: it names rows by number (1–6 from the first player's side),
 never by perspective words such as "above", "own half" or "towards the opponent".
 
+**Turn counts** in rule text ("your odd turns", "your first 5 turns") count only the holder's own turns,
+skipped ones included: your first turn is turn 1, whoever went first.
+
 **Status:** Idea → Specced (template and blanks fixed) → Built → Tuned (strictness measured, playtested).
 **Strictness** is the share of placements the rule forbids on random boards; target roughly 20–60%.
 **Tier** ranks how much a rule restricts the player who holds it: Simple, Intermediate or Hardcore.
@@ -36,9 +39,9 @@ A dash means not measured yet.
 | R17 | Must touch the next colour in yellow → blue → red → green | Colour order | `must_touch_next_colour` | cycle = Y→B→R→G | Idea | – | – |
 | R18 | Only cells with 2+ empty neighbours | Space | `min_empty_neighbours` | n = 2 | Built | – | – |
 | R19 | Never fill a row completely | Space | `never_fill_axis` | axis = row | Built | – | – |
-| R20 | On odd turns, edge only | Time | `if_then` | if = odd turn, then = on edge | Idea | – | – |
-| R21 | For the first 5 turns, your own half only | Time | `if_then` | if = turn ≤ 5, then = own half | Idea | – | – |
-| R22 | After any skip, must touch one of your own balls | Game state | `if_then` | if = any skip, then = touch my ball | Idea | – | – |
+| R20 | On your odd turns, edge only | Time | `zone_on_turn_parity` | parity = odd, zone = edge | Built | – | – |
+| R21 | For your first 5 turns, only rows 3 and 4 | Time | `rows_for_first_turns` | turns = 5, from = 3, to = 4 | Built | – | – |
+| R22 | After any skip, must touch one of your own balls | Game state | `touch_mine_after_skips` | skips = 1 | Built | – | – |
 | R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | ball = opponent_last_ball | Idea | – | – |
 
 ## Open questions

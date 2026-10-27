@@ -116,6 +116,7 @@ Built so far, enough for the milestone 1 rules:
 | Combiner | `all` (with an empty list it always passes: the permissive rule tests use); `any` |
 | Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
 | Filter, row comparison | `in_row_relative` (row numbered higher or lower than every reference cell, e.g. your last ball; with no reference cell every cell is kept) |
+| Time and game state | Combiner `if_then` ("then" applies only while "if" holds); conditions `own_turn_parity`, `own_turn_at_most` (the holder's own turn count, 1 on their first turn), `skips_at_least` (both players' skips); filters `in_rows` (row numbers from–to), `my_ball` (the holder's balls) |
 
 Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
 (`Board.row_number`). In template ids and blanks a row or column is an `axis` (only rows are built);
