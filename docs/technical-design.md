@@ -74,7 +74,9 @@ all run the same code.
   Guess and Seal keep following the live match meanwhile. When the AI plays on while a past board is on
   show, nothing animates: the board stays and Live lights up and pulses until the player returns (the
   match ending returns at once, for the match-end screen). New history events are shown by one run of
-  the scene's event loop at a time, so the history view never opens mid-animation.
+  the scene's event loop at a time, so the history view never opens mid-animation. Which turn is on
+  show, the stepping and the past turn's status text live in `HistoryBrowser` (`gui/history_browser.gd`,
+  unit-tested on a match's `PublicView`); `HistoryNav` only draws the buttons.
 - `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
   AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`). Both decks are shown first;
   `MatchSetup.start(true_rule)` then draws the AI's true rule from its deck and creates the match,

@@ -9,11 +9,12 @@ extends Control
 ## on the same decks.
 ##
 ## The history view (the arrows and Live under the board, or the ← and → keys)
-## steps turn by turn through past boards, rebuilt from the player's view. It
-## only shows: the glow and dragging pause, and only the player's own actions
-## (pressing their ball, a colour pick, Guess or Seal, Live, or stepping past
-## the latest turn) return to the live board. The AI playing on meanwhile
-## leaves the past board on show and lights up Live.
+## steps turn by turn through past boards, rebuilt from the player's view; a
+## HistoryBrowser keeps which turn is on show. It only shows: the glow and
+## dragging pause, and only the player's own actions (pressing their ball, a
+## colour pick, Guess or Seal, Live, or stepping past the latest turn) return
+## to the live board. The AI playing on meanwhile leaves the past board on show
+## and lights up Live.
 
 const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
@@ -26,8 +27,6 @@ const SKIP_DISSOLVE_SECONDS: float = 0.8
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 ## On the status line whenever the player's colour pick is due.
 const PICK_PROMPT: String = "Pick the AI's next colour."
-## _viewed_turn when the live board is on show.
-const LIVE: int = -1
 ## The waiting balls fade to this while a past board is on show.
 const PAUSED_BALL_ALPHA: float = 0.35
 
@@ -50,15 +49,9 @@ var _human: HumanController = HumanController.new()
 var _driver: MatchDriver = null
 ## How many history events the screen has shown.
 var _shown_events: int = 0
-## Whether a run of _on_match_changed is showing new events; a change that
-## comes in meanwhile is left to that run. The history view waits for it.
-var _showing_events: bool = false
-## Whether the match moved on while the past board was on show.
-var _live_moved_on: bool = false
-## The player's view as last drawn live; past boards are rebuilt from it.
-var _live_view: PublicView = null
-## The past turn on show in the history view, or LIVE.
-var _viewed_turn: int = LIVE
+## The history view's state; it holds the player's view as last drawn, and is
+## busy while a run of _on_match_changed shows new events.
+var _history: HistoryBrowser = HistoryBrowser.new()
 
 
 func _ready() -> void:
@@ -96,7 +89,7 @@ func _show_pre_match() -> void:
 	_picker.enabled = false
 	_pre_match.show_deck(_setup.deck(HUMAN))
 	_status.text = "Choose your true rule."
-	_viewed_turn = LIVE
+	_history.reset()
 	_update_history_nav()
 
 
@@ -169,22 +162,20 @@ func _on_main_menu_requested() -> void:
 ## show nothing animates: it stays on show and Live lights up, until the match
 ## is over.
 func _on_match_changed() -> void:
-	if _showing_events:
+	if _history.busy:
 		return
-	_showing_events = true
+	_history.busy = true
 	_update_history_nav()
 	while _shown_events < _match.history().size():
 		var event: HistoryEntry = _match.history()[_shown_events]
 		_shown_events += 1
-		if _viewed_turn != LIVE:
-			_live_moved_on = true
-		elif event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
+		if _history.viewing_past():
+			continue
+		if event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
 			await _ai_ball.fly_to(_board_view.cell_centre(event.cell), AI_FLY_SECONDS)
 		elif event.type == HistoryEntry.Type.SKIP:
 			await _show_skip(event)
-	_showing_events = false
-	if _match.phase() == Match.Phase.OVER:
-		_viewed_turn = LIVE
+	_history.busy = false
 	_redraw_from_match()
 
 
@@ -226,71 +217,43 @@ func _input(event: InputEvent) -> void:
 		return
 	var button: InputEventMouseButton = event as InputEventMouseButton
 	if (button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT
-			and _viewed_turn != LIVE and _player_ball.get_global_rect().has_point(button.global_position)):
+			and _history.viewing_past() and _player_ball.get_global_rect().has_point(button.global_position)):
 		_go_live()
 
 
-## Back a turn; from the live board, to the latest turn with a placement or skip.
 func _step_back() -> void:
-	if not _can_view_history():
-		return
-	var turn: int = _latest_turn() if _viewed_turn == LIVE else _viewed_turn - 1
-	if turn < 1 or _live_view.position.after_turn(turn) == null:
-		return
-	_viewed_turn = turn
-	_show_viewed_board()
+	if _history.step_back():
+		_show_viewed_board()
 
 
-## Forward a turn; past the latest one, back to the live board.
 func _step_forward() -> void:
-	if _viewed_turn == LIVE:
-		return
-	_viewed_turn = _viewed_turn + 1 if _viewed_turn < _latest_turn() else LIVE
-	_show_viewed_board()
+	if _history.step_forward():
+		_show_viewed_board()
 
 
 func _go_live() -> void:
-	if _viewed_turn == LIVE:
-		return
-	_viewed_turn = LIVE
-	_show_viewed_board()
-
-
-## Past boards can be viewed while the match runs, between animations.
-func _can_view_history() -> bool:
-	return (_live_view != null and _live_view.phase != Match.Phase.OVER and not _pre_match.visible
-		and not _showing_events)
-
-
-## The latest turn with a placement or skip: the current one once its ball is
-## placed or skipped, otherwise the one before.
-func _latest_turn() -> int:
-	var position: MatchPosition = _live_view.position
-	return position.turn if position.after_turn(position.turn) != null else position.turn - 1
+	if _history.go_live():
+		_show_viewed_board()
 
 
 func _update_history_nav() -> void:
-	var viewing: bool = _viewed_turn != LIVE
-	if not viewing:
-		_live_moved_on = false
-	var can_go_back: bool = _can_view_history() and (_viewed_turn > 1 if viewing else _latest_turn() >= 1)
-	_history_nav.set_state(can_go_back, viewing, _live_moved_on)
+	_history_nav.set_state(_history.can_go_back(), _history.viewing_past(), _history.moved_on)
 
 
 ## Takes the player's view of the match afresh and redraws everything from it.
 func _redraw_from_match() -> void:
-	_live_view = _match.public_view(HUMAN)
+	_history.live_view = _match.public_view(HUMAN)
 	_show_viewed_board()
 
 
 ## Shows the live board, or the past turn the history view is on. Either way
 ## the player's actions (colour pick, Guess, Seal) follow the live match.
 func _show_viewed_board() -> void:
-	_show_actions(_live_view)
-	if _viewed_turn == LIVE:
-		_show_live_match(_live_view)
+	_show_actions(_history.live_view)
+	if _history.viewing_past():
+		_show_past_turn()
 	else:
-		_show_past_turn(_viewed_turn)
+		_show_live_match(_history.live_view)
 	_update_history_nav()
 
 
@@ -302,11 +265,11 @@ func _show_actions(view: PublicView) -> void:
 	_rules_panel.seal_enabled = view.forced_guess_due()
 
 
-## A past turn: the board right after it with its ball ringed, or its skipped
-## ball on its owner's waiting spot; the waiting balls fade and nothing glows
-## or drags.
-func _show_past_turn(turn: int) -> void:
-	var past: MatchPosition = _live_view.position.after_turn(turn)
+## The past turn on show: the board right after it with its ball ringed, or
+## its skipped ball on its owner's waiting spot; the waiting balls fade and
+## nothing glows or drags.
+func _show_past_turn() -> void:
+	var past: MatchPosition = _history.past_position()
 	var event: HistoryEntry = past.history[-1]
 	var placed: bool = event.type == HistoryEntry.Type.PLACEMENT
 	_board_view.show_board(past.board, [], HUMAN, past.first_player, event.cell if placed else BoardView.NO_CELL)
@@ -320,16 +283,7 @@ func _show_past_turn(turn: int) -> void:
 		owner_ball.colour = event.colour
 		owner_ball.modulate.a = 1.0
 	_rules_panel.show_skips(past.skips[AI], past.skips[HUMAN])
-	_status.text = _past_turn_text(turn, event)
-
-
-## Which turn is on show, who made it and what happened.
-func _past_turn_text(turn: int, event: HistoryEntry) -> String:
-	var who: String = "you" if event.player == HUMAN else "the AI"
-	var what: String = "%s placed %s" % [who, event.colour]
-	if event.type == HistoryEntry.Type.SKIP:
-		what = "%s had no legal cell for %s, so the ball was skipped" % [who, event.colour]
-	return "Turn %d of %d: %s.\n\nA past board. Press Live, or play on, to return." % [turn, _latest_turn(), what]
+	_status.text = _history.past_turn_text()
 
 
 ## The live board and everything around it, from the player's view.
