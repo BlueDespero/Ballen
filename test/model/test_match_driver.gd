@@ -188,3 +188,31 @@ func test_a_stopped_driver_submits_nothing_more() -> void:
 	human.choose(Command.place(Vector2i(2, 2)))
 	assert_eq(current_match.history().size(), 1)
 	assert_eq(current_match.phase(), Match.Phase.PLACE)
+
+
+func test_after_a_skip_the_driver_waits_for_the_skip_display_before_going_on() -> void:
+	var position: MatchPosition = MatchPosition.new(Board.parse([
+		"......",
+		".RbRb.",
+		".bRbR.",
+		".RbRb.",
+		".bRbR.",
+		"......",
+	]), 0)
+	position.turn = 17
+	position.colour = BallColour.RED
+	var r04: Rule = _book.rule("R04")
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
+	var true_rules: Array[Rule] = [r04, r04]
+	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var human: HumanController = HumanController.new()
+	var controllers: Array[Controller] = [human, _ai(2)]
+	var driver: MatchDriver = MatchDriver.new(current_match, controllers, [1], Fixtures.rng(3), _record_wait, 2.3)
+	driver.run()
+	assert_eq(_waits, [] as Array[float], "the player's colour pick is asked for at once")
+	human.choose(Command.pick_colour(BallColour.BLUE))
+	assert_eq(_waits.size(), 3, "the AI's skip display, the AI's pause, the player's skip display")
+	assert_eq(_waits[0], 2.3, "the AI's skip is shown before its pause starts")
+	assert_between(_waits[1], 0.5, 1.5)
+	assert_eq(_waits[2], 2.3, "the player's skip is shown before they are asked for a colour")
+	human.choose(null) # gives up the decision, ending run()
