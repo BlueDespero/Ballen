@@ -4,7 +4,7 @@ extends GutTest
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
-const BUILT_RULE_IDS: Array[String] = ["R01", "R02", "R03","R04", "R05", "R06", "R07", "R08", "R09", "R10", "R15", "R18"]
+const BUILT_RULE_IDS: Array[String] = ["R01", "R02", "R03","R04", "R05", "R06", "R07", "R08", "R09", "R10", "R15", "R16", "R18"]
 
 var _book: RuleBook
 

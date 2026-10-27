@@ -127,3 +127,45 @@ func test_r15_carries_its_player_text_and_data() -> void:
 	assert_eq(rule.text, "Only in a row numbered higher than your last ball's row")
 	assert_eq(rule.to_data(), {"id": "R15", "text": "Only in a row numbered higher than your last ball's row",
 		"template": "relative_to_last", "values": {"direction": "higher"}})
+
+
+# R16 Only in a row numbered lower than your last ball's row -------------------
+
+func test_r16_when_player_0_goes_first_allows_rows_1_to_3_after_a_last_ball_in_row_4() -> void:
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R16"), _last_ball_at_y_2(0), 0, BallColour.BLUE)
+	assert_eq(_rows_of(cells), [3, 4, 5] as Array[int])
+
+
+func test_r16_when_player_1_goes_first_allows_rows_1_and_2_after_a_last_ball_in_row_3() -> void:
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R16"), _last_ball_at_y_2(1), 0, BallColour.BLUE)
+	assert_eq(_rows_of(cells), [0, 1] as Array[int])
+
+
+func test_r16_for_player_1_compares_with_player_1s_last_ball() -> void:
+	# Player 1's last ball at y 4: row 2 when player 0 goes first, row 5 when player 1 does.
+	var rule: Rule = _book.rule("R16")
+	assert_eq(_rows_of(RuleChecker.legal_cells(rule, _last_ball_at_y_2(0), 1, BallColour.BLUE)),
+		[5] as Array[int])
+	assert_eq(_rows_of(RuleChecker.legal_cells(rule, _last_ball_at_y_2(1), 1, BallColour.BLUE)),
+		[0, 1, 2, 3] as Array[int])
+
+
+func test_r16_allows_every_empty_cell_before_the_holders_first_placement() -> void:
+	for first_player: int in [0, 1]:
+		var position: MatchPosition = _position([
+			"......",
+			"......",
+			"......",
+			"......",
+			"....r.",
+			"......",
+		], first_player, [HistoryEntry.placement(1, Vector2i(4, 4), BallColour.RED)])
+		assert_eq(RuleChecker.legal_cells(_book.rule("R16"), position, 0, BallColour.BLUE).size(), 35,
+			"first player %d" % first_player)
+
+
+func test_r16_carries_its_player_text_and_data() -> void:
+	var rule: Rule = _book.rule("R16")
+	assert_eq(rule.text, "Only in a row numbered lower than your last ball's row")
+	assert_eq(rule.to_data(), {"id": "R16", "text": "Only in a row numbered lower than your last ball's row",
+		"template": "relative_to_last", "values": {"direction": "lower"}})
