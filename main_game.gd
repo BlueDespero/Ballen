@@ -69,7 +69,9 @@ func _ready() -> void:
 	_history_nav.forward_pressed.connect(_step_forward)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
-	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
+	var book: RuleBook = RuleBook.load_default()
+	var decks: DeckStore = DeckStore.new(book)
+	_setup = MatchSetup.against_ai(book, decks.deck(decks.names()[0]), _rng)
 	_show_pre_match()
 
 

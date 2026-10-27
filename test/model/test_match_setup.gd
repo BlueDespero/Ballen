@@ -1,6 +1,6 @@
 extends GutTest
 
-# Setting up a single-player match: the player's starter deck, the AI's random
+# Setting up a single-player match: the deck the player picked, the AI's random
 # deck and true rule, then the match itself (checked through its PublicView).
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
@@ -22,13 +22,23 @@ func _ids(deck: Deck) -> Array[String]:
 	return ids
 
 
+func _deck(ids: Array[String]) -> Deck:
+	var rules: Array[Rule] = []
+	for rule_id: String in ids:
+		rules.append(_book.rule(rule_id))
+	return Deck.new(rules)
+
+
+## The player's deck in most tests: R01 R03 R05 R08 R18.
 func _setup(seed_value: int) -> MatchSetup:
-	return MatchSetup.against_ai(_book, Fixtures.rng(seed_value))
+	return MatchSetup.against_ai(_book, _deck(["R01", "R03", "R05", "R08", "R18"]), Fixtures.rng(seed_value))
 
 
-func test_the_player_gets_the_starter_deck() -> void:
-	var expected: Array[String] = ["R01", "R03", "R05", "R08", "R18"]
-	assert_eq(_ids(_setup(1).deck(PLAYER)), expected)
+func test_the_player_gets_the_deck_they_picked() -> void:
+	var picked: Array[String] = ["R02", "R04", "R09", "R10", "R20"]
+	var setup: MatchSetup = MatchSetup.against_ai(_book, _deck(picked), Fixtures.rng(1))
+	assert_eq(_ids(setup.deck(PLAYER)), picked)
+	assert_eq(_ids(setup.start(_book.rule("R10")).public_view(PLAYER).decks[PLAYER]), picked)
 
 
 func test_the_ai_gets_5_distinct_rules_that_follow_the_seed() -> void:
@@ -74,7 +84,7 @@ func test_the_setup_follows_the_seeded_rng() -> void:
 	assert_eq(again.first_player(), first.first_player())
 
 
-func test_a_rule_outside_the_starter_deck_starts_no_match() -> void:
+func test_a_rule_outside_the_player_s_deck_starts_no_match() -> void:
 	assert_null(_setup(1).start(_book.rule("R04")))
 	assert_push_error("true rule")
 
@@ -144,9 +154,10 @@ func _play_until_the_player_places(current_match: Match) -> void:
 		current_match.submit(AI, Command.pick_colour(BallColour.BLUE))
 
 
-func test_a_book_without_the_starter_deck_sets_up_nothing() -> void:
-	assert_null(MatchSetup.against_ai(RuleBook.new(), Fixtures.rng(1)))
-	assert_push_error("starter deck")
+func test_a_book_too_small_for_the_ai_s_deck_sets_up_nothing() -> void:
+	var player_deck: Deck = _deck(["R01", "R03", "R05", "R08", "R18"])
+	assert_null(MatchSetup.against_ai(RuleBook.new(), player_deck, Fixtures.rng(1)))
+	assert_push_error("a deck needs 5")
 
 
 func test_a_rematch_before_any_match_starts_nothing() -> void:

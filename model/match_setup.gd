@@ -1,9 +1,9 @@
 class_name MatchSetup
 extends RefCounted
 
-## What comes before a single-player match: the player's fixed starter deck
-## and the AI's deck of 5 rules drawn at random. Both decks are known before
-## the player chooses a true rule; start() then draws the AI's true rule and
+## What comes before a single-player match: the deck the player picked and
+## the AI's deck of 5 rules drawn at random. With the player's chosen true
+## rule, start() draws the AI's true rule and
 ## creates the match, whose coin toss picks the first player. The setup keeps
 ## both decks, so rematch() starts the next match from them, with the other
 ## player going first. Every random choice uses the injected rng.
@@ -21,23 +21,16 @@ func _init(decks: Array[Deck], rng: RandomNumberGenerator) -> void:
 	_rng = rng
 
 
-## The player gets the starter deck, the AI a random deck from the book's rules.
-## Returns null (and reports an error) if the book lacks a starter deck rule or
-## has too few rules for the AI's deck.
-static func against_ai(book: RuleBook, rng: RandomNumberGenerator) -> MatchSetup:
-	var starter: Array[Rule] = []
-	for rule_id: String in DeckStore.STARTER_DECK_IDS:
-		var rule: Rule = book.rule(rule_id)
-		if rule == null:
-			push_error("MatchSetup: the book has no %s for the starter deck" % rule_id)
-			return null
-		starter.append(rule)
+## The player gets the deck they picked, the AI a random deck from the book's
+## rules. Returns null (and reports an error) if the book has too few rules for
+## the AI's deck.
+static func against_ai(book: RuleBook, player_deck: Deck, rng: RandomNumberGenerator) -> MatchSetup:
 	var ai_deck: Deck = Deck.draw(book, rng)
 	if ai_deck == null:
 		return null
 	var decks: Array[Deck] = []
 	decks.resize(Players.COUNT)
-	decks[PLAYER] = Deck.new(starter)
+	decks[PLAYER] = player_deck.copy()
 	decks[AI] = ai_deck
 	return MatchSetup.new(decks, rng)
 
