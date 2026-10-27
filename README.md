@@ -34,9 +34,9 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 | `main.tscn`, `main_game.tscn` | Entry scenes: main menu and match |
 | `model/` | The match as plain GDScript: board, turns, commands, history, public views, controllers |
 | `rules/` | Rules engine; rules and templates as data in `rules/data/` |
-| `ai/` | The AI opponent: deduction, guessing, colour picks, placement |
+| `ai/` | The AI opponent: deduction, guessing, colour picks, placement, levels |
 | `harness/` | Headless AI-vs-AI harness for balance numbers |
-| `gui/` | Board, ball, colour picker, guess button, rules panel, pre-match, match-end and menu scenes |
+| `gui/` | Board, ball, colour picker, guess button, rules panel, match setup, match-end and menu scenes |
 | `event_bus.gd`, `constants.gd` | Autoloads: global signals, ball colours |
 | `assets/` | Kenney art assets |
 | `test/`, `addons/gut/` | GUT tests and the vendored GUT addon |
