@@ -14,5 +14,6 @@
 	{ "id": "R18", "text": "Only cells with 2+ empty neighbours", "template": "min_empty_neighbours", "values": { "n": 2 } },
 	{ "id": "R19", "text": "Never fill a row completely", "template": "never_fill_axis", "values": { "axis": "row" } },
 	{ "id": "R20", "text": "On your odd turns, edge only", "template": "zone_on_turn_parity", "values": { "parity": "odd", "zone": "edge" } },
-	{ "id": "R21", "text": "For your first 5 turns, only rows 3 and 4", "template": "rows_for_first_turns", "values": { "turns": 5, "from": 3, "to": 4 } }
+	{ "id": "R21", "text": "For your first 5 turns, only rows 3 and 4", "template": "rows_for_first_turns", "values": { "turns": 5, "from": 3, "to": 4 } },
+	{ "id": "R22", "text": "After any skip, must touch one of your own balls", "template": "touch_mine_after_skips", "values": { "skips": 1 } }
 ]

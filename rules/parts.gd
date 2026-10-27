@@ -30,6 +30,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"with_parity": _with_parity,
 	"same_colour": _same_colour,
 	"opponent_ball": _opponent_ball,
+	"my_ball": _my_ball,
 	"my_last_ball": _my_last_ball,
 	"empty": _empty,
 	"of_colour": _of_colour,
@@ -45,6 +46,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"own_turn_parity": _own_turn_parity,
 	"own_turn_at_most": _own_turn_at_most,
 	"in_rows": _in_rows,
+	"skips_at_least": _skips_at_least,
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
@@ -157,6 +159,18 @@ static func _opponent_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vec
 	for cell: Vector2i in _cells(node.of, ctx):
 		var ball: Ball = ctx.board.ball_at(cell)
 		if ball != null and ball.owner == opponent:
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball owned by the holder, any colour. The target holds the
+## placed ball, which is the holder's, so over the whole board this counts it.
+## {"part": "my_ball", "of": ...}
+static func _my_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.owner == ctx.holder:
 			kept.append(cell)
 	return kept
 
@@ -293,3 +307,12 @@ static func _in_rows(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 		if row >= int(node.from) and row <= int(node.to):
 			kept.append(cell)
 	return kept
+
+
+## Both players together have skipped at least n times in the match so far.
+## {"part": "skips_at_least", "n": 1}
+static func _skips_at_least(node: Dictionary, ctx: PlacementContext) -> bool:
+	var total: int = 0
+	for count: int in ctx.position.skips:
+		total += count
+	return total >= int(node.n)

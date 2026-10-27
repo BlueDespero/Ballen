@@ -107,5 +107,18 @@
 			"then": { "part": "count_at_least", "n": 1,
 				"of": { "part": "in_rows", "from": "$from", "to": "$to", "of": { "part": "target" } } }
 		}
+	},
+	"touch_mine_after_skips": {
+		"blanks": { "skips": [] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "skips_at_least", "n": "$skips" },
+			"then": { "part": "any", "of": [
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "my_ball", "of": { "part": "neighbours", "of": { "part": "target" } } } },
+				{ "part": "count_at_most", "n": 1,
+					"of": { "part": "my_ball", "of": { "part": "whole_board" } } }
+			] }
+		}
 	}
 }

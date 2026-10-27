@@ -116,3 +116,59 @@ func test_r21_with_rows_3_and_4_full_allows_no_cell_in_the_first_turns() -> void
 	]), 0)
 	position.turn = 7
 	assert_eq(RuleChecker.legal_cells(_book.rule("R21"), position, 0, BallColour.GREEN).size(), 0)
+
+
+# R22 After any skip, must touch one of your own balls ----------------------
+
+func _skip_position(skips: Array[int]) -> MatchPosition:
+	var position: MatchPosition = MatchPosition.new(Board.parse([
+		"......",
+		".R....",
+		"......",
+		"......",
+		"....b.",
+		"......",
+	]), 0)
+	position.turn = 7
+	position.skips = skips
+	return position
+
+
+func test_r22_after_a_skip_allows_only_cells_next_to_the_holders_balls() -> void:
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R22"), _skip_position([1, 0]), 0, BallColour.GREEN)
+	var expected: Array[Vector2i] = [
+		Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0),
+		Vector2i(0, 1), Vector2i(2, 1),
+		Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2),
+	]
+	expected.sort()
+	cells.sort()
+	assert_eq(cells, expected)
+
+
+func test_r22_before_any_skip_allows_every_cell() -> void:
+	assert_eq(RuleChecker.legal_cells(_book.rule("R22"), _skip_position([0, 0]), 0, BallColour.GREEN).size(), 34)
+
+
+func test_r22_is_switched_on_by_the_opponents_skip_too() -> void:
+	var position: MatchPosition = _skip_position([0, 1])
+	var rule: Rule = _book.rule("R22")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.GREEN, Vector2i(2, 2)), "next to R")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.GREEN, Vector2i(3, 3)), "next to b only")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.GREEN, Vector2i(5, 5)), "next to b only")
+	assert_true(RuleChecker.is_legal(rule, position, 1, BallColour.GREEN, Vector2i(3, 3)), "player 1, next to b")
+	assert_false(RuleChecker.is_legal(rule, position, 1, BallColour.GREEN, Vector2i(2, 2)), "player 1, next to R only")
+
+
+func test_r22_with_none_of_the_holders_balls_on_the_board_allows_every_cell() -> void:
+	var position: MatchPosition = MatchPosition.new(Board.parse([
+		"......",
+		".r....",
+		"......",
+		"......",
+		"....b.",
+		"......",
+	]), 1)
+	position.turn = 2
+	position.skips = [2, 1]
+	assert_eq(RuleChecker.legal_cells(_book.rule("R22"), position, 0, BallColour.YELLOW).size(), 34)
