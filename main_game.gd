@@ -15,6 +15,8 @@ const AI_FLY_SECONDS: float = 0.3
 ## Shorter than the AI's shortest pause, so a skip is shown before its next action.
 const SKIP_DISSOLVE_SECONDS: float = 0.4
 const MAIN_MENU_SCENE: String = "res://main.tscn"
+## On the status line whenever the player's colour pick is due.
+const PICK_PROMPT: String = "Pick the AI's next colour."
 
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
@@ -156,7 +158,7 @@ func _refresh() -> void:
 	_player_ball.draggable = my_placement
 	_ai_ball.reset()
 	_ai_ball.colour = view.position.colour if ai_placement else ""
-	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
+	_picker.enabled = view.colour_pick_due()
 	_rules_panel.board_full = view.phase == Match.Phase.FORCED_GUESS
 	_rules_panel.guess_enabled = my_turn and view.can_guess()
 	_rules_panel.seal_enabled = view.forced_guess_due()
@@ -177,7 +179,7 @@ func _status_text(view: PublicView) -> String:
 	var skip: HistoryEntry = _skip_this_turn(view)
 	if skip != null:
 		if skip.player == HUMAN:
-			return "You had no legal cell for %s, so your ball was skipped. Pick the colour of the AI's next ball." % skip.colour
+			return "You had no legal cell for %s, so your ball was skipped. %s" % [skip.colour, PICK_PROMPT]
 		return "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…" % skip.colour
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
@@ -185,11 +187,11 @@ func _status_text(view: PublicView) -> String:
 		return "The AI is thinking…"
 	match view.phase:
 		Match.Phase.FIRST_COLOUR:
-			return "The AI goes first. Pick the colour of its first ball."
+			return "The AI goes first. " + PICK_PROMPT
 		Match.Phase.PLACE:
 			return "Your turn. Drag your ball onto a glowing cell."
 		Match.Phase.PICK_COLOUR:
-			return "Pick the colour of the AI's next ball. That ends your turn."
+			return PICK_PROMPT + " That ends your turn."
 	return ""
 
 
