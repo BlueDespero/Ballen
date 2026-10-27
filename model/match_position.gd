@@ -39,6 +39,37 @@ func last_placement(player: int) -> HistoryEntry:
 	return null
 
 
+## The position just before the placement or skip at history[index]: every
+## later placement taken off the board, later colour picks and skips undone,
+## history cut before it. Its colour is the event's colour. Works even when
+## the match started from a position whose board its history didn't build.
+func before(index: int) -> MatchPosition:
+	var later_cells: Array[Vector2i] = []
+	var later_picks: int = 0
+	var later_skips: Array[int] = [0, 0]
+	for i: int in range(index, history.size()):
+		var event: HistoryEntry = history[i]
+		match event.type:
+			HistoryEntry.Type.PLACEMENT:
+				later_cells.append(event.cell)
+			HistoryEntry.Type.COLOUR_PICK:
+				later_picks += 1
+			HistoryEntry.Type.SKIP:
+				later_skips[event.player] += 1
+	var earlier_board: Board = Board.new()
+	for cell: Vector2i in Board.all_cells():
+		var ball: Ball = board.ball_at(cell)
+		if ball != null and not later_cells.has(cell):
+			earlier_board.place(cell, ball)
+	var earlier: MatchPosition = MatchPosition.new(earlier_board, first_player)
+	earlier.turn = turn - later_picks
+	earlier.colour = history[index].colour
+	for player: int in Players.COUNT:
+		earlier.skips[player] = skips[player] - later_skips[player]
+	earlier.history = history.slice(0, index)
+	return earlier
+
+
 ## A deep copy that shares no mutable state with this position.
 func copy() -> MatchPosition:
 	var position: MatchPosition = MatchPosition.new(board.copy(), first_player)

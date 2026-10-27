@@ -20,7 +20,7 @@ static func candidates(view: PublicView) -> Array[Rule]:
 		var event: HistoryEntry = history[i]
 		if event.player != opponent or not _is_evidence(event):
 			continue
-		var before: MatchPosition = position_before(view.position, i)
+		var before: MatchPosition = view.position.before(i)
 		var kept: Array[Rule] = []
 		for rule: Rule in remaining:
 			if not rules_out(rule, before, event):
@@ -30,7 +30,8 @@ static func candidates(view: PublicView) -> Array[Rule]:
 
 
 ## Whether the event proves the rule is not its player's true rule, judged on
-## the position just before the event. #58 can pass a hypothetical event.
+## the position just before the event (MatchPosition.before). #58 can pass a
+## hypothetical event.
 static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) -> bool:
 	match event.type:
 		HistoryEntry.Type.PLACEMENT:
@@ -40,37 +41,6 @@ static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) ->
 				if RuleChecker.is_legal(rule, before, event.player, event.colour, cell):
 					return true
 	return false
-
-
-## The position just before the placement or skip at history[index]: every
-## later placement taken off the board, later colour picks and skips undone,
-## history cut before it. Its colour is the event's colour.
-static func position_before(position: MatchPosition, index: int) -> MatchPosition:
-	var history: Array[HistoryEntry] = position.history
-	var later_cells: Array[Vector2i] = []
-	var later_picks: int = 0
-	var later_skips: Array[int] = [0, 0]
-	for i: int in range(index, history.size()):
-		var event: HistoryEntry = history[i]
-		match event.type:
-			HistoryEntry.Type.PLACEMENT:
-				later_cells.append(event.cell)
-			HistoryEntry.Type.COLOUR_PICK:
-				later_picks += 1
-			HistoryEntry.Type.SKIP:
-				later_skips[event.player] += 1
-	var board: Board = Board.new()
-	for cell: Vector2i in Board.all_cells():
-		var ball: Ball = position.board.ball_at(cell)
-		if ball != null and not later_cells.has(cell):
-			board.place(cell, ball)
-	var before: MatchPosition = MatchPosition.new(board, position.first_player)
-	before.turn = position.turn - later_picks
-	before.colour = history[index].colour
-	for player: int in Players.COUNT:
-		before.skips[player] = position.skips[player] - later_skips[player]
-	before.history = history.slice(0, index)
-	return before
 
 
 static func _is_evidence(event: HistoryEntry) -> bool:
