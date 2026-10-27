@@ -163,7 +163,11 @@ layout and centres it, so these coordinates no longer hold.
   `{ "R10": 1, … }`, 0 none, 1 ✗ (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match
   end and cleared by a rematch), then the Guess slot (hint text and the Guess button, centre
   (1173,344)), yours below (y≈454–646) with the true one highlighted. Three skip pips at the right of
-  each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
+  each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip. Rule text wraps
+  instead of being cut off: a rule too wide for one line (R15, R16, R17, R22) is one font step
+  smaller and takes two lines in a row of the usual height. With Larger text a rule that wraps makes
+  its row taller (about 55–59 px), so the y values here shift with the decks: read
+  `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
 - Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
   `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
   explains the marks and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
