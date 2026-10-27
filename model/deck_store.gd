@@ -2,8 +2,9 @@ class_name DeckStore
 extends RefCounted
 
 ## The player's named decks, saved in a JSON file as each deck's rule ids:
-##     {"decks": [{"name": "Starter", "rules": ["R01", "R03", "R05", "R08", "R18"]}]}
-## With no saved decks, the store offers the starter deck.
+##     {"decks": [{"name": "Mixed", "rules": ["R02", "R04", "R06", "R07", "R09"]}]}
+## The starter deck is built in: always offered first, never saved, renamed or
+## deleted. Every change writes the file at once.
 
 const DEFAULT_PATH: String = "user://decks.json"
 
@@ -12,7 +13,7 @@ const STARTER_DECK_IDS: Array[String] = ["R01", "R03", "R05", "R08", "R18"]
 
 var _book: RuleBook
 var _path: String
-## Rule ids by deck name, in the order the decks were saved.
+## Rule ids by saved deck name, in the order the decks were saved.
 var _decks: Dictionary[String, Array] = {}
 
 
@@ -23,29 +24,34 @@ func _init(book: RuleBook, path: String = DEFAULT_PATH) -> void:
 	_load()
 
 
-## The saved deck names in the order they were saved; just the starter deck's
-## if none are saved.
+## The starter deck's name, then the saved deck names in the order they were
+## saved.
 func names() -> Array[String]:
-	var deck_names: Array[String] = []
-	deck_names.assign(_saved_or_starter().keys())
+	var deck_names: Array[String] = [STARTER_DECK_NAME]
+	deck_names.append_array(_decks.keys())
 	return deck_names
 
 
 ## A new deck holding the book's rules for this name; null if there is none.
 func deck(deck_name: String) -> Deck:
-	var decks: Dictionary[String, Array] = _saved_or_starter()
-	if not decks.has(deck_name):
+	var rule_ids: Array = STARTER_DECK_IDS if deck_name == STARTER_DECK_NAME else _decks.get(deck_name, [])
+	if rule_ids.is_empty():
 		return null
 	var rules: Array[Rule] = []
-	for rule_id: String in decks[deck_name]:
+	for rule_id: String in rule_ids:
 		rules.append(_book.rule(rule_id))
 	return Deck.new(rules)
 
 
+## True for the built-in starter deck, which can only be copied.
+func is_read_only(deck_name: String) -> bool:
+	return deck_name == STARTER_DECK_NAME
+
+
 ## Saves the deck under this name, replacing a saved deck of the same name,
 ## and writes the file. Returns false (and reports an error, saving nothing)
-## for a deck that wouldn't load (see _problem_with) or a file that can't be
-## written.
+## for a deck that wouldn't load (see _problem_with), the starter deck's name
+## or a file that can't be written.
 func save(deck_name: String, deck_to_save: Deck) -> bool:
 	var rule_ids: Array[String] = []
 	for rule: Rule in deck_to_save.rules:
@@ -56,16 +62,16 @@ func save(deck_name: String, deck_to_save: Deck) -> bool:
 		return false
 	var decks: Dictionary[String, Array] = _decks.duplicate()
 	decks[deck_name] = rule_ids
+	return _replace_decks(decks)
+
+
+## Writes these decks to the file and keeps them; false (keeping the old ones)
+## if the file can't be written.
+func _replace_decks(decks: Dictionary[String, Array]) -> bool:
 	if not _write(decks):
 		return false
 	_decks = decks
 	return true
-
-
-func _saved_or_starter() -> Dictionary[String, Array]:
-	if not _decks.is_empty():
-		return _decks
-	return {STARTER_DECK_NAME: STARTER_DECK_IDS}
 
 
 func _load() -> void:
@@ -99,6 +105,8 @@ func _problem_with(entry: Variant) -> String:
 	var deck_name: Variant = entry.get("name")
 	if not deck_name is String or deck_name == "":
 		return "%s has no name" % JSON.stringify(entry)
+	if is_read_only(deck_name):
+		return "%s is the built-in deck" % deck_name
 	var rule_ids: Variant = entry.get("rules")
 	if not rule_ids is Array or not rule_ids.all(func(rule_id: Variant) -> bool: return rule_id is String):
 		return "deck %s needs a list of rule ids" % deck_name
