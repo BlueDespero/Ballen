@@ -132,6 +132,18 @@ text = "Tap Guess (or Seal), then tap Confirm, instead of holding it while the r
 label_settings = SubResource("LabelSettings_hint")
 autowrap_mode = 3
 
+[node name="LargerText" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Larger text"
+alignment = 0
+
+[node name="LargerTextHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Bigger text in the rules panel and the menus."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
 [node name="Buttons" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16

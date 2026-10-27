@@ -105,3 +105,10 @@ func test_the_running_settings_set_the_master_volume() -> void:
 	assert_true(AudioServer.is_bus_mute(master), "volume 0 mutes")
 	AudioServer.set_bus_mute(master, was_muted)
 	AudioServer.set_bus_volume_db(master, before)
+
+
+func test_larger_text_makes_text_a_quarter_bigger() -> void:
+	var settings: GameSettings = _settings()
+	assert_eq(settings.text_scale(), 1.0)
+	settings.larger_text = true
+	assert_eq(settings.text_scale(), 1.25)

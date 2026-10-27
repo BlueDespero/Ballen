@@ -56,6 +56,12 @@ var guess_without_holding: bool = false:
 			_seal_button.tap_to_confirm = value
 		_update_guess()
 
+## Larger text: the panel's text is this many times its built size.
+var text_scale: float = 1.0:
+	set(value):
+		text_scale = value
+		TextScale.apply(self, value)
+
 ## The id of the AI's rule the player selected; "" for none.
 var selected_rule_id: String = ""
 
@@ -93,6 +99,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
 		_add_mark_button(panel)
 	_select("")
+	TextScale.apply(self, text_scale)
 
 
 ## A note mark button on the left of an AI rule row. It takes its own taps, so
@@ -136,6 +143,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 			panel.add_theme_stylebox_override("panel", _style(false, true))
 			panel.get_child(0).add_child(_label("TRUE", TRUE_BORDER_COLOUR))
 	_update_guess()
+	TextScale.apply(self, text_scale)
 
 
 ## Clicking an AI rule selects it; clicking it again clears the selection.

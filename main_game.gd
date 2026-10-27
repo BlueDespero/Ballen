@@ -91,6 +91,9 @@ func _apply_settings() -> void:
 	_ai_ball.reduced_motion = Settings.reduced_motion
 	_picker.reduced_motion = Settings.reduced_motion
 	_rules_panel.guess_without_holding = Settings.guess_without_holding
+	_rules_panel.text_scale = Settings.text_scale()
+	_pre_match.text_scale = Settings.text_scale()
+	TextScale.apply(_match_end, Settings.text_scale())
 
 
 ## Both decks on show and an empty board; the player chooses a true rule

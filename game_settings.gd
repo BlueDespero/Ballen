@@ -10,6 +10,7 @@ signal changed
 
 const DEFAULT_PATH: String = "user://settings.cfg"
 const DEFAULT_VOLUME: float = 0.8
+const LARGER_TEXT_SCALE: float = 1.25
 ## Sections of the config file.
 const AUDIO: String = "audio"
 const ACCESSIBILITY: String = "accessibility"
@@ -66,6 +67,11 @@ func load_settings() -> void:
 	larger_text = _read(file, ACCESSIBILITY, "larger_text", false)
 	_loading = false
 	changed.emit()
+
+
+## How much bigger than built the rules panel and menu text is.
+func text_scale() -> float:
+	return LARGER_TEXT_SCALE if larger_text else 1.0
 
 
 ## Writes the settings to `path`.

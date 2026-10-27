@@ -20,10 +20,13 @@ func _ready() -> void:
 	_bind(%ColourBlindSymbols, "colour_blind_symbols")
 	_bind(%ReducedMotion, "reduced_motion")
 	_bind(%GuessWithoutHolding, "guess_without_holding")
+	_bind(%LargerText, "larger_text")
 	_symbol_preview.custom_minimum_size = Vector2(
 		(PREVIEW_BALL_SIZE + PREVIEW_GAP) * BallColour.ALL.size() - PREVIEW_GAP, PREVIEW_BALL_SIZE)
 	_symbol_preview.draw.connect(_draw_symbol_preview)
 	Settings.changed.connect(_symbol_preview.queue_redraw)
+	Settings.changed.connect(_apply_text_scale)
+	_apply_text_scale()
 	%Back.pressed.connect(_on_back_pressed)
 
 
@@ -63,3 +66,8 @@ func _draw_symbol_preview() -> void:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+
+## Larger text applies to this screen as soon as it is switched.
+func _apply_text_scale() -> void:
+	TextScale.apply(self, Settings.text_scale())
