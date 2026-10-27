@@ -73,7 +73,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
   menus (`gui/menus/`: main menu, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
-  `MatchSetup`; plain `RefCounted`, no scene nodes
+  `MatchSetup`, `DeckStore` (saved decks); plain `RefCounted`, no scene nodes
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
   rule and template data in `rules/data/`
 - `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`

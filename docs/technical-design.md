@@ -85,6 +85,24 @@ all run the same code.
   the AI's deck and no coin toss: whoever went second last time goes first (`Match.create` takes an
   optional first player), so rows are numbered from that player's side.
 
+### Saved decks
+
+`DeckStore` (`model/deck_store.gd`) keeps the player's named decks in `user://decks.json` (the path
+is injectable for tests; on the web export Godot keeps `user://` in the browser's IndexedDB). A deck
+is stored as its 5 rule ids, in the order the decks were saved; the rules themselves stay data in the
+`RuleBook`, which turns the ids back into rules on load:
+
+```json
+{ "decks": [ { "name": "Starter", "rules": ["R01", "R03", "R05", "R08", "R18"] } ] }
+```
+
+- `names()`, `deck(name)` (a new `Deck` of the book's rules) and `save(name, deck)`, which replaces a
+  deck of the same name and writes the file at once.
+- On load, a deck with no name, a name already used, an unknown rule id, a repeated rule or not
+  exactly 5 rules is skipped with an error; a file that isn't JSON or has the wrong shape loads as no
+  decks. `save` refuses the same decks, so the file only ever holds decks that load.
+- With no saved decks, the store offers the starter deck (`DeckStore.STARTER_DECK_IDS`).
+
 ## Rules engine
 
 Every rule is plain data built from shared parts. A new rule needs no code; a new mechanic is one new
@@ -256,4 +274,4 @@ matches, including permissive rules written as data.
 
 - [ ] Board representation: 64-bit bitmasks (36 cells) for speed in Hard's search?
 - [ ] Threads on the web export need cross-origin isolation; check against the chosen host (itch.io).
-- [ ] Save format and location for decks (local storage on web, user:// on mobile).
+- [x] Save format and location for decks: rule ids in `user://decks.json` (see Saved decks).
