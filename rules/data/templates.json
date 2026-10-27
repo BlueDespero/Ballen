@@ -98,5 +98,14 @@
 			"then": { "part": "count_at_least", "n": 1,
 				"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } } }
 		}
+	},
+	"rows_for_first_turns": {
+		"blanks": { "turns": [], "from": [1, 2, 3, 4, 5, 6], "to": [1, 2, 3, 4, 5, 6] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "own_turn_at_most", "n": "$turns" },
+			"then": { "part": "count_at_least", "n": 1,
+				"of": { "part": "in_rows", "from": "$from", "to": "$to", "of": { "part": "target" } } }
+		}
 	}
 }

@@ -43,6 +43,8 @@ static var _parts: Dictionary[String, Callable] = {
 	# Time and game-state parts (if_then, then conditions on the position)
 	"if_then": _if_then,
 	"own_turn_parity": _own_turn_parity,
+	"own_turn_at_most": _own_turn_at_most,
+	"in_rows": _in_rows,
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
@@ -274,3 +276,20 @@ static func _if_then(node: Dictionary, ctx: PlacementContext) -> bool:
 static func _own_turn_parity(node: Dictionary, ctx: PlacementContext) -> bool:
 	var remainder: int = 0 if node.parity == "even" else 1
 	return ctx.own_turn() % 2 == remainder
+
+
+## The holder's own turn count is at most n: true for their first n turns.
+## {"part": "own_turn_at_most", "n": 5}
+static func _own_turn_at_most(node: Dictionary, ctx: PlacementContext) -> bool:
+	return ctx.own_turn() <= int(node.n)
+
+
+## A filter: cells whose row number (1-6 from the first player's side) is
+## from "from" to "to", both included. {"part": "in_rows", "from": 3, "to": 4, "of": ...}
+static func _in_rows(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var row: int = Board.row_number(cell, ctx.position.first_player)
+		if row >= int(node.from) and row <= int(node.to):
+			kept.append(cell)
+	return kept
