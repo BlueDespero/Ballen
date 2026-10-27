@@ -122,7 +122,7 @@
 		}
 	},
 	"must_touch": {
-		"blanks": { "ball": ["any_ball"] },
+		"blanks": { "ball": ["any_ball", "my_ball"] },
 		"tree": {
 			"part": "any", "of": [
 				{ "part": "count_at_most", "n": 0,

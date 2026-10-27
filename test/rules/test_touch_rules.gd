@@ -49,3 +49,49 @@ func test_r13_on_an_empty_board_allows_every_cell() -> void:
 
 func test_r13_carries_its_player_text() -> void:
 	assert_eq(_book.rule("R13").text, "Must touch an existing ball")
+
+
+# R14 Must join your own group -----------------------------------------------
+
+func test_r14_allows_only_the_neighbours_of_the_holders_balls() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		".y....",
+		"......",
+		"......",
+		"......",
+		".....G",
+	])
+	var expected: Array[Vector2i] = [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5)]
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R14"), position, 0, BallColour.RED)
+	assert_eq(_sorted(cells), _sorted(expected))
+
+
+func test_r14_for_player_1_looks_at_player_1s_balls() -> void:
+	var position: MatchPosition = _position([
+		"y.....",
+		"......",
+		"......",
+		"......",
+		"......",
+		".....G",
+	])
+	var expected: Array[Vector2i] = [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R14"), position, 1, BallColour.RED)
+	assert_eq(_sorted(cells), _sorted(expected))
+
+
+func test_r14_allows_every_empty_cell_while_the_holder_has_no_ball_on_the_board() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"..bb..",
+		"......",
+		"......",
+		"......",
+		"......",
+	])
+	assert_eq(RuleChecker.legal_cells(_book.rule("R14"), position, 0, BallColour.BLUE).size(), 34)
+
+
+func test_r14_carries_its_player_text() -> void:
+	assert_eq(_book.rule("R14").text, "Must join your own group")
