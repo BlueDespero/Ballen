@@ -1,7 +1,7 @@
 class_name TextScale
 extends RefCounted
 
-## Larger text: scales the font size of every label and button under a node.
+## Larger text: scales the font size of every label, button and link under a node.
 ## Each control remembers the size it was built with, so applying a scale
 ## again (or 1.0 to undo it) never compounds.
 
@@ -11,7 +11,7 @@ const BASE_SIZE_META: StringName = &"text_scale_base_size"
 ## Sets the text under root (root included) to scale times its built size.
 static func apply(root: Node, scale: float) -> void:
 	var control: Control = root as Control
-	if control is Label or control is Button:
+	if control is Label or control is Button or control is LinkButton:
 		_scale_control(control, scale)
 	for child: Node in root.get_children():
 		apply(child, scale)

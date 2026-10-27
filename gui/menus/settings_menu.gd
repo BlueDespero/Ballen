@@ -2,7 +2,8 @@ extends Control
 
 ## The Settings screen, opened by the main menu's Options button. Every change
 ## goes straight into the Settings autoload and is saved at once; Back (or
-## Escape) returns to the main menu.
+## Escape) returns to the main menu. Credits swaps the card for the credits
+## (Kenney and the engine) until its Back or Escape.
 
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 const PREVIEW_BALL_SIZE: float = 40.0
@@ -11,6 +12,8 @@ const PREVIEW_GAP: float = 12.0
 @onready var _volume: HSlider = %Volume
 @onready var _volume_value: Label = %VolumeValue
 @onready var _symbol_preview: Control = %SymbolPreview
+@onready var _settings_card: Control = $Centre/Card
+@onready var _credits_card: Control = %CreditsCard
 
 
 func _ready() -> void:
@@ -28,12 +31,17 @@ func _ready() -> void:
 	Settings.changed.connect(_apply_text_scale)
 	_apply_text_scale()
 	%Back.pressed.connect(_on_back_pressed)
+	%Credits.pressed.connect(_show_credits.bind(true))
+	%CreditsBack.pressed.connect(_show_credits.bind(false))
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		_on_back_pressed()
+		if _credits_card.visible:
+			_show_credits(false)
+		else:
+			_on_back_pressed()
 
 
 ## A switch for one on/off setting (a property of the Settings autoload).
@@ -71,3 +79,8 @@ func _on_back_pressed() -> void:
 ## Larger text applies to this screen as soon as it is switched.
 func _apply_text_scale() -> void:
 	TextScale.apply(self, Settings.text_scale())
+
+
+func _show_credits(on: bool) -> void:
+	_credits_card.visible = on
+	_settings_card.visible = not on

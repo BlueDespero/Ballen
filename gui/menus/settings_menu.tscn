@@ -149,7 +149,71 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 2
 
+[node name="Credits" type="Button" parent="Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Credits"
+
 [node name="Back" type="Button" parent="Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Back"
+
+[node name="CreditsCard" type="PanelContainer" parent="Centre"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Centre/CreditsCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Credits"
+
+[node name="ArtTitle" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Art"
+
+[node name="Art" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+text = "Kenney: UI Pack – Pixel Adventure and other game assets, released under CC0 1.0 (public domain)."
+autowrap_mode = 3
+
+[node name="KenneyLink" type="LinkButton" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "www.kenney.nl"
+uri = "https://www.kenney.nl"
+
+[node name="EngineTitle" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Engine"
+
+[node name="Engine" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+text = "Made with the Godot Engine, under the MIT licence."
+autowrap_mode = 3
+
+[node name="GodotLink" type="LinkButton" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "godotengine.org/license"
+uri = "https://godotengine.org/license"
+
+[node name="Buttons" type="HBoxContainer" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+alignment = 2
+
+[node name="CreditsBack" type="Button" parent="Centre/CreditsCard/Content/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 44)
 layout_mode = 2

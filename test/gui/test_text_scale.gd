@@ -43,3 +43,10 @@ func test_labels_with_label_settings_grow_without_changing_the_shared_settings()
 	assert_eq(other.label_settings.font_size, 14, "a label not scaled keeps its size")
 	TextScale.apply(hint, 1.0)
 	assert_eq(hint.label_settings.font_size, 14)
+
+
+func test_links_grow_too() -> void:
+	var link: LinkButton = autofree(LinkButton.new())
+	link.add_theme_font_size_override("font_size", 16)
+	TextScale.apply(link, 1.25)
+	assert_eq(link.get_theme_font_size("font_size"), 20)
