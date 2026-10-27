@@ -28,6 +28,11 @@ const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
 const CROSS_TEXT_ALPHA: float = 0.45
 ## How far down a line of text a ✗ rule's strike runs (0 top, 1 bottom).
 const STRIKE_HEIGHT: float = 0.55
+## A rule too long for one line of its row (measured against the room the
+## row leaves its text, at the text size in use) is shown one font step
+## smaller (Larger text scales it from there), so its two lines fit a row's
+## height.
+const LONG_RULE_FONT_SIZE: int = 14
 ## The yellow left edge of a rule marked ?.
 const SUSPECT_EDGE_WIDTH: int = 4
 
@@ -114,6 +119,32 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 	_mark_hint.visible = not Settings.note_marks_seen
 	_select("")
 	TextScale.apply(self, text_scale)
+	for list: VBoxContainer in [_ai_rules, _player_rules]:
+		for row: Node in list.get_children():
+			_fit_rule_text(row as PanelContainer)
+
+
+## Drops a rule's text one font step (LONG_RULE_FONT_SIZE, scaled) when it is
+## wider than the room its row leaves it: the panel's width less the row's
+## margins and the rule id, TRUE label and mark buttons beside it. Called once
+## the row is complete and scaled; a dropped rule stays dropped.
+func _fit_rule_text(row: PanelContainer) -> void:
+	var line: HBoxContainer = row.get_node("Line")
+	var text_label: Label = line.get_node("Text")
+	var built_size: int = text_label.get_meta(TextScale.BASE_SIZE_META, text_label.get_theme_font_size("font_size"))
+	if built_size <= LONG_RULE_FONT_SIZE:
+		return
+	var room: float = size.x - get_theme_stylebox("panel").get_minimum_size().x
+	room -= row.get_theme_stylebox("panel").get_minimum_size().x
+	for child: Node in line.get_children():
+		if child != text_label:
+			room -= (child as Control).get_combined_minimum_size().x
+	room -= line.get_theme_constant("separation") * (line.get_child_count() - 1)
+	var font: Font = text_label.get_theme_font("font")
+	var text_width: float = font.get_string_size(text_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, text_label.get_theme_font_size("font_size")).x
+	if text_width > room:
+		text_label.set_meta(TextScale.BASE_SIZE_META, LONG_RULE_FONT_SIZE)
+		text_label.add_theme_font_size_override("font_size", roundi(LONG_RULE_FONT_SIZE * text_scale))
 
 
 ## The ✗ and ? note mark buttons at the right end of an AI rule row. They take
@@ -171,9 +202,7 @@ func _strike_through(text_label: Label, rule_id: String) -> void:
 	for top: float in lines:
 		var line: Vector3 = lines[top]
 		var y: float = top + (line.z - top) * STRIKE_HEIGHT
-		# Letters cut off for the ellipsis lie past the label's end.
-		var right: float = minf(line.y, text_label.size.x)
-		text_label.draw_line(Vector2(line.x, y), Vector2(right, y), Color.WHITE, width, true)
+		text_label.draw_line(Vector2(line.x, y), Vector2(line.y, y), Color.WHITE, width, true)
 
 
 func _get_marks() -> Dictionary[String, int]:
@@ -199,6 +228,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 			panel.get_node("Line").move_child(true_label, panel.get_node("Line/Text").get_index() + 1)
 	_update_guess()
 	TextScale.apply(self, text_scale)
+	_fit_rule_text(_ai_rules.get_node(ai_true_rule.id) as PanelContainer)
 
 
 ## Clicking an AI rule selects it; clicking it again clears the selection.
@@ -334,7 +364,10 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	var text_label: Label = _label(rule.text, Color.WHITE)
 	text_label.name = "Text"
 	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# A long rule takes two lines rather than losing its end, in smaller text
+	# (see _fit_rule_text) so the row keeps its height and the panel fits the
+	# screen.
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.add_child(text_label)
 	if is_true:
 		line.add_child(_label("TRUE", TRUE_BORDER_COLOUR))
