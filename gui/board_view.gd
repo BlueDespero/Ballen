@@ -13,6 +13,8 @@ const CELL_SIZE: float = 80.0
 const CELL_TEXTURE: Texture2D = preload("res://assets/Tiles/resized048.png")
 const BALL_TEXTURE: Texture2D = preload("res://assets/Tiles/Large tiles/Thin outline/resized039.png")
 const BALL_INSET: float = 8.0
+## The "act here" colour: legal cells glow in it, and the colour picker's ring
+## and the lit Live button share it.
 const GLOW_COLOUR: Color = Color(1.0, 0.92, 0.45)
 const OPPONENT_MARK_COLOUR: Color = Color(0.08, 0.09, 0.11, 0.85)
 const HIGHLIGHT_COLOUR: Color = Color(1.0, 1.0, 1.0)

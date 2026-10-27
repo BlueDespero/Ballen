@@ -14,8 +14,6 @@ const RING_RADIUS: float = 27.0
 const RING_WIDTH_MIN: float = 2.0
 const RING_WIDTH_MAX: float = 4.0
 const RING_ALPHA_MIN: float = 0.15
-## The board's legal-cell glow: the same "act here" colour.
-const RING_COLOUR: Color = Color(1.0, 0.92, 0.45)
 ## One fade from dim to bright (or back).
 const PULSE_SECONDS: float = 0.6
 const DIMMED_ALPHA: float = 0.35
@@ -65,7 +63,7 @@ func _ready() -> void:
 func _draw() -> void:
 	if not enabled:
 		return
-	var colour: Color = Color(RING_COLOUR, lerpf(RING_ALPHA_MIN, 1.0, _pulse))
+	var colour: Color = Color(BoardView.GLOW_COLOUR, lerpf(RING_ALPHA_MIN, 1.0, _pulse))
 	var width: float = lerpf(RING_WIDTH_MIN, RING_WIDTH_MAX, _pulse)
 	for button: Button in _buttons:
 		var centre: Vector2 = button.position + button.size / 2.0
