@@ -95,7 +95,10 @@ layout and centres it, so these coordinates no longer hold.
 - `Layout/Status` (left column) says whose turn it is and what to do, and names a skipped colour
   (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
-  238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`),
+  238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`;
+  a note mark button at x≈790 on the left of each row cycles none → ✗ ruled out → ? suspect → none
+  without selecting the row; `get:Layout/RulesPanel:marks` prints `{ "R10": 1, … }`, 0 none, 1 ruled
+  out, 2 suspect; marks are kept at match end and cleared by a rematch),
   then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
   (y≈454–646) with the true one highlighted. Three skip pips at the right of each title
   (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
