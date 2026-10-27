@@ -74,5 +74,13 @@
 			"part": "count_at_most", "n": 0,
 			"of": { "part": "$ball", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
 		}
+	},
+	"relative_to_last": {
+		"blanks": { "direction": ["higher", "lower"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "in_row_relative", "direction": "$direction",
+				"than": { "part": "my_last_ball", "of": { "part": "whole_board" } }, "of": { "part": "target" } }
+		}
 	}
 }

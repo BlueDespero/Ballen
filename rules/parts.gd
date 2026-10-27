@@ -43,6 +43,8 @@ static var _parts: Dictionary[String, Callable] = {
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
+	# Row comparison (R15, R16)
+	"in_row_relative": _in_row_relative,
 }
 
 
@@ -225,3 +227,30 @@ static func _any(node: Dictionary, ctx: PlacementContext) -> bool:
 		if evaluate(condition, ctx):
 			return true
 	return false
+
+
+# Row comparison (R15, R16) ----------------------------------------------------
+
+## Filter: cells of "of" whose row number (1-6 from the first player's side) is
+## higher, or lower, than the row number of every cell of "than". With no "than"
+## cells every cell is kept, so a rule comparing with a last ball that doesn't
+## exist yet allows every cell.
+## {"part": "in_row_relative", "direction": "higher", "than": ..., "of": ...}
+## Directions: "higher", "lower".
+static func _in_row_relative(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	if node.direction != "higher" and node.direction != "lower":
+		push_error("in_row_relative: unknown direction '%s'" % node.direction)
+		return kept
+	var direction: int = 1 if node.direction == "higher" else -1
+	var first_player: int = ctx.position.first_player
+	var references: Array[Vector2i] = _cells(node.than, ctx)
+	for cell: Vector2i in _cells(node.of, ctx):
+		var row: int = Board.row_number(cell, first_player)
+		var beyond_all: bool = true
+		for reference: Vector2i in references:
+			if direction * (row - Board.row_number(reference, first_player)) <= 0:
+				beyond_all = false
+		if beyond_all:
+			kept.append(cell)
+	return kept
