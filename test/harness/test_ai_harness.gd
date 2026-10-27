@@ -52,6 +52,56 @@ func test_a_seeded_run_plays_every_match_to_the_end() -> void:
 	assert_gt(stats.average_turns(), 0.0)
 
 
+## Playtest report (#63): an AI holding R10 "Never complete a line of 3"
+## seemed to complete one. Both AIs hold R10 in random decks; replaying each
+## match's history, no ball they place may end up in a line of 3 or more.
+## Lines are counted here, not by the rule checker under test.
+func test_an_r10_holder_never_completes_a_line_of_3() -> void:
+	var book: RuleBook = RuleBook.load_default()
+	var r10: Rule = book.rule("R10")
+	var placements: int = 0
+	for seed_value: int in 12:
+		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
+		var decks: Array[Deck] = [_deck_with(book, r10, rng), _deck_with(book, r10, rng)]
+		var true_rules: Array[Rule] = [r10, r10]
+		var current_match: Match = Match.create(decks, true_rules, rng)
+		var ais: Array[AIController] = [AIController.new(rng), AIController.new(rng)]
+		assert_true(Harness.play_out(current_match, ais), "seed %d finishes" % seed_value)
+		var board: Board = Board.new()
+		for entry: HistoryEntry in current_match.history():
+			if entry.type != HistoryEntry.Type.PLACEMENT:
+				continue
+			board.place(entry.cell, Ball.new(entry.colour, entry.player))
+			placements += 1
+			assert_lt(_longest_line_through(board, entry.cell), 3, "seed %d: %s" % [seed_value, entry])
+	assert_gt(placements, 100)
+
+
+## A random deck from the book with the rule in it.
+func _deck_with(book: RuleBook, rule: Rule, rng: RandomNumberGenerator) -> Deck:
+	var deck: Deck = Deck.draw(book, rng)
+	if deck.has(rule):
+		return deck
+	var rules: Array[Rule] = deck.rules.duplicate()
+	rules[0] = rule
+	return Deck.new(rules)
+
+
+## The most balls of the cell's colour in an unbroken straight line through it.
+func _longest_line_through(board: Board, cell: Vector2i) -> int:
+	var colour: String = board.ball_at(cell).colour
+	var longest: int = 0
+	for direction: Vector2i in [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, -1)]:
+		var length: int = 1
+		for step: int in [1, -1]:
+			var current: Vector2i = cell + direction * step
+			while board.ball_at(current) != null and board.ball_at(current).colour == colour:
+				length += 1
+				current += direction * step
+		longest = maxi(longest, length)
+	return longest
+
+
 func test_the_same_seed_plays_the_same_match() -> void:
 	var book: RuleBook = RuleBook.load_default()
 	var record: MatchRecord = Harness.play(book, 8)
