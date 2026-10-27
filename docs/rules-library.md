@@ -6,6 +6,8 @@ their templates in `rules/data/templates.json`; the template ids of other rules 
 Blank names follow the built templates: `axis` is a row or column (never "line", which means only a line
 of one colour), and `ball` names which balls count (built values are filter parts: `same_colour`,
 `opponent_ball`, `my_last_ball`).
+Rule text reads the same for both players: it names rows by number (1–6 from the first player's side),
+never by perspective words such as "above", "own half" or "towards the opponent".
 
 **Status:** Idea → Specced (template and blanks fixed) → Built → Tuned (strictness measured, playtested).
 **Strictness** is the share of placements the rule forbids on random boards; target roughly 20–60%.
@@ -23,17 +25,17 @@ A dash means not measured yet.
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Built | – | – |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | ball = opponent_ball | Built | – | – |
 | R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my_last_ball | Built | – | – |
-| R09 | Never in the same row as your previous ball | History | `not_same_axis_as` | axis = row, ball = my_last_ball | Idea | – | – |
+| R09 | Never in the same row as your last ball | History | `not_same_axis_as` | axis = row, ball = my_last_ball | Built | – | – |
 | R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | – | – |
 | R11 | At least 2 cells from any red | Geometry | `min_distance_from` | ball = red, n = 2 | Idea | – | – |
 | R12 | Diagonal check | Geometry | `diagonal_check` | – | Idea | – | – |
 | R13 | Must touch an existing ball | Connection | `must_touch` | ball = any ball | Idea | – | – |
 | R14 | Must join your own group | Connection | `must_touch` | ball = my ball | Idea | – | – |
-| R15 | Above your last ball | Relative position | `relative_to_last` | direction = above | Idea | – | – |
-| R16 | Closer to the opponent's side than your last ball | Relative position | `relative_to_last` | direction = towards opponent | Idea | – | – |
+| R15 | Only in a row numbered higher than your last ball's row | Relative position | `relative_to_last` | direction = higher | Built | – | – |
+| R16 | Only in a row numbered lower than your last ball's row | Relative position | `relative_to_last` | direction = lower | Built | – | – |
 | R17 | Must touch the next colour in yellow → blue → red → green | Colour order | `must_touch_next_colour` | cycle = Y→B→R→G | Idea | – | – |
 | R18 | Only cells with 2+ empty neighbours | Space | `min_empty_neighbours` | n = 2 | Built | – | – |
-| R19 | Never fill a row completely | Space | `never_fill_axis` | axis = row | Idea | – | – |
+| R19 | Never fill a row completely | Space | `never_fill_axis` | axis = row | Built | – | – |
 | R20 | On odd turns, edge only | Time | `if_then` | if = odd turn, then = on edge | Idea | – | – |
 | R21 | For the first 5 turns, your own half only | Time | `if_then` | if = turn ≤ 5, then = own half | Idea | – | – |
 | R22 | After any skip, must touch one of your own balls | Game state | `if_then` | if = any skip, then = touch my ball | Idea | – | – |
