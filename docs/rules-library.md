@@ -36,7 +36,7 @@ A dash means not measured yet.
 | R14 | Must join your own group | Connection | `must_touch` | ball = my_ball | Built | – | – |
 | R15 | Only in a row numbered higher than your last ball's row | Relative position | `relative_to_last` | direction = higher | Built | – | – |
 | R16 | Only in a row numbered lower than your last ball's row | Relative position | `relative_to_last` | direction = lower | Built | – | – |
-| R17 | Must touch the next colour in yellow → blue → red → green | Colour order | `must_touch_next_colour` | cycle = Y→B→R→G | Idea | – | – |
+| R17 | Must touch the next colour in yellow → blue → red → green | Colour order | `must_touch` | ball = next_colour (cycle Y→B→R→G) | Built | – | – |
 | R18 | Only cells with 2+ empty neighbours | Space | `min_empty_neighbours` | n = 2 | Built | – | – |
 | R19 | Never fill a row completely | Space | `never_fill_axis` | axis = row | Built | – | – |
 | R20 | On your odd turns, edge only | Time | `zone_on_turn_parity` | parity = odd, zone = edge | Built | – | – |

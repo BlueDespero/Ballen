@@ -13,6 +13,7 @@
 	{ "id": "R14", "text": "Must join your own group", "template": "must_touch", "values": { "ball": "my_ball" } },
 	{ "id": "R15", "text": "Only in a row numbered higher than your last ball's row", "template": "relative_to_last", "values": { "direction": "higher" } },
 	{ "id": "R16", "text": "Only in a row numbered lower than your last ball's row", "template": "relative_to_last", "values": { "direction": "lower" } },
+	{ "id": "R17", "text": "Must touch the next colour in yellow → blue → red → green", "template": "must_touch", "values": { "ball": "next_colour" } },
 	{ "id": "R18", "text": "Only cells with 2+ empty neighbours", "template": "min_empty_neighbours", "values": { "n": 2 } },
 	{ "id": "R19", "text": "Never fill a row completely", "template": "never_fill_axis", "values": { "axis": "row" } },
 	{ "id": "R20", "text": "On your odd turns, edge only", "template": "zone_on_turn_parity", "values": { "parity": "odd", "zone": "edge" } },

@@ -35,6 +35,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"my_last_ball": _my_last_ball,
 	"opponent_last_ball": _opponent_last_ball,
 	"any_ball": _any_ball,
+	"next_colour": _next_colour,
 	"empty": _empty,
 	"of_colour": _of_colour,
 	# Conditions
@@ -219,6 +220,20 @@ static func _any_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i
 	var kept: Array[Vector2i] = []
 	for cell: Vector2i in _cells(node.of, ctx):
 		if ctx.board.ball_at(cell) != null:
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball of the colour after the placed ball's colour in the
+## cycle yellow -> blue -> red -> green -> yellow, either owner.
+## {"part": "next_colour", "of": ...}
+static func _next_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
+	var next: String = cycle[(cycle.find(ctx.colour) + 1) % cycle.size()]
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.colour == next:
 			kept.append(cell)
 	return kept
 

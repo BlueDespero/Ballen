@@ -95,3 +95,56 @@ func test_r14_allows_every_empty_cell_while_the_holder_has_no_ball_on_the_board(
 
 func test_r14_carries_its_player_text() -> void:
 	assert_eq(_book.rule("R14").text, "Must join your own group")
+
+
+# R17 Must touch the next colour in yellow -> blue -> red -> green ------------
+
+func test_r17_a_red_ball_must_touch_a_green_ball_of_either_owner() -> void:
+	var position: MatchPosition = _position([
+		"g.....",
+		"......",
+		"..R...",
+		"......",
+		"......",
+		".....G",
+	])
+	var expected: Array[Vector2i] = [
+		Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1),
+		Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5),
+	]
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R17"), position, 0, BallColour.RED)
+	assert_eq(_sorted(cells), _sorted(expected))
+
+
+func test_r17_each_colour_must_touch_the_next_one_in_the_cycle() -> void:
+	var position: MatchPosition = _position([
+		"Y.B...",
+		"......",
+		"......",
+		"......",
+		"......",
+		"r....g",
+	])
+	var rule: Rule = _book.rule("R17")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(3, 0)), "yellow next to blue")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.YELLOW, Vector2i(0, 1)), "yellow next to yellow only")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.BLUE, Vector2i(1, 4)), "blue next to red")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.BLUE, Vector2i(1, 0)), "blue next to yellow")
+	assert_true(RuleChecker.is_legal(rule, position, 0, BallColour.GREEN, Vector2i(1, 1)), "green next to yellow")
+	assert_false(RuleChecker.is_legal(rule, position, 0, BallColour.GREEN, Vector2i(4, 4)), "green next to green")
+
+
+func test_r17_allows_every_empty_cell_when_no_ball_has_the_next_colour() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		".rr...",
+		".YB...",
+		"......",
+		"......",
+		"......",
+	])
+	assert_eq(RuleChecker.legal_cells(_book.rule("R17"), position, 0, BallColour.RED).size(), 32)
+
+
+func test_r17_carries_its_player_text() -> void:
+	assert_eq(_book.rule("R17").text, "Must touch the next colour in yellow → blue → red → green")
