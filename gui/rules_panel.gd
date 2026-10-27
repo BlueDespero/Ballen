@@ -84,6 +84,7 @@ var _ai_true_rule_id: String = ""
 @onready var _guess_button: GuessButton = %GuessButton
 @onready var _seal_button: GuessButton = %SealButton
 @onready var _guess_hint: Label = %GuessHint
+@onready var _mark_hint: Label = %MarkHint
 @onready var _ai_skip_pips: HBoxContainer = %AISkipPips
 @onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
 
@@ -92,6 +93,7 @@ func _ready() -> void:
 	_guess_button.guessed.connect(_on_guessed)
 	_seal_button.guessed.connect(_on_sealed)
 	_guess_hint.add_theme_color_override("font_color", HINT_COLOUR)
+	_mark_hint.add_theme_color_override("font_color", HINT_COLOUR)
 	_update_guess()
 
 
@@ -108,6 +110,8 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
 		_marks[String(panel.name)] = NoteMark.Mark.NONE
 		_add_mark_buttons(panel)
+	# Explains the mark buttons until the player first uses one.
+	_mark_hint.visible = not Settings.note_marks_seen
 	_select("")
 	TextScale.apply(self, text_scale)
 
@@ -144,6 +148,8 @@ func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
 	text_label.queue_redraw()
 	_style_ai_row(row as PanelContainer)
+	Settings.mark_note_marks_seen()
+	_mark_hint.hide()
 
 
 ## Over a ✗ rule's text: a line through the middle of each line of text, as
