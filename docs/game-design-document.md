@@ -97,6 +97,8 @@ The rules library is Ballen's main content. Every rule is plain data assembled f
 
 **How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips. How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
 
+**Rule text reads the same for both players.** It names rows by number, 1–6 from the first player's side, and never uses perspective words such as "above", "own half" or "towards the opponent": "only in a row numbered higher than your last ball's row", not "above your last ball".
+
 **Examples:** never next to the same colour; only on even rows; not next to the ball you placed last; after any skip, must touch one of your own balls. The full catalogue, with each rule's status and strictness, is the [rules library](rules-library.md).
 
 **Decks and player-made rules**
