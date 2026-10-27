@@ -5,7 +5,7 @@ The catalogue of placement rules. Each rule is a template plus the values in its
 their templates in `rules/data/templates.json`; the template ids of other rules are proposals.
 Blank names follow the built templates: `axis` is a row or column (never "line", which means only a line
 of one colour), and `ball` names which balls count (built values are filter parts: `same_colour`,
-`opponent_ball`, `my_last_ball`).
+`opponent_ball`, `my_last_ball`, `opponent_last_ball`).
 Rule text reads the same for both players: it names rows by number (1–6 from the first player's side),
 never by perspective words such as "above", "own half" or "towards the opponent".
 
@@ -42,7 +42,7 @@ A dash means not measured yet.
 | R20 | On your odd turns, edge only | Time | `zone_on_turn_parity` | parity = odd, zone = edge | Built | – | – |
 | R21 | For your first 5 turns, only rows 3 and 4 | Time | `rows_for_first_turns` | turns = 5, from = 3, to = 4 | Built | – | – |
 | R22 | After any skip, must touch one of your own balls | Game state | `touch_mine_after_skips` | skips = 1 | Built | – | – |
-| R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | ball = opponent_last_ball | Idea | – | – |
+| R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | ball = opponent_last_ball | Built | – | – |
 
 ## Open questions
 

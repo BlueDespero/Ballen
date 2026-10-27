@@ -32,6 +32,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"opponent_ball": _opponent_ball,
 	"my_ball": _my_ball,
 	"my_last_ball": _my_last_ball,
+	"opponent_last_ball": _opponent_last_ball,
 	"empty": _empty,
 	"of_colour": _of_colour,
 	# Conditions
@@ -181,6 +182,18 @@ static func _my_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]
 static func _my_last_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
 	var kept: Array[Vector2i] = []
 	var last: Array[Vector2i] = ctx.last_ball(ctx.holder)
+	for cell: Vector2i in _cells(node.of, ctx):
+		if last.has(cell):
+			kept.append(cell)
+	return kept
+
+
+## The cell of the opponent's last ball (the holder's opponent), when it is
+## among the cells of "of"; nothing before the opponent's first placement.
+## {"part": "opponent_last_ball", "of": ...}
+static func _opponent_last_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var last: Array[Vector2i] = ctx.last_ball(Players.opponent(ctx.holder))
 	for cell: Vector2i in _cells(node.of, ctx):
 		if last.has(cell):
 			kept.append(cell)

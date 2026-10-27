@@ -1,8 +1,8 @@
 extends GutTest
 
-# R08 "Not next to the ball you placed last", through the rule checker seam.
-# The holder's last ball comes from the position's history: their most recent
-# placement.
+# R08 "Not next to the ball you placed last" and R23 "Never next to the
+# opponent's last ball", through the rule checker seam. A player's last ball
+# comes from the position's history: their most recent placement.
 
 var _book: RuleBook
 
@@ -133,3 +133,64 @@ func test_a_skip_by_the_holder_leaves_their_last_ball_unchanged() -> void:
 
 func test_r08_carries_its_player_text() -> void:
 	assert_eq(_book.rule("R08").text, "Not next to the ball you placed last")
+
+
+# R23 Never next to the opponent's last ball ---------------------------------
+
+func test_r23_forbids_every_neighbour_of_the_opponents_last_ball() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"..r...",
+		"......",
+		"....Y.",
+		"......",
+	], [
+		HistoryEntry.placement(0, Vector2i(4, 4), BallColour.YELLOW),
+		HistoryEntry.placement(1, Vector2i(2, 2), BallColour.RED),
+	])
+	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R23"), position, 0, BallColour.BLUE)
+	assert_eq(cells.size(), 26)
+	for cell: Vector2i in Board.neighbours(Vector2i(2, 2)):
+		assert_false(cells.has(cell), "neighbour %s of the opponent's last ball" % cell)
+	assert_true(cells.has(Vector2i(5, 5)), "next to the holder's own last ball")
+
+
+func test_r23_allows_every_empty_cell_before_the_opponents_first_placement() -> void:
+	var position: MatchPosition = _position([
+		"......",
+		"......",
+		"..R...",
+		"......",
+		"......",
+		"......",
+	], [
+		HistoryEntry.colour_pick(1, BallColour.RED),
+		HistoryEntry.placement(0, Vector2i(2, 2), BallColour.RED),
+		HistoryEntry.colour_pick(0, BallColour.BLUE),
+	])
+	assert_eq(RuleChecker.legal_cells(_book.rule("R23"), position, 0, BallColour.BLUE).size(), 35)
+
+
+func test_r23_for_player_1_looks_at_player_0s_most_recent_ball() -> void:
+	var position: MatchPosition = _position([
+		"Y.....",
+		"......",
+		"......",
+		"......",
+		"....b.",
+		".....G",
+	], [
+		HistoryEntry.placement(0, Vector2i(0, 0), BallColour.YELLOW),
+		HistoryEntry.placement(1, Vector2i(4, 4), BallColour.BLUE),
+		HistoryEntry.placement(0, Vector2i(5, 5), BallColour.GREEN),
+		HistoryEntry.colour_pick(0, BallColour.RED),
+	])
+	var rule: Rule = _book.rule("R23")
+	assert_true(RuleChecker.is_legal(rule, position, 1, BallColour.RED, Vector2i(1, 1)), "next to an older opponent ball")
+	assert_false(RuleChecker.is_legal(rule, position, 1, BallColour.RED, Vector2i(5, 4)), "next to the opponent's last ball")
+	assert_eq(RuleChecker.legal_cells(rule, position, 1, BallColour.RED).size(), 31)
+
+
+func test_r23_carries_its_player_text() -> void:
+	assert_eq(_book.rule("R23").text, "Never next to the opponent's last ball")
