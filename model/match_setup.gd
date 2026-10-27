@@ -11,9 +11,6 @@ extends RefCounted
 const PLAYER: int = 0
 const AI: int = 1
 
-## The prototype's fixed deck for the player.
-const STARTER_DECK_IDS: Array[String] = ["R01", "R03", "R05", "R08", "R18"]
-
 var _decks: Array[Deck] = []
 var _rng: RandomNumberGenerator
 var _last_first_player: int = Players.NONE
@@ -29,7 +26,7 @@ func _init(decks: Array[Deck], rng: RandomNumberGenerator) -> void:
 ## has too few rules for the AI's deck.
 static func against_ai(book: RuleBook, rng: RandomNumberGenerator) -> MatchSetup:
 	var starter: Array[Rule] = []
-	for rule_id: String in STARTER_DECK_IDS:
+	for rule_id: String in DeckStore.STARTER_DECK_IDS:
 		var rule: Rule = book.rule(rule_id)
 		if rule == null:
 			push_error("MatchSetup: the book has no %s for the starter deck" % rule_id)
