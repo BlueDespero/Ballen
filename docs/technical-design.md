@@ -115,6 +115,7 @@ Built so far, enough for the milestone 1 rules:
 | Condition | `count_at_most`; `count_at_least`; `no_more_than` (no more cells in one selection than in another) |
 | Combiner | `all` (with an empty list it always passes: the permissive rule tests use); `any` |
 | Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
+| Filter, row comparison | `in_row_relative` (row numbered higher or lower than every reference cell, e.g. your last ball; with no reference cell every cell is kept) |
 
 Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
 (`Board.row_number`). In template ids and blanks a row or column is an `axis` (only rows are built);
