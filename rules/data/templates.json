@@ -82,5 +82,12 @@
 			"of": { "part": "in_row_relative", "direction": "$direction",
 				"than": { "part": "my_last_ball", "of": { "part": "whole_board" } }, "of": { "part": "target" } }
 		}
+	},
+	"never_fill_axis": {
+		"blanks": { "axis": ["row"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "empty", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
+		}
 	}
 }

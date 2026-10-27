@@ -169,3 +169,31 @@ func test_r16_carries_its_player_text_and_data() -> void:
 	assert_eq(rule.text, "Only in a row numbered lower than your last ball's row")
 	assert_eq(rule.to_data(), {"id": "R16", "text": "Only in a row numbered lower than your last ball's row",
 		"template": "relative_to_last", "values": {"direction": "lower"}})
+
+
+# R19 Never fill a row completely ----------------------------------------------
+
+func test_r19_forbids_only_the_last_empty_cell_of_a_row_for_either_first_player() -> void:
+	var rows: PackedStringArray = [
+		"......",
+		"Rb.y..",
+		"......",
+		"Gy.rBb",
+		"......",
+		"......",
+	]
+	var rule: Rule = _book.rule("R19")
+	for first_player: int in [0, 1]:
+		for holder: int in [0, 1]:
+			var cells: Array[Vector2i] = RuleChecker.legal_cells(
+				rule, _position(rows, first_player, []), holder, BallColour.GREEN)
+			var label: String = "first player %d, holder %d" % [first_player, holder]
+			assert_eq(cells.size(), 27, label)
+			assert_false(cells.has(Vector2i(2, 3)), label)
+
+
+func test_r19_carries_its_player_text_and_data() -> void:
+	var rule: Rule = _book.rule("R19")
+	assert_eq(rule.text, "Never fill a row completely")
+	assert_eq(rule.to_data(), {"id": "R19", "text": "Never fill a row completely",
+		"template": "never_fill_axis", "values": {"axis": "row"}})
