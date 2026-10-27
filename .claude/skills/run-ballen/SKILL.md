@@ -87,8 +87,11 @@ layout and centres it, so these coordinates no longer hold.
   then a yellow ring pulses around each button and `Layout/Status` contains `Pick the AI's next colour.`;
   otherwise the buttons are dimmed (`Layout/ColourPicker:enabled`).
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
-- A skipped ball appears on its owner's waiting spot in the skipped colour and shrinks and fades
-  (0.4 s); the skip pips fill after it.
+- A skipped ball appears on its owner's waiting spot in the skipped colour with the note
+  `No legal cell, skipped` left of the side name (`Layout/AISkipNote` / `Layout/PlayerSkipNote`,
+  `visible` while shown), stays 1.5 s, then shrinks and fades with the note over 0.8 s; the skip pips
+  fill after it. Meanwhile `Layout/Status` is empty, input is off and the match waits (no AI action):
+  gate on `until:Layout/PlayerSkipNote:visible=false` before picking after your skip.
 - `Layout/Status` (left column) says whose turn it is and what to do, and names a skipped colour
   (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
