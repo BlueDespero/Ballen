@@ -36,6 +36,7 @@ static var _parts: Dictionary[String, Callable] = {
 	# Conditions
 	"count_at_most": _count_at_most,
 	"count_at_least": _count_at_least,
+	"no_more_than": _no_more_than,
 	# Combiners
 	"all": _all,
 	"any": _any,
@@ -197,6 +198,12 @@ static func _count_at_most(node: Dictionary, ctx: PlacementContext) -> bool:
 ## At least n cells. {"part": "count_at_least", "n": 2, "of": ...}
 static func _count_at_least(node: Dictionary, ctx: PlacementContext) -> bool:
 	return _cells(node.of, ctx).size() >= int(node.n)
+
+
+## No more cells in "of" than in "than".
+## {"part": "no_more_than", "of": ..., "than": ...}
+static func _no_more_than(node: Dictionary, ctx: PlacementContext) -> bool:
+	return _cells(node.of, ctx).size() <= _cells(node.than, ctx).size()
 
 
 # Combiners ------------------------------------------------------------------

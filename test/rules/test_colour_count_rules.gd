@@ -85,3 +85,60 @@ func test_r02_carries_its_player_text_and_data() -> void:
 	assert_eq(rule.text, "Red only next to blue")
 	assert_eq(rule.to_data(), {"id": "R02", "text": "Red only next to blue", "template": "colour_only_next_to",
 		"values": {"colour": "red", "other": "blue"}})
+
+
+# R06 Never more red than blue on the board ----------------------------------
+
+func test_r06_allows_red_while_it_stays_level_with_blue_of_either_owner() -> void:
+	var position: MatchPosition = _position([
+		"B.....",
+		"......",
+		"..r...",
+		"......",
+		"......",
+		".....b",
+	])
+	# 1 red and 2 blue: a second red makes 2 of each, on any of the 33 empty cells.
+	assert_eq(RuleChecker.legal_cells(_book.rule("R06"), position, 0, BallColour.RED).size(), 33)
+
+
+func test_r06_forbids_red_that_would_outnumber_blue() -> void:
+	var position: MatchPosition = _position([
+		"B.....",
+		"......",
+		"..R...",
+		"......",
+		"......",
+		"......",
+	])
+	for holder: int in [0, 1]:
+		assert_eq(RuleChecker.legal_cells(_book.rule("R06"), position, holder, BallColour.RED).size(), 0,
+			"holder %d" % holder)
+
+
+func test_r06_with_no_blue_on_the_board_forbids_every_red() -> void:
+	var position: MatchPosition = MatchPosition.new(Board.new())
+	assert_eq(RuleChecker.legal_cells(_book.rule("R06"), position, 0, BallColour.RED).size(), 0)
+
+
+func test_r06_leaves_the_other_colours_unrestricted_even_when_red_outnumbers_blue() -> void:
+	# Only the opponent can have put red ahead; the holder's other colours don't
+	# change the red count, so the rule doesn't judge them.
+	var position: MatchPosition = _position([
+		"r.....",
+		"......",
+		"..r...",
+		"......",
+		"......",
+		".....B",
+	])
+	var rule: Rule = _book.rule("R06")
+	for colour: String in [BallColour.YELLOW, BallColour.BLUE, BallColour.GREEN]:
+		assert_eq(RuleChecker.legal_cells(rule, position, 0, colour).size(), 33, colour)
+
+
+func test_r06_carries_its_player_text_and_data() -> void:
+	var rule: Rule = _book.rule("R06")
+	assert_eq(rule.text, "Never more red than blue on the board")
+	assert_eq(rule.to_data(), {"id": "R06", "text": "Never more red than blue on the board",
+		"template": "never_more_than", "values": {"a": "red", "b": "blue"}})

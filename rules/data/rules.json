@@ -4,6 +4,7 @@
 	{ "id": "R03", "text": "Only on even rows", "template": "only_on_axis", "values": { "axis": "row", "parity": "even" } },
 	{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } },
 	{ "id": "R05", "text": "At most 2 of a colour in any row", "template": "max_in_axis", "values": { "axis": "row", "ball": "same_colour", "n": 2 } },
+	{ "id": "R06", "text": "Never more red than blue on the board", "template": "never_more_than", "values": { "a": "red", "b": "blue" } },
 	{ "id": "R07", "text": "Never next to an opponent ball", "template": "not_next_to", "values": { "ball": "opponent_ball" } },
 	{ "id": "R08", "text": "Not next to the ball you placed last", "template": "not_next_to", "values": { "ball": "my_last_ball" } },
 	{ "id": "R10", "text": "Never complete a line of 3", "template": "no_line_of", "values": { "n": 3 } },

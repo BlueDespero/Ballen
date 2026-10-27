@@ -48,6 +48,19 @@
 			]
 		}
 	},
+	"never_more_than": {
+		"blanks": { "a": ["yellow", "blue", "red", "green"], "b": ["yellow", "blue", "red", "green"] },
+		"tree": {
+			"part": "any",
+			"of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$a", "of": { "part": "target" } } },
+				{ "part": "no_more_than",
+					"of": { "part": "of_colour", "colour": "$a", "of": { "part": "whole_board" } },
+					"than": { "part": "of_colour", "colour": "$b", "of": { "part": "whole_board" } } }
+			]
+		}
+	},
 	"min_empty_neighbours": {
 		"blanks": { "n": [1, 2, 3, 4, 5, 6, 7, 8] },
 		"tree": {

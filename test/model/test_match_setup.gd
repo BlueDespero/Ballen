@@ -136,8 +136,9 @@ func test_a_rematch_numbers_rows_from_the_new_first_player_s_side() -> void:
 
 
 ## Picks the first colour and, if the AI goes first, plays its first turn.
+## Yellow, because R06 forbids a red on a board with no blue.
 func _play_until_the_player_places(current_match: Match) -> void:
-	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.YELLOW))
 	if current_match.current_player() == AI:
 		current_match.submit(AI, Command.place(current_match.legal_cells()[0]))
 		current_match.submit(AI, Command.pick_colour(BallColour.BLUE))
