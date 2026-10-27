@@ -82,11 +82,11 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 - `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
-  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`),
-  menus (`gui/menus/`: main menu, Settings screen with Credits)
+  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rule tier badges (`TierBadge`),
+  menus (`gui/menus/`: main menu, Decks screen and deck editor, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
-  `MatchSetup`, `DeckStore` (saved decks); plain `RefCounted`, no scene nodes
+  `MatchSetup`, `DeckStore` (saved decks), `DeckDraft` (deck editor); plain `RefCounted`, no scene nodes
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
   rule and template data in `rules/data/`
 - `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`

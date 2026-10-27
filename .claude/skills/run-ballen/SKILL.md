@@ -48,6 +48,7 @@ Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` an
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
 | `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
 | `key:NAME` | press and release a key by name (`Left`, `Right`, `Space`; `OS.find_keycode_from_string`) |
+| `type:TEXT` | type TEXT into the focused control, e.g. a name field you clicked (quote it if it has spaces) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
 | `tree` | print the current scene tree |
 | `get:NODE/PATH:prop` | print a property; path is relative to the current scene |
@@ -68,8 +69,29 @@ Headless, the match never starts: it waits on the match setup screen's Start, wh
 At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
 layout and centres it, so these coordinates no longer hold.
 
-- Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414
+- Main menu buttons (centre x 640): Single Player y=305, Decks y=342, Options y=378, Quit y=414
   (with Larger text on: 301, 341, 381, 421).
+- Decks screen (Decks; scene `Decks`, `gui/menus/decks_screen.tscn`, or `scene:` it directly): one row
+  per deck under `Margin/Card/Content/Scroll/DeckList` (`%DeckList`), named `Row0`, `Row1`, … in list
+  order (Starter first, then saved decks in save order; the deck's name is in meta `deck_name`), row centres y=176, 240, 304, … (step 64). Each row shows the
+  name, its 5 rule ids with tier dots (`<row>/Line/Rules`) and buttons `<row>/Line/Edit|Rename|Delete`
+  at x≈850, 956, 1062; Starter has only `Copy` (1062). Back (245,640), New deck (1035,640); Escape =
+  Back (to `Main`). Rename and Delete open `%Dialog` (centred card): `%DialogName` (selected, so typing
+  replaces it), `%DialogHint` (the name problem), `%DialogCancel` (642,431) and `%DialogConfirm`
+  (798,431; Delete's card is shorter: (798,404)), disabled while the name has a problem; Enter confirms,
+  Escape cancels. Larger text moves rows down (≈222, 286) and the dialog buttons too: read
+  `global_position` with `get:`.
+- Deck editor (New deck, Edit or Copy; node `DeckEditor`, a child of `Decks`, covering it): paths under
+  `DeckEditor/Margin/Card/Content`. Name field `Header/NameField` (650,58; click it, then `type:My deck`),
+  counter `Header/Counter:text` (`3 / 5`; flashes red on a 6th pick, which does nothing), filter chips
+  `Filters/Chips/All|Simple|Intermediate|Hardcore` at y=110 (x≈215, 355, 495, 635), the rule rows
+  `Scroll/RuleList/R01` … (click x≈600; with All shown R01 y=164, R02 218, … step 54, R09 596 is the
+  last one visible; scroll or filter for the rest; a picked row turns gold). Footer: `Footer/Hint:text`
+  (`Pick 5 rules (3 picked)`, `Name the deck`, `A deck named X already exists`, empty when it can be
+  saved), Cancel (947,660), Save (1113,660, `Footer/SaveButton:disabled`). Save or Cancel (or Escape)
+  returns to the list. A saved deck lands in `user://decks.json`, **shared by every worktree and the
+  player's game**: back up `%APPDATA%\Godot\app_userdata\Ballen\decks.json` before a run that saves
+  and restore it (or delete it if there was none) afterwards.
 - Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
   nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y≈172), switches
   `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
@@ -90,8 +112,8 @@ layout and centres it, so these coordinates no longer hold.
 - Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
   the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
   marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
-  (x 16–720, y 24–696). Deck picker (`DeckRow/DeckPicker`, an OptionButton of the saved decks,
-  `Starter` when none are saved) centre (434,122). AI level buttons
+  (x 16–720, y 24–696). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
+  centre (434,122); click it, then the list's items at x≈226, y=162, 189, 216, … (step 27). AI level buttons
   (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈256, Normal x≈433, Hard x≈610; only
   Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
   the level. Your deck's rules as toggle buttons (x 40–696, centre x 368): starter deck R01 y=378,
@@ -101,8 +123,7 @@ layout and centres it, so these coordinates no longer hold.
   "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s (`wait:150` covers it), then
   `Layout/MatchSetup:visible` turns false. The rules panel marks your true rule with the toss;
   `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
-  another deck, save one first (see `DeckStore`; tests and probes use their own `user://` path, as
-  `user://decks.json` is shared by every worktree).
+  another deck, save one on the Decks screen first (back up `decks.json`, see above).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
   bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
 - Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the

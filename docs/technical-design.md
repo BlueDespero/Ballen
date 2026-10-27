@@ -78,7 +78,7 @@ all run the same code.
   show, the stepping and the past turn's status text live in `HistoryBrowser` (`gui/history_browser.gd`,
   unit-tested on a match's `PublicView`); `HistoryNav` only draws the buttons.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
-  one of their saved decks (`DeckStore`, the starter deck when none are saved) and the AI level
+  a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
   (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
   of the deck to make it true, and presses Start. The AI's deck is drawn when the screen opens, and
   the rules panel beside the screen shows it and the picked deck while the player chooses (the AI's
@@ -100,15 +100,44 @@ is stored as its 5 rule ids, in the order the decks were saved; the rules themse
 `RuleBook`, which turns the ids back into rules on load:
 
 ```json
-{ "decks": [ { "name": "Starter", "rules": ["R01", "R03", "R05", "R08", "R18"] } ] }
+{ "decks": [ { "name": "Mixed", "rules": ["R02", "R04", "R06", "R07", "R09"] } ] }
 ```
 
-- `names()`, `deck(name)` (a new `Deck` of the book's rules) and `save(name, deck)`, which replaces a
-  deck of the same name and writes the file at once.
-- On load, a deck with no name, a name already used, an unknown rule id, a repeated rule or not
-  exactly 5 rules is skipped with an error; a file that isn't JSON or has the wrong shape loads as no
-  decks. `save` refuses the same decks, so the file only ever holds decks that load.
-- With no saved decks, the store offers the starter deck (`DeckStore.STARTER_DECK_IDS`).
+- The starter deck (`DeckStore.STARTER_DECK_NAME`, `STARTER_DECK_IDS`) is built in, never in the file:
+  `names()` always lists it first, then the saved decks; `is_read_only(name)` is true only for it.
+- `deck(name)` (a new `Deck` of the book's rules), `save(name, deck)` (replaces a deck of the same
+  name), `rename(old, new)` (keeps the deck's place), `replace(old, new, deck)` (a rename and a save in
+  one write) and `delete(name)`. Each change writes the file at once and returns false, changing
+  nothing, if it can't. `save` refuses the starter deck's name; `rename`, `replace` and `delete` refuse
+  the starter deck and unknown names, and `rename` and `replace` a blank or taken name.
+- `name_problem(name, own_name = "")`: why a deck can't take a name ("Name the deck", "A deck named X
+  already exists"; a deck may keep `own_name`), or "". The screens show it as a hint.
+- On load, a deck with no name, the starter deck's name, a name already used, an unknown rule id, a
+  repeated rule or not exactly 5 rules is skipped with an error; a file that isn't JSON or has the
+  wrong shape loads as no decks. `save` refuses the same decks, so the file only ever holds decks that
+  load.
+
+### Deck builder
+
+The Decks screen (`gui/menus/decks_screen.tscn`, opened by the main menu's Decks button) lists every
+deck of the `DeckStore` with its rule ids and tier dots. A saved deck has Edit, Rename and Delete (a
+confirm first); the read-only starter deck has only Copy. The deck editor
+(`gui/menus/deck_editor.tscn`) opens over the screen and emits `closed(saved)` on Save or Cancel.
+
+The editor's logic is `DeckDraft` (`model/deck_draft.gd`), so the screen only draws it:
+
+- A name and up to `Deck.SIZE` distinct rule ids in pick order. `DeckDraft.new()` is a new deck;
+  `DeckDraft.editing(store, name)` edits a saved deck and may keep its name;
+  `DeckDraft.copy_of(store, name)` is a new deck named "<name> copy" (or "<name> copy 2", …).
+- `toggle(rule_id)` picks or drops a rule and returns false, changing nothing, for a pick past 5 (the
+  editor flashes its counter); `count()`, `has()`, `rule_ids()`.
+- `problem(store)`: the hint line and what disables Save: "Pick 5 rules (3 picked)" first, then the
+  store's `name_problem`; "" when the draft can be saved.
+- `to_deck(book)`; `save_to(store, book)` saves a new deck, or replaces the edited deck in place (one
+  write, so a failed save keeps it as it was). Names are saved without leading or trailing spaces.
+- Each rule's tier (`Rule.tier`: `simple`, `intermediate` or `hardcore`, from `rules.json`) shows as a
+  badge or dot (`TierBadge`: Simple green, Intermediate amber, Hardcore red); the editor's chips show
+  one tier at a time.
 
 ## Rules engine
 
@@ -156,8 +185,11 @@ A rule is a **template plus the values in its blanks**, with an id and its hand-
 Built-in and player-made rules share one JSON-ready format (`rules/data/rules.json`):
 
 ```json
-{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } }
+{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" }, "tier": "intermediate" }
 ```
+
+`tier` (`simple`, `intermediate` or `hardcore`) mirrors the rules library's Tier column and is optional
+(test rules leave it out); any other value is rejected like a bad blank value.
 
 A template is data too ([ADR 0001](adr/0001-rule-templates-are-data.md), `rules/data/templates.json`):
 its blanks with their allowed values, and a tree of parts. Each node names a part and gives its
