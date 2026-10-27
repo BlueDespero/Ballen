@@ -124,12 +124,12 @@ Some rules judge groups of cells rather than single cells. A group selector yiel
 group condition judges them (`rules/group_parts.gd`). Example: "Never complete a line of 3" = the lines
 through the target (one per direction: horizontal, vertical, both diagonals) + no group of 3 or more.
 
-Built so far, enough for the milestone 1 rules:
+Built so far:
 
 | Kind | Parts |
 | --- | --- |
-| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row); `whole_board` |
-| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `opponent_ball`; `my_last_ball`; `empty`; `of_colour` (a fixed colour) |
+| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row); `whole_board`; `other_cells` (the board without the `of` cells); `within_distance` (n king moves) |
+| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `of_colour` (a fixed colour); `next_colour` (yellow → blue → red → green); `any_ball`; `opponent_ball`; `my_last_ball`; `opponent_last_ball`; `empty` |
 | Condition | `count_at_most`; `count_at_least`; `no_more_than` (no more cells in one selection than in another) |
 | Combiner | `all` (with an empty list it always passes: the permissive rule tests use); `any` |
 | Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
@@ -139,6 +139,9 @@ Built so far, enough for the milestone 1 rules:
 Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
 (`Board.row_number`). In template ids and blanks a row or column is an `axis` (only rows are built);
 "line" means only a line of one colour, as in the [glossary](../GLOSSARY.md).
+Distances count king moves (`Board.distance`), so neighbours are 1 apart. A "must touch" rule
+(template `must_touch`) passes when a ball of its kind is on a neighbour of the target or when no such
+ball is anywhere else on the board: with nothing to touch it allows every cell.
 
 ### Data format
 
