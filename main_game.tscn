@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://gui/rules_panel.tscn" id="5_rules"]
 [ext_resource type="PackedScene" path="res://gui/pre_match_panel.tscn" id="6_pre_match"]
 [ext_resource type="PackedScene" path="res://gui/match_end_overlay.tscn" id="7_end"]
+[ext_resource type="Script" path="res://gui/history_nav.gd" id="8_history"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_side"]
 font_size = 20
@@ -129,6 +130,16 @@ offset_right = 704.0
 offset_bottom = 684.0
 theme_override_constants/separation = 8
 script = ExtResource("4_picker")
+
+[node name="HistoryNav" type="HBoxContainer" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 200.0
+offset_top = 642.0
+offset_right = 336.0
+offset_bottom = 678.0
+theme_override_constants/separation = 6
+script = ExtResource("8_history")
 
 [node name="AIBall" type="Control" parent="Layout" node_paths=PackedStringArray("board")]
 unique_name_in_owner = true
