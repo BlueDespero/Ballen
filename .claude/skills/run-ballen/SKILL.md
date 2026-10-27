@@ -106,8 +106,10 @@ layout and centres it, so these coordinates no longer hold.
   utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
   the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
   `guess_without_holding`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). With guess without holding, a click on Guess arms it
-  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
-  panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
+  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text packs the rules
+  panel tighter: e.g. with one wrapped AI rule and the Starter deck, AI rows y≈71–293 (40 px each,
+  49 when wrapped, 2 apart), Guess ≈(1173,325), your rows y≈405–613 (hint gone; see the Rules panel
+  note).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
 - Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
   the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
@@ -165,8 +167,9 @@ layout and centres it, so these coordinates no longer hold.
   (1173,344)), yours below (y≈454–646) with the true one highlighted. Three skip pips at the right of
   each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip. Rule text wraps
   instead of being cut off: a rule too wide for one line (R15, R16, R17, R22) is one font step
-  smaller and takes two lines in a row of the usual height. With Larger text a rule that wraps makes
-  its row taller (about 55–59 px), so the y values here shift with the decks: read
+  smaller and takes two lines in a row of the usual height. With Larger text the panel packs tighter
+  (rows 40 px, 2 px apart; more rules wrap, so more drop the step) and a rule that wraps makes its
+  row about 47 px (51 with TRUE beside it), so the y values shift with the decks: read
   `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
 - Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
   `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
