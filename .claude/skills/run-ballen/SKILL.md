@@ -33,7 +33,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 # Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:60 click:640,428 wait:5 click:733,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -87,18 +87,20 @@ layout and centres it, so these coordinates no longer hold.
   (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
   panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
-- Match setup screen: `Layout/MatchSetup`, covering the whole layout (rules panel too) when the scene
-  opens; its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content` (x 280–1000, y 24–696). Deck
-  picker (`DeckRow/DeckPicker`, an OptionButton of the saved decks, `Starter` when none are saved)
-  centre (706,122). AI level buttons (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈534,
-  Normal x≈705, Hard x≈876; only Normal is enabled (and pressed), the others read "(coming soon)";
-  `LevelDescription:text` describes the level. Your deck's rules as toggle buttons (x 312–968, centre
-  x 640): starter deck R01 y=378, R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01`
-  …); a tapped rule turns gold. Start (`Buttons/StartButton`, disabled until a rule is tapped) centre
-  (733,648), Main menu centre (547,648). Start hides the card and shows the coin toss over the board
-  ("Coin toss: you go first" / "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s
-  (`wait:150` covers it), then `Layout/MatchSetup:visible` turns false. Both decks appear in the rules
-  panel with the toss; `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
+- Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
+  the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
+  marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
+  (x 16–720, y 24–696). Deck picker (`DeckRow/DeckPicker`, an OptionButton of the saved decks,
+  `Starter` when none are saved) centre (434,122). AI level buttons
+  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈256, Normal x≈433, Hard x≈610; only
+  Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
+  the level. Your deck's rules as toggle buttons (x 40–696, centre x 368): starter deck R01 y=378,
+  R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01` …); a tapped rule turns gold.
+  Start (`Buttons/StartButton`, disabled until a rule is tapped) centre (461,648), Main menu centre
+  (275,648). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /
+  "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s (`wait:150` covers it), then
+  `Layout/MatchSetup:visible` turns false. The rules panel marks your true rule with the toss;
+  `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
   another deck, save one first (see `DeckStore`; tests and probes use their own `user://` path, as
   `user://decks.json` is shared by every worktree).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
@@ -167,7 +169,7 @@ layout and centres it, so these coordinates no longer hold.
   the deck picker and the other levels disabled (same decks, same level): tap a rule and Start. The
   toss then reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other
   player goes first) and the row numbers flip with it. Continue from the end screen with
-  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:640,478 wait:5 click:733,648 until:Layout/MatchSetup:visible=false`.
+  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:368,478 wait:5 click:461,648 until:Layout/MatchSetup:visible=false`.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 

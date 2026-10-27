@@ -4,10 +4,13 @@ extends Control
 ## The match setup screen before a match: the player picks a saved deck and
 ## the AI level, taps one rule of the deck to make it true, then presses Start.
 ## A rematch comes back here with the same deck and level, so only the true
-## rule is chosen again. After Start the screen gives way to the board and
-## shows who goes first for a moment. It only reports the player's choices;
-## the scene sets up the match.
+## rule is chosen again. The screen leaves the rules panel uncovered, so the
+## scene can show both decks there while the player chooses. After Start the
+## screen gives way to the board and shows who goes first for a moment. It only
+## reports the player's choices; the scene sets up the match.
 
+## The screen now shows this deck's rules to choose from.
+signal deck_shown(deck: Deck)
 ## The player pressed Start with these choices.
 signal start_requested(deck: Deck, level: AILevel.Level, true_rule: Rule)
 ## The player pressed Main menu.
@@ -17,6 +20,8 @@ signal main_menu_requested
 const COIN_TOSS_SECONDS: float = 2.0
 const RULE_BUTTON_HEIGHT: float = 44.0
 const LEVEL_BUTTON_HEIGHT: float = 44.0
+## Narrow, so three level buttons fit beside the caption with "(coming soon)".
+const LEVEL_BUTTON_MARGIN: int = 6
 const DEFAULT_LEVEL: AILevel.Level = AILevel.Level.NORMAL
 
 ## Larger text: the screen's text is this many times its built size.
@@ -118,6 +123,7 @@ func _show_deck(deck: Deck) -> void:
 	for rule: Rule in deck.rules:
 		_rule_buttons.add_child(_rule_button(rule))
 	TextScale.apply(_rule_buttons, text_scale)
+	deck_shown.emit(deck)
 
 
 func _on_deck_selected(index: int) -> void:
@@ -158,8 +164,8 @@ func _level_button(level: AILevel.Level) -> Button:
 	button.custom_minimum_size.y = LEVEL_BUTTON_HEIGHT
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_font_size_override("font_size", 16)
-	_style_choice(button)
+	button.add_theme_font_size_override("font_size", 15)
+	_style_choice(button, LEVEL_BUTTON_MARGIN)
 	button.pressed.connect(_on_level_chosen.bind(level))
 	return button
 
@@ -181,24 +187,24 @@ func _rule_button(rule: Rule) -> Button:
 
 ## A choice button: a plain row, outlined on hover, gold once chosen (like the
 ## true rule in the rules panel), dimmed when it can't be chosen.
-func _style_choice(button: Button) -> void:
-	var chosen: StyleBoxFlat = _style(RulesPanel.TRUE_ROW_COLOUR, 2)
-	button.add_theme_stylebox_override("normal", _style(RulesPanel.ROW_COLOUR, 0))
-	button.add_theme_stylebox_override("hover", _style(RulesPanel.ROW_COLOUR.lightened(0.1), 2))
+func _style_choice(button: Button, margin: int = 16) -> void:
+	var chosen: StyleBoxFlat = _style(RulesPanel.TRUE_ROW_COLOUR, 2, margin)
+	button.add_theme_stylebox_override("normal", _style(RulesPanel.ROW_COLOUR, 0, margin))
+	button.add_theme_stylebox_override("hover", _style(RulesPanel.ROW_COLOUR.lightened(0.1), 2, margin))
 	button.add_theme_stylebox_override("pressed", chosen)
 	button.add_theme_stylebox_override("hover_pressed", chosen)
-	button.add_theme_stylebox_override("disabled", _style(RulesPanel.ROW_COLOUR.darkened(0.3), 0))
+	button.add_theme_stylebox_override("disabled", _style(RulesPanel.ROW_COLOUR.darkened(0.3), 0, margin))
 	button.add_theme_color_override("font_disabled_color", RulesPanel.ID_COLOUR.darkened(0.2))
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	button.add_theme_color_override("font_hover_pressed_color", Color.WHITE)
 
 
-func _style(colour: Color, border: int) -> StyleBoxFlat:
+func _style(colour: Color, border: int, margin: int = 16) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = colour
 	style.set_corner_radius_all(8)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
+	style.content_margin_left = margin
+	style.content_margin_right = margin
 	style.set_border_width_all(border)
 	style.border_color = RulesPanel.TRUE_BORDER_COLOUR
 	return style

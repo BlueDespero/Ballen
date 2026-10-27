@@ -23,20 +23,18 @@ func _init(decks: Array[Deck], level: AILevel.Level, rng: RandomNumberGenerator)
 	_rng = rng
 
 
-## The player gets the deck they picked, the AI a random deck from the book's
-## rules and plays at the level picked. Returns null (and reports an error) for
-## a level not built yet or a book with too few rules for the AI's deck.
-static func against_ai(book: RuleBook, player_deck: Deck, level: AILevel.Level, rng: RandomNumberGenerator) -> MatchSetup:
+## The player gets the deck they picked, the AI its deck (drawn with Deck.draw
+## before the setup, so the player sees it while choosing a true rule) and
+## plays at the level picked. Returns null (and reports an error) for a level
+## not built yet.
+static func against_ai(player_deck: Deck, ai_deck: Deck, level: AILevel.Level, rng: RandomNumberGenerator) -> MatchSetup:
 	if not AILevel.is_built(level):
 		push_error("MatchSetup: the AI level %s is not built yet" % AILevel.title(level))
-		return null
-	var ai_deck: Deck = Deck.draw(book, rng)
-	if ai_deck == null:
 		return null
 	var decks: Array[Deck] = []
 	decks.resize(Players.COUNT)
 	decks[PLAYER] = player_deck.copy()
-	decks[AI] = ai_deck
+	decks[AI] = ai_deck.copy()
 	return MatchSetup.new(decks, level, rng)
 
 

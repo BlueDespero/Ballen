@@ -80,11 +80,12 @@ all run the same code.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
   one of their saved decks (`DeckStore`, the starter deck when none are saved) and the AI level
   (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
-  of the deck to make it true, and presses Start. The AI's deck stays hidden until the match starts;
-  then the rules panel shows both decks while the coin toss is shown over the board.
-- `MatchSetup.against_ai(book, deck, level, rng)` is what comes before a single-player match: the
-  picked deck, the level (a level not built yet is refused) and the AI's deck of 5 distinct rules
-  drawn from the built ones (`Deck.draw`). `MatchSetup.start(true_rule)` then draws the AI's true rule
+  of the deck to make it true, and presses Start. The AI's deck is drawn when the screen opens, and
+  the rules panel beside the screen shows it and the picked deck while the player chooses (the AI's
+  true rule stays hidden); the coin toss is then shown over the board.
+- `MatchSetup.against_ai(deck, ai_deck, level, rng)` is what comes before a single-player match: the
+  picked deck, the AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`) and the level
+  (a level not built yet is refused). `MatchSetup.start(true_rule)` then draws the AI's true rule
   from its deck and creates the match, whose coin toss picks the first player. The setup keeps both
   decks and the level: `MatchSetup.rematch(true_rule)` starts the next match on them, with the
   player's new true rule, a new random true rule drawn from the AI's deck and no coin toss: whoever
