@@ -192,9 +192,52 @@ Used for player-made rules (later release) and to tune built-in ones: simulate t
 boards and record the share of placements it forbids. Accept rules that forbid roughly 20–60%
 (thresholds set in playtesting). Store the measured value in the rules library.
 
+`StrictnessCheck` (`harness/strictness_check.gd`) does it; `harness/run_strictness.gd` prints one row per
+built rule (command in `CLAUDE.md`):
+
+- **Random positions** (`random_positions(count, seed)`, one seeded RNG): a coin toss picks the first
+  player, then turns are played until the board holds a random number of balls, uniform from 0 to 35.
+  Each turn starts with a colour pick of a random colour by the other player; the player then skips
+  (chance `SKIP_CHANCE`, 5%, never a third time) or places that colour on a random empty cell. So every
+  position is one a match could reach, with owners, last balls, turn numbers and skip counts in its
+  history for the history, time and game-state rules. The position ends at the start of a turn: the
+  current player is the holder and places the last picked colour.
+- **Share forbidden** of one position: empty cells the rule forbids its holder ÷ empty cells.
+- **Strictness**: the average share over the positions, each position weighing the same; the same
+  positions are used for every rule. **No legal cell**: the share of positions where the rule forbids
+  every empty cell (its holder would skip).
+- 2000 boards take about 3 minutes; seeds 1 and 2 agree within about 1 point per rule.
+- The average hides how a rule forbids: a colour-gated rule such as R06 forbids everything or nothing
+  (strictness = no-legal-cell share), so it scores low here and is harsh in play.
+
 ### Rule tiers
 
 AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal cells per turn, win rate as the true rule). The results rank each rule Simple, Intermediate or Hardcore, stored in the rules library's Tier column.
+
+**Method (provisional, #17).** Run the harness on at least 1000 matches (2000 at seed 1 gives each rule
+about 180 holdings, so a win rate is good to about ±4 points) and the strictness check on 2000 boards.
+The tier comes from the harness; strictness is a cross-check.
+
+| Tier | Provisional threshold |
+| --- | --- |
+| Simple | win rate as the true rule ≥ 55% and skip rate < 5% |
+| Hardcore | win rate as the true rule < 33% or skip rate ≥ 10% |
+| Intermediate | everything else |
+
+Why these numbers:
+
+- Win rate as the true rule is the headline: it folds in both ways a rule hurts its holder, by
+  skipping (R06, R15, R16) and by being easy to read (R17 skips on under 8% of turns, but every placement
+  touches the next colour in the cycle, so the opponent rules the other rules out fast). In the 2000-match run the rules fall into
+  three clusters with clear gaps: 61–74% (10 rules), 38–52% (6) and 4–28% (6). The thresholds sit in the
+  gaps, so a few points of noise don't move a rule.
+- Skip rate is a guard: a rule its holder skips under on 10% or more of turns is Hardcore whatever its
+  win rate (each skip is a step to losing and a clue), and a Simple rule should almost never skip.
+- Strictness agrees at the ends: every Simple rule forbids at most about 31% of cells; the two rules
+  above the 60% band (R07, R11) are not Simple. It does not separate Intermediate from Simple well, since
+  loose colour-gated rules (R02, R05, R10) score low but are read quickly through colour picks.
+- Re-measure when the AI changes (M3 levels): the win rates depend on how the AI picks colours and
+  deduces.
 
 ## AI opponent
 
@@ -254,6 +297,7 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 | `MatchRecord` | What a match leaves: each player's true rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
 | `HarnessStats` | The numbers over finished matches, and `summary()`, the text the script prints |
 | `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1) |
+| `StrictnessCheck`, `run_strictness.gd` | The strictness check and its command-line entry (`--boards`, `--seed`; defaults 2000 and 1); see "Strictness check" |
 
 - The summary: matches finished out of matches played; first player's wins, losses and draws; how
   matches ended (right guess, wrong guess, third skip, forced guesses); average turns per match; and per
