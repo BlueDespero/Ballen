@@ -5,9 +5,9 @@ extends PanelContainer
 ## with their true rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
 ## by holding Guess under them (or tapping it, then Confirm, with the "guess
-## without holding" setting). A small button on the left of each AI rule
-## keeps the player's private note mark on it. On a full board, holding Seal
-## beside Guess makes the player's sealed forced guess instead.
+## without holding" setting). Two small buttons, ✗ and ?, at the right end of
+## each AI rule keep the player's private note mark on it. On a full board,
+## holding Seal beside Guess makes the player's sealed forced guess instead.
 
 ## The player held Guess to the end with one of the AI's rules selected.
 signal guess_requested(rule_id: String)
@@ -71,6 +71,7 @@ var marks: Dictionary[String, int]:
 	get = _get_marks
 
 var _match_over: bool = false
+var _marks: Dictionary[String, int] = {}
 
 @onready var _ai_rules: VBoxContainer = %AIRules
 @onready var _player_rules: VBoxContainer = %PlayerRules
@@ -93,39 +94,46 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 	_match_over = false
 	_fill(_ai_rules, ai_deck, null)
 	_fill(_player_rules, player_deck, player_true_rule)
+	_marks.clear()
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
 		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
-		_add_mark_button(panel)
+		_marks[String(panel.name)] = NoteMark.Mark.NONE
+		_add_mark_buttons(panel)
 	_select("")
 	TextScale.apply(self, text_scale)
 
 
-## A note mark button on the left of an AI rule row. It takes its own taps, so
-## tapping it never selects the row; the row starts unmarked.
-func _add_mark_button(row: PanelContainer) -> void:
-	var line: HBoxContainer = row.get_child(0) as HBoxContainer
-	var button: NoteMarkButton = NoteMarkButton.new()
-	button.name = "Mark"
-	line.add_child(button)
-	line.move_child(button, 0)
-	var text_label: Label = line.get_node("Text") as Label
-	button.mark_changed.connect(_on_mark_changed.bind(text_label))
+## The ✗ and ? note mark buttons at the right end of an AI rule row. They take
+## their own taps, so tapping them never selects the row; the row starts
+## unmarked.
+func _add_mark_buttons(row: PanelContainer) -> void:
+	var buttons: HBoxContainer = HBoxContainer.new()
+	buttons.name = "Marks"
+	buttons.add_theme_constant_override("separation", 2)
+	buttons.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.get_node("Line").add_child(buttons)
+	for mark: NoteMark.Mark in [NoteMark.Mark.CROSS, NoteMark.Mark.QUESTION]:
+		var button: NoteMarkButton = NoteMarkButton.new(mark)
+		button.name = "Cross" if mark == NoteMark.Mark.CROSS else "Question"
+		button.pressed.connect(_on_mark_pressed.bind(String(row.name), mark))
+		buttons.add_child(button)
 
 
-## A rule marked ✗ fades so the rules the player still considers stand out.
-func _on_mark_changed(mark: NoteMark.Mark, text_label: Label) -> void:
-	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
+## A press sets, switches or clears the row's mark; a rule marked ✗ fades so
+## the rules the player still considers stand out.
+func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
+	var mark: NoteMark.Mark = NoteMark.toggled(_marks[rule_id] as NoteMark.Mark, pressed)
+	_marks[rule_id] = mark
+	var row: Node = _ai_rules.get_node(rule_id)
+	(row.get_node("Line/Marks/Cross") as NoteMarkButton).lit = mark == NoteMark.Mark.CROSS
+	(row.get_node("Line/Marks/Question") as NoteMarkButton).lit = mark == NoteMark.Mark.QUESTION
+	(row.get_node("Line/Text") as Label).modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
 
 
 func _get_marks() -> Dictionary[String, int]:
-	var result: Dictionary[String, int] = {}
-	for row: Node in _ai_rules.get_children():
-		var button: NoteMarkButton = row.get_child(0).get_node_or_null("Mark") as NoteMarkButton
-		if button != null:
-			result[String(row.name)] = button.mark
-	return result
+	return _marks.duplicate()
 
 
 ## Once the match is over: marks the AI's true rule and closes guessing.
@@ -141,7 +149,10 @@ func show_match_over(ai_true_rule: Rule) -> void:
 		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		if String(panel.name) == ai_true_rule.id:
 			panel.add_theme_stylebox_override("panel", _style(false, true))
-			panel.get_child(0).add_child(_label("TRUE", TRUE_BORDER_COLOUR))
+			# Right after the text, before the mark buttons.
+			var true_label: Label = _label("TRUE", TRUE_BORDER_COLOUR)
+			panel.get_node("Line").add_child(true_label)
+			panel.get_node("Line").move_child(true_label, panel.get_node("Line/Text").get_index() + 1)
 	_update_guess()
 	TextScale.apply(self, text_scale)
 
@@ -249,6 +260,7 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	row.custom_minimum_size.y = ROW_HEIGHT
 	row.add_theme_stylebox_override("panel", _style(false, is_true))
 	var line: HBoxContainer = HBoxContainer.new()
+	line.name = "Line"
 	line.add_theme_constant_override("separation", 12)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(line)
