@@ -14,8 +14,8 @@ const RING_WIDTH: float = 2.0
 const CROSS_HALF: float = 5.0
 const EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7, 0.6)
 const HOVER_COLOUR: Color = Color(0.85, 0.88, 0.92)
-const RULED_OUT_COLOUR: Color = Color(0.92, 0.36, 0.32)
-const SUSPECT_COLOUR: Color = Color(1.0, 0.82, 0.3)
+const CROSS_COLOUR: Color = Color(0.92, 0.36, 0.32)
+const QUESTION_COLOUR: Color = Color(1.0, 0.82, 0.3)
 
 var mark: NoteMark.Mark = NoteMark.Mark.NONE:
 	set(value):
@@ -44,12 +44,12 @@ func _draw() -> void:
 	var colour: Color = _colour()
 	draw_arc(centre, RING_RADIUS, 0.0, TAU, 32, colour, RING_WIDTH, true)
 	match mark:
-		NoteMark.Mark.RULED_OUT:
+		NoteMark.Mark.CROSS:
 			var a: Vector2 = Vector2(CROSS_HALF, CROSS_HALF)
 			var b: Vector2 = Vector2(CROSS_HALF, -CROSS_HALF)
 			draw_line(centre - a, centre + a, colour, RING_WIDTH + 0.5, true)
 			draw_line(centre - b, centre + b, colour, RING_WIDTH + 0.5, true)
-		NoteMark.Mark.SUSPECT:
+		NoteMark.Mark.QUESTION:
 			var font: Font = get_theme_default_font()
 			var font_size: int = get_theme_default_font_size()
 			var baseline: float = centre.y + (font.get_ascent(font_size) - font.get_descent(font_size)) / 2.0
@@ -58,19 +58,19 @@ func _draw() -> void:
 
 func _colour() -> Color:
 	match mark:
-		NoteMark.Mark.RULED_OUT:
-			return RULED_OUT_COLOUR
-		NoteMark.Mark.SUSPECT:
-			return SUSPECT_COLOUR
+		NoteMark.Mark.CROSS:
+			return CROSS_COLOUR
+		NoteMark.Mark.QUESTION:
+			return QUESTION_COLOUR
 		_:
 			return HOVER_COLOUR if is_hovered() else EMPTY_COLOUR
 
 
 func _tooltip() -> String:
 	match mark:
-		NoteMark.Mark.RULED_OUT:
+		NoteMark.Mark.CROSS:
 			return "Ruled out (your note). Tap for suspect."
-		NoteMark.Mark.SUSPECT:
+		NoteMark.Mark.QUESTION:
 			return "Suspect (your note). Tap to clear."
 		_:
 			return "Tap to mark this rule ruled out."

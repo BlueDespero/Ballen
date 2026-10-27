@@ -24,7 +24,7 @@ const HINT_COLOUR: Color = Color(0.7, 0.74, 0.8)
 const PIP_SIZE: float = 16.0
 const PIP_FILLED_COLOUR: Color = Color(0.92, 0.36, 0.32)
 const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
-const RULED_OUT_TEXT_ALPHA: float = 0.45
+const CROSS_TEXT_ALPHA: float = 0.45
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -97,9 +97,9 @@ func _add_mark_button(row: PanelContainer) -> void:
 	button.mark_changed.connect(_on_mark_changed.bind(text_label))
 
 
-## A ruled-out rule's text fades so the rules still in play stand out.
+## A rule marked ✗ fades so the rules the player still considers stand out.
 func _on_mark_changed(mark: NoteMark.Mark, text_label: Label) -> void:
-	text_label.modulate.a = RULED_OUT_TEXT_ALPHA if mark == NoteMark.Mark.RULED_OUT else 1.0
+	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
 
 
 func _get_marks() -> Dictionary[String, int]:

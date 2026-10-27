@@ -1,16 +1,16 @@
 extends GutTest
 
 # The note mark the player cycles on one of the AI's rules: each tap moves it
-# none -> ruled out -> suspect -> none.
+# none -> ✗ -> ? -> none.
 
 
-func test_a_tap_on_an_unmarked_rule_rules_it_out() -> void:
-	assert_eq(NoteMark.next(NoteMark.Mark.NONE), NoteMark.Mark.RULED_OUT)
+func test_a_tap_on_an_unmarked_rule_gives_it_a_cross() -> void:
+	assert_eq(NoteMark.next(NoteMark.Mark.NONE), NoteMark.Mark.CROSS)
 
 
-func test_a_tap_on_a_ruled_out_rule_makes_it_a_suspect() -> void:
-	assert_eq(NoteMark.next(NoteMark.Mark.RULED_OUT), NoteMark.Mark.SUSPECT)
+func test_a_tap_on_a_cross_turns_it_into_a_question_mark() -> void:
+	assert_eq(NoteMark.next(NoteMark.Mark.CROSS), NoteMark.Mark.QUESTION)
 
 
-func test_a_tap_on_a_suspect_clears_its_mark() -> void:
-	assert_eq(NoteMark.next(NoteMark.Mark.SUSPECT), NoteMark.Mark.NONE)
+func test_a_tap_on_a_question_mark_clears_the_mark() -> void:
+	assert_eq(NoteMark.next(NoteMark.Mark.QUESTION), NoteMark.Mark.NONE)
