@@ -67,5 +67,12 @@
 			"part": "count_at_least", "n": "$n",
 			"of": { "part": "empty", "of": { "part": "neighbours", "of": { "part": "target" } } }
 		}
+	},
+	"not_same_axis_as": {
+		"blanks": { "axis": ["row"], "ball": ["my_last_ball"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "$ball", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
+		}
 	}
 }
