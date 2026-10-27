@@ -18,7 +18,7 @@ static func candidates(view: PublicView) -> Array[Rule]:
 	var history: Array[HistoryEntry] = view.position.history
 	for i: int in history.size():
 		var event: HistoryEntry = history[i]
-		if event.player != opponent or not _is_evidence(event):
+		if event.player != opponent or not event.is_placement_or_skip():
 			continue
 		var before: MatchPosition = view.position.before(i)
 		var kept: Array[Rule] = []
@@ -41,7 +41,3 @@ static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) ->
 				if RuleChecker.is_legal(rule, before, event.player, event.colour, cell):
 					return true
 	return false
-
-
-static func _is_evidence(event: HistoryEntry) -> bool:
-	return event.type == HistoryEntry.Type.PLACEMENT or event.type == HistoryEntry.Type.SKIP

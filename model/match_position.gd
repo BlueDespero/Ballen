@@ -80,7 +80,7 @@ func after_turn(n: int) -> MatchPosition:
 		var event: HistoryEntry = history[i]
 		if event.type == HistoryEntry.Type.COLOUR_PICK:
 			later_picks += 1
-		elif _is_placement_or_skip(event) and turn - later_picks == n:
+		elif event.is_placement_or_skip() and turn - later_picks == n:
 			var after: MatchPosition = before(i)
 			if event.type == HistoryEntry.Type.PLACEMENT:
 				after.board.place(event.cell, Ball.new(event.colour, event.player))
@@ -100,7 +100,3 @@ func copy() -> MatchPosition:
 	for entry: HistoryEntry in history:
 		position.history.append(entry.copy())
 	return position
-
-
-static func _is_placement_or_skip(event: HistoryEntry) -> bool:
-	return event.type == HistoryEntry.Type.PLACEMENT or event.type == HistoryEntry.Type.SKIP

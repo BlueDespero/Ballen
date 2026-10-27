@@ -110,7 +110,7 @@ func test_every_past_turn_rebuilds_the_position_the_match_had_then() -> void:
 			assert_true(current_match.submit(player, ais[player].decide(current_match.public_view(player))))
 			var live: MatchPosition = current_match.public_view(0).position
 			var last: HistoryEntry = live.history[-1]
-			if last.type == HistoryEntry.Type.PLACEMENT or last.type == HistoryEntry.Type.SKIP:
+			if last.is_placement_or_skip():
 				seen[live.turn] = live
 		var position: MatchPosition = current_match.public_view(0).position
 		assert_gt(position.skips[0] + position.skips[1], 2, "seed %d reached skips" % seed_value)
