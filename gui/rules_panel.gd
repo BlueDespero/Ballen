@@ -26,6 +26,8 @@ const PIP_SIZE: float = 16.0
 const PIP_FILLED_COLOUR: Color = Color(0.92, 0.36, 0.32)
 const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
 const CROSS_TEXT_ALPHA: float = 0.45
+## How far down a line of text a ✗ rule's strike runs (0 top, 1 bottom).
+const STRIKE_HEIGHT: float = 0.55
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -119,17 +121,45 @@ func _add_mark_buttons(row: PanelContainer) -> void:
 		button.name = "Cross" if mark == NoteMark.Mark.CROSS else "Question"
 		button.pressed.connect(_on_mark_pressed.bind(String(row.name), mark))
 		buttons.add_child(button)
+	var text_label: Label = row.get_node("Line/Text") as Label
+	text_label.draw.connect(_strike_through.bind(text_label, String(row.name)))
 
 
-## A press sets, switches or clears the row's mark; a rule marked ✗ fades so
-## the rules the player still considers stand out.
+## A press sets, switches or clears the row's mark; a rule marked ✗ fades and
+## is struck through, so the rules the player still considers stand out.
 func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	var mark: NoteMark.Mark = NoteMark.toggled(_marks[rule_id] as NoteMark.Mark, pressed)
 	_marks[rule_id] = mark
 	var row: Node = _ai_rules.get_node(rule_id)
 	(row.get_node("Line/Marks/Cross") as NoteMarkButton).lit = mark == NoteMark.Mark.CROSS
 	(row.get_node("Line/Marks/Question") as NoteMarkButton).lit = mark == NoteMark.Mark.QUESTION
-	(row.get_node("Line/Text") as Label).modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
+	var text_label: Label = row.get_node("Line/Text") as Label
+	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
+	text_label.queue_redraw()
+
+
+## Over a ✗ rule's text: a line through the middle of each line of text, as
+## wide as its letters (measured from the label, so it follows larger text).
+func _strike_through(text_label: Label, rule_id: String) -> void:
+	if _marks.get(rule_id, NoteMark.Mark.NONE) != NoteMark.Mark.CROSS:
+		return
+	# Each line of text by its top: [left, right, bottom].
+	var lines: Dictionary[float, Vector3] = {}
+	for i: int in text_label.text.length():
+		var bounds: Rect2 = text_label.get_character_bounds(i)
+		if bounds.size.x <= 0.0 or text_label.text[i] == " ":
+			continue
+		var top: float = bounds.position.y
+		var line: Vector3 = lines.get(top, Vector3(bounds.position.x, bounds.end.x, bounds.end.y))
+		lines[top] = Vector3(minf(line.x, bounds.position.x), maxf(line.y, bounds.end.x), line.z)
+	var font_size: int = text_label.get_theme_font_size("font_size")
+	var width: float = maxf(1.0, font_size / 10.0)
+	for top: float in lines:
+		var line: Vector3 = lines[top]
+		var y: float = top + (line.z - top) * STRIKE_HEIGHT
+		# Letters cut off for the ellipsis lie past the label's end.
+		var right: float = minf(line.y, text_label.size.x)
+		text_label.draw_line(Vector2(line.x, y), Vector2(right, y), Color.WHITE, width, true)
 
 
 func _get_marks() -> Dictionary[String, int]:
