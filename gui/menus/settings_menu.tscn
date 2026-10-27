@@ -85,6 +85,29 @@ layout_mode = 2
 text = "Sound effects and jingles."
 label_settings = SubResource("LabelSettings_hint")
 
+[node name="ColourBlindSymbols" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Colour-blind symbols"
+alignment = 0
+
+[node name="SymbolsRow" type="HBoxContainer" parent="Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SymbolsHint" type="Label" parent="Centre/Card/Content/SymbolsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "A distinct symbol on each ball colour, on the board and the colour buttons."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
+[node name="SymbolPreview" type="Control" parent="Centre/Card/Content/SymbolsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
 [node name="Buttons" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16

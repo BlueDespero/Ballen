@@ -25,6 +25,12 @@ const ROW_LABEL_GAP: float = 4.0
 const ROW_LABEL_FONT_SIZE: int = 16
 const ROW_LABEL_COLOUR: Color = Color(0.78, 0.81, 0.86, 0.75)
 
+## Colour-blind mode: each ball shows its colour's symbol.
+var symbols: bool = false:
+	set(value):
+		symbols = value
+		queue_redraw()
+
 var _board: Board = Board.new()
 var _legal_cells: Array[Vector2i] = []
 var _viewer: int = Players.NONE
@@ -62,11 +68,21 @@ func cell_centre(cell: Vector2i) -> Vector2:
 
 
 ## Draws one ball into rect on any canvas item; marked balls (the opponent's)
-## get a dark dot in the middle.
-static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: bool) -> void:
+## get a dark dot in the middle. With symbols (colour-blind mode) the ball
+## also shows its colour's symbol: outlined on the player's balls, white on a
+## bigger dark dot on the opponent's.
+static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: bool, symbols: bool = false) -> void:
 	canvas.draw_texture_rect(BALL_TEXTURE, rect, false, Constants.colors[colour]["rgb"])
+	var centre: Vector2 = rect.get_center()
+	if not symbols:
+		if marked:
+			canvas.draw_circle(centre, rect.size.x * 0.14, OPPONENT_MARK_COLOUR)
+		return
 	if marked:
-		canvas.draw_circle(rect.get_center(), rect.size.x * 0.14, OPPONENT_MARK_COLOUR)
+		canvas.draw_circle(centre, rect.size.x * 0.27, OPPONENT_MARK_COLOUR)
+		BallSymbol.draw(canvas, centre, rect.size.x * 0.15, colour, false)
+	else:
+		BallSymbol.draw(canvas, centre, rect.size.x * 0.2, colour, true)
 
 
 func _process(_delta: float) -> void:
@@ -86,7 +102,7 @@ func _draw() -> void:
 			draw_rect(rect.grow(-5.0), GLOW_COLOUR, false, 3.0)
 		var ball: Ball = _board.ball_at(cell)
 		if ball != null:
-			draw_ball(self, rect.grow(-BALL_INSET), ball.colour, ball.owner != _viewer)
+			draw_ball(self, rect.grow(-BALL_INSET), ball.colour, ball.owner != _viewer, symbols)
 	if Board.contains(_highlighted):
 		var centre: Vector2 = _cell_rect(_highlighted).get_center()
 		draw_arc(centre, CELL_SIZE / 2.0 - BALL_INSET / 2.0, 0.0, TAU, 48, HIGHLIGHT_COLOUR, HIGHLIGHT_WIDTH, true)

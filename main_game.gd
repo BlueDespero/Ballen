@@ -67,6 +67,8 @@ func _ready() -> void:
 	_history_nav.back_pressed.connect(_step_back)
 	_history_nav.live_pressed.connect(_go_live)
 	_history_nav.forward_pressed.connect(_step_forward)
+	Settings.changed.connect(_apply_settings)
+	_apply_settings()
 	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
 	_show_pre_match()
 
@@ -75,6 +77,14 @@ func _exit_tree() -> void:
 	if _driver != null:
 		_driver.stop()
 	_human.choose(null)
+
+
+## Passes the player's settings (the Settings autoload) on to the views.
+func _apply_settings() -> void:
+	_board_view.symbols = Settings.colour_blind_symbols
+	_player_ball.symbols = Settings.colour_blind_symbols
+	_ai_ball.symbols = Settings.colour_blind_symbols
+	_picker.symbols = Settings.colour_blind_symbols
 
 
 ## Both decks on show and an empty board; the player chooses a true rule

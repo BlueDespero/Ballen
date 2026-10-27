@@ -16,6 +16,11 @@ const SNAP_BACK_SECONDS: float = 0.15
 @export var board: BoardView
 ## Balls of the opponent carry the same mark as on the board.
 @export var marked: bool = false
+## Colour-blind mode: the ball shows its colour's symbol.
+var symbols: bool = false:
+	set(value):
+		symbols = value
+		queue_redraw()
 
 ## Answers whether a cell is legal for this ball now: func(cell: Vector2i) -> bool.
 var legality: Callable
@@ -74,7 +79,7 @@ func fly_to(global_centre: Vector2, seconds: float) -> void:
 
 func _draw() -> void:
 	if colour != "":
-		BoardView.draw_ball(self, Rect2(Vector2.ZERO, size), colour, marked)
+		BoardView.draw_ball(self, Rect2(Vector2.ZERO, size), colour, marked, symbols)
 
 
 func _gui_input(event: InputEvent) -> void:

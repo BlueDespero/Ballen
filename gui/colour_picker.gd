@@ -33,6 +33,13 @@ var reduced_motion: bool = false:
 		reduced_motion = value
 		_update_pulse()
 
+## Colour-blind mode: each button shows its colour's symbol.
+var symbols: bool = false:
+	set(value):
+		symbols = value
+		for button: Button in _buttons:
+			button.queue_redraw()
+
 var _buttons: Array[Button] = []
 ## 0 = ring at its dimmest, 1 = brightest.
 var _pulse: float = 1.0:
@@ -55,6 +62,7 @@ func _ready() -> void:
 		button.add_theme_stylebox_override("pressed", _style(rgb.darkened(0.2), 3.0))
 		button.add_theme_stylebox_override("disabled", _style(rgb.darkened(0.4), 0.0))
 		button.pressed.connect(picked.emit.bind(colour))
+		button.draw.connect(_draw_symbol.bind(button, colour))
 		add_child(button)
 		_buttons.append(button)
 	enabled = enabled
@@ -68,6 +76,11 @@ func _draw() -> void:
 	for button: Button in _buttons:
 		var centre: Vector2 = button.position + button.size / 2.0
 		draw_arc(centre, RING_RADIUS, 0.0, TAU, 48, colour, width, true)
+
+
+func _draw_symbol(button: Button, colour: String) -> void:
+	if symbols:
+		BallSymbol.draw(button, button.size / 2.0, BUTTON_SIZE.x * 0.2, colour, true)
 
 
 ## Pulses the ring while enabled, unless motion is reduced; a still ring
