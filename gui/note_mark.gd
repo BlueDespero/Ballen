@@ -19,3 +19,9 @@ static func next(mark: Mark) -> Mark:
 			return Mark.QUESTION
 		_:
 			return Mark.NONE
+
+
+## The mark after the player presses one mark's button: pressing the lit mark
+## clears it, pressing the other one switches to it.
+static func toggled(current: Mark, pressed: Mark) -> Mark:
+	return Mark.NONE if pressed == current else pressed
