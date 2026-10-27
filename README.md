@@ -23,6 +23,8 @@ godot --headless --path . --import
 godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
 # Play 100 AI-vs-AI matches and print balance numbers; exit code 1 if any match didn't finish
 godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+# Measure each rule's strictness on 2000 seeded random boards
+godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
 ```
 
 `CLAUDE.md` has the details.
@@ -35,7 +37,7 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 | `model/` | The match as plain GDScript: board, turns, commands, history, public views, controllers |
 | `rules/` | Rules engine; rules and templates as data in `rules/data/` |
 | `ai/` | The AI opponent: deduction, guessing, colour picks, placement, levels |
-| `harness/` | Headless AI-vs-AI harness for balance numbers |
+| `harness/` | Headless AI-vs-AI harness and strictness check for balance numbers |
 | `gui/` | Board, ball, colour picker, guess button, rules panel, match setup, match-end and menu scenes |
 | `event_bus.gd`, `constants.gd` | Autoloads: global signals, ball colours |
 | `assets/` | Kenney art assets |

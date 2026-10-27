@@ -49,6 +49,19 @@ any match didn't finish. From the repo root, after the import step above:
 godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 ```
 
+## Strictness check
+
+Measures every built rule on the same seeded random boards and prints its strictness (average share of empty cells
+it forbids), the share of boards where it leaves no legal cell, and whether it is inside the GDD's 20–60% band.
+Same seed, same output. From the repo root, after the import step (about 3 minutes for 2000 boards):
+
+```powershell
+godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
+```
+
+Rule tiers combine it with a large harness run (1000+ matches); method and thresholds in
+`docs/technical-design.md` ("Rule tiers").
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.
@@ -77,7 +90,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
   rule and template data in `rules/data/`
 - `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`
-- `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`
+- `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`;
+  strictness check: `StrictnessCheck`, `run_strictness.gd`
 - `assets/` — Kenney art assets
 - `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
   `addons/gut/` — vendored GUT 9.7.1
