@@ -33,7 +33,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 # Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,362 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -69,8 +69,9 @@ Headless, the match never starts: it waits on the match setup screen's Start, wh
 At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
 layout and centres it, so these coordinates no longer hold.
 
-- Main menu buttons (centre x 640): Single Player y=305, Decks y=342, Options y=378, Quit y=414
-  (with Larger text on: 301, 341, 381, 421).
+- Main menu: the board backdrop (`MainMenu/Backdrop`, a `BoardBackdrop`) fills the screen, with the
+  "Ballen" title (`MainMenu/Title`) above the buttons on a dark card. Buttons (centre x 640): Single
+  Player y=362, Decks y=398, Options y=435, Quit y=471 (with Larger text on: 357, 397, 437, 477).
 - Decks screen (Decks; scene `Decks`, `gui/menus/decks_screen.tscn`, or `scene:` it directly): one row
   per deck under `Margin/Card/Content/Scroll/DeckList` (`%DeckList`), named `Row0`, `Row1`, … in list
   order (Starter first, then saved decks in save order; the deck's name is in meta `deck_name`), row centres y=176, 240, 304, … (step 64). Each row shows the
@@ -114,11 +115,13 @@ layout and centres it, so these coordinates no longer hold.
 - Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
   the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
   marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
-  (x 16–720, y 24–696). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
+  (x 48–688, y 30–690; with Larger text x 16–720, y 31–688) over the board backdrop
+  (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
   centre (434,122); click it, then the list's items at x≈226, y=162, 189, 216, … (step 27). AI level buttons
-  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈256, Normal x≈433, Hard x≈610; only
+  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; only
   Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
-  the level. Your deck's rules as toggle buttons (x 40–696, centre x 368): starter deck R01 y=378,
+  the level. Your deck's rules as toggle buttons (x 80–656, centre x 368; a long rule wraps onto two
+  lines, moving the rows below it down): starter deck R01 y=378,
   R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01` …); a tapped rule turns gold.
   Start (`Buttons/StartButton`, disabled until a rule is tapped) centre (461,648), Main menu centre
   (275,648). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /

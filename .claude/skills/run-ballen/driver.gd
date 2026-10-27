@@ -2,7 +2,7 @@ extends SceneTree
 ## Drives Ballen from the command line: loads the main scene, then runs the
 ## commands given after `--`, one per argument, in order.
 ##
-##   godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:30 ss:menu click:640,305 ss:game quit
+##   godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:30 ss:menu click:640,362 ss:game quit
 ##
 ## Commands (coordinates are viewport pixels, 1280x720 at the default window size):
 ##   wait:N               let N frames pass

@@ -83,6 +83,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
   colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rule tier badges (`TierBadge`),
+  the menus' animated board backdrop (`BoardBackdrop`),
   menus (`gui/menus/`: main menu, Decks screen and deck editor, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
