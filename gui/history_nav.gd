@@ -21,9 +21,12 @@ const LIT_STYLES: Array[String] = ["normal", "hover", "pressed"]
 const LIT_FONT_COLOURS: Array[String] = ["font_color", "font_hover_color", "font_pressed_color"]
 
 ## Whether Live is lit: a past board is on show and the match has moved on.
-var live_lit: bool:
-	get:
-		return _live_pulse != null
+var live_lit: bool = false
+## Reduced motion: a lit Live button stays bright instead of pulsing.
+var reduced_motion: bool = false:
+	set(value):
+		reduced_motion = value
+		_update_pulse()
 
 var _back: Button
 var _live: Button
@@ -52,10 +55,8 @@ func set_state(can_go_back: bool, viewing_past: bool, moved_on: bool = false) ->
 func _light_live(lit: bool) -> void:
 	if lit == live_lit:
 		return
-	if _live_pulse != null:
-		_live_pulse.kill()
-		_live_pulse = null
-	_live.self_modulate = Color.WHITE
+	live_lit = lit
+	_update_pulse()
 	if not lit:
 		for state: String in LIT_STYLES:
 			_live.remove_theme_stylebox_override(state)
@@ -69,6 +70,19 @@ func _light_live(lit: bool) -> void:
 		_live.add_theme_stylebox_override(state, style)
 	for font_colour: String in LIT_FONT_COLOURS:
 		_live.add_theme_color_override(font_colour, BoardView.GLOW_COLOUR)
+
+
+## Pulses a lit Live button unless motion is reduced; otherwise it shows at
+## full brightness.
+func _update_pulse() -> void:
+	if _live_pulse != null:
+		_live_pulse.kill()
+		_live_pulse = null
+	if _live == null:
+		return
+	_live.self_modulate = Color.WHITE
+	if not live_lit or reduced_motion:
+		return
 	_live_pulse = create_tween().set_loops()
 	_live_pulse.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_live_pulse.tween_property(_live, "self_modulate:a", PULSE_DIM_ALPHA, PULSE_SECONDS)

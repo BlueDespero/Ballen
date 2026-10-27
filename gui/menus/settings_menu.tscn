@@ -108,6 +108,18 @@ layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 
+[node name="ReducedMotion" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reduced motion"
+alignment = 0
+
+[node name="ReducedMotionHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Glows and rings hold still, balls jump instead of flying, skipped balls vanish without dissolving."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
 [node name="Buttons" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16

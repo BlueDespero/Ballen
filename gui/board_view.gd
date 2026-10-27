@@ -25,6 +25,11 @@ const ROW_LABEL_GAP: float = 4.0
 const ROW_LABEL_FONT_SIZE: int = 16
 const ROW_LABEL_COLOUR: Color = Color(0.78, 0.81, 0.86, 0.75)
 
+## Reduced motion: the legal-cell glow holds steady instead of pulsing.
+var reduced_motion: bool = false:
+	set(value):
+		reduced_motion = value
+		queue_redraw()
 ## Colour-blind mode: each ball shows its colour's symbol.
 var symbols: bool = false:
 	set(value):
@@ -86,12 +91,13 @@ static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: b
 
 
 func _process(_delta: float) -> void:
-	if not _legal_cells.is_empty():
+	if not _legal_cells.is_empty() and not reduced_motion:
 		queue_redraw() # the glow pulses
 
 
 func _draw() -> void:
-	var pulse: float = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 250.0)
+	# With reduced motion the glow holds steady at its middle brightness.
+	var pulse: float = 0.5 if reduced_motion else 0.5 + 0.5 * sin(Time.get_ticks_msec() / 250.0)
 	for cell: Vector2i in Board.all_cells():
 		var rect: Rect2 = _cell_rect(cell)
 		draw_texture_rect(CELL_TEXTURE, rect, false)

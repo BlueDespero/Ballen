@@ -85,6 +85,11 @@ func _apply_settings() -> void:
 	_player_ball.symbols = Settings.colour_blind_symbols
 	_ai_ball.symbols = Settings.colour_blind_symbols
 	_picker.symbols = Settings.colour_blind_symbols
+	_history_nav.reduced_motion = Settings.reduced_motion
+	_board_view.reduced_motion = Settings.reduced_motion
+	_player_ball.reduced_motion = Settings.reduced_motion
+	_ai_ball.reduced_motion = Settings.reduced_motion
+	_picker.reduced_motion = Settings.reduced_motion
 
 
 ## Both decks on show and an empty board; the player chooses a true rule
@@ -204,9 +209,11 @@ func _show_skip(skip: HistoryEntry) -> void:
 	note.visible = true
 	# The player's note sits where the history arrows are.
 	_history_nav.visible = skip.player != HUMAN
+	# With reduced motion the note goes with the ball, without fading.
+	var fade_seconds: float = 0.0 if Settings.reduced_motion else SKIP_DISSOLVE_SECONDS
 	var fade: Tween = note.create_tween()
-	fade.tween_interval(SKIP_HOLD_SECONDS)
-	fade.tween_property(note, "modulate:a", 0.0, SKIP_DISSOLVE_SECONDS)
+	fade.tween_interval(SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS - fade_seconds)
+	fade.tween_property(note, "modulate:a", 0.0, fade_seconds)
 	await ball.dissolve(skip.colour, SKIP_HOLD_SECONDS, SKIP_DISSOLVE_SECONDS)
 	note.visible = false
 	_history_nav.visible = true
