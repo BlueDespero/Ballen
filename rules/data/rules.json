@@ -9,6 +9,7 @@
 	{ "id": "R08", "text": "Not next to the ball you placed last", "template": "not_next_to", "values": { "ball": "my_last_ball" } },
 	{ "id": "R09", "text": "Never in the same row as your last ball", "template": "not_same_axis_as", "values": { "axis": "row", "ball": "my_last_ball" } },
 	{ "id": "R10", "text": "Never complete a line of 3", "template": "no_line_of", "values": { "n": 3 } },
+	{ "id": "R13", "text": "Must touch an existing ball", "template": "must_touch", "values": { "ball": "any_ball" } },
 	{ "id": "R15", "text": "Only in a row numbered higher than your last ball's row", "template": "relative_to_last", "values": { "direction": "higher" } },
 	{ "id": "R16", "text": "Only in a row numbered lower than your last ball's row", "template": "relative_to_last", "values": { "direction": "lower" } },
 	{ "id": "R18", "text": "Only cells with 2+ empty neighbours", "template": "min_empty_neighbours", "values": { "n": 2 } },

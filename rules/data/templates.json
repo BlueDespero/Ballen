@@ -120,5 +120,16 @@
 					"of": { "part": "my_ball", "of": { "part": "whole_board" } } }
 			] }
 		}
+	},
+	"must_touch": {
+		"blanks": { "ball": ["any_ball"] },
+		"tree": {
+			"part": "any", "of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "$ball", "of": { "part": "other_cells", "of": { "part": "target" } } } },
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } } }
+			]
+		}
 	}
 }

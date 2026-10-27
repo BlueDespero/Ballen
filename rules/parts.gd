@@ -25,6 +25,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"neighbours": _neighbours,
 	"same_axis": _same_axis,
 	"whole_board": _whole_board,
+	"other_cells": _other_cells,
 	# Filters
 	"in_zone": _in_zone,
 	"with_parity": _with_parity,
@@ -33,6 +34,7 @@ static var _parts: Dictionary[String, Callable] = {
 	"my_ball": _my_ball,
 	"my_last_ball": _my_last_ball,
 	"opponent_last_ball": _opponent_last_ball,
+	"any_ball": _any_ball,
 	"empty": _empty,
 	"of_colour": _of_colour,
 	# Conditions
@@ -86,6 +88,17 @@ static func _neighbours(node: Dictionary, ctx: PlacementContext) -> Array[Vector
 		for cell: Vector2i in Board.neighbours(centre):
 			if not centres.has(cell) and not cells.has(cell):
 				cells.append(cell)
+	return cells
+
+
+## Every cell of the board except the cells of "of".
+## {"part": "other_cells", "of": {"part": "target"}}
+static func _other_cells(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var left_out: Array[Vector2i] = _cells(node.of, ctx)
+	var cells: Array[Vector2i] = []
+	for cell: Vector2i in Board.all_cells():
+		if not left_out.has(cell):
+			cells.append(cell)
 	return cells
 
 
@@ -196,6 +209,16 @@ static func _opponent_last_ball(node: Dictionary, ctx: PlacementContext) -> Arra
 	var last: Array[Vector2i] = ctx.last_ball(Players.opponent(ctx.holder))
 	for cell: Vector2i in _cells(node.of, ctx):
 		if last.has(cell):
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball, any colour and owner (after the placement, so the
+## target counts). {"part": "any_ball", "of": ...}
+static func _any_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		if ctx.board.ball_at(cell) != null:
 			kept.append(cell)
 	return kept
 
