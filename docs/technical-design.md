@@ -110,10 +110,10 @@ Built so far, enough for the milestone 1 rules:
 
 | Kind | Parts |
 | --- | --- |
-| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row) |
-| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `opponent_ball`; `my_last_ball`; `empty` |
-| Condition | `count_at_most`; `count_at_least` |
-| Combiner | `all` (with an empty list it always passes: the permissive rule tests use) |
+| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row); `whole_board` |
+| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `opponent_ball`; `my_last_ball`; `empty`; `of_colour` (a fixed colour) |
+| Condition | `count_at_most`; `count_at_least`; `no_more_than` (no more cells in one selection than in another) |
+| Combiner | `all` (with an empty list it always passes: the permissive rule tests use); `any` |
 | Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
 
 Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
