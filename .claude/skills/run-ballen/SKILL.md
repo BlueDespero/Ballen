@@ -30,10 +30,10 @@ godot --headless --path . --import
 One process per script of commands; read the `[driver]` lines on stdout, look at the PNGs.
 
 ```powershell
-# Menu -> Single Player -> tap R03 to make it your true rule -> wait out the coin toss
+# Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:30 click:428,364 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:60 click:640,428 wait:5 click:733,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -58,10 +58,10 @@ Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` an
 Headless runs read state only: clicks, drags and touches reach no control, so play needs a window.
 
 ```powershell
-godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:60 get:Layout/Status:text get:Layout/PreMatch:visible
+godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:60 get:Layout/MatchSetup:visible get:Layout/MatchSetup/Backdrop/Centre/Card/Content/LevelDescription:text
 ```
 
-Headless, the match never starts: it waits on the pre-match tap, which needs a window.
+Headless, the match never starts: it waits on the match setup screen's Start, which needs a window.
 
 ### Layout (landscape: 1280×720 base, stretch `canvas_items`, aspect `expand`)
 
@@ -87,13 +87,20 @@ layout and centres it, so these coordinates no longer hold.
   (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
   panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
-- Pre-match overlay: `Layout/PreMatch`, over the board (x 176–680, y 120–600), visible when the scene
-  opens. Your starter deck as buttons (x 200–656, centre x≈428): R01 y=306, R03 y=364, R05 y=422,
-  R08 y=480, R18 y=538 (nodes `Layout/PreMatch/Choice/RuleButtons/R01` …). Tapping one makes it your
-  true rule and starts the match; the overlay then shows the coin toss ("Coin toss: you go first" /
-  "…the AI goes first") for 2 s (`wait:150` covers it) and hides. Both decks are in the rules panel
-  from the start; `Layout/Status` reads `Choose your true rule.`, then `You go first.` /
-  `The AI goes first.` during the toss.
+- Match setup screen: `Layout/MatchSetup`, covering the whole layout (rules panel too) when the scene
+  opens; its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content` (x 280–1000, y 24–696). Deck
+  picker (`DeckRow/DeckPicker`, an OptionButton of the saved decks, `Starter` when none are saved)
+  centre (706,122). AI level buttons (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈534,
+  Normal x≈705, Hard x≈876; only Normal is enabled (and pressed), the others read "(coming soon)";
+  `LevelDescription:text` describes the level. Your deck's rules as toggle buttons (x 312–968, centre
+  x 640): starter deck R01 y=378, R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01`
+  …); a tapped rule turns gold. Start (`Buttons/StartButton`, disabled until a rule is tapped) centre
+  (733,648), Main menu centre (547,648). Start hides the card and shows the coin toss over the board
+  ("Coin toss: you go first" / "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s
+  (`wait:150` covers it), then `Layout/MatchSetup:visible` turns false. Both decks appear in the rules
+  panel with the toss; `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
+  another deck, save one first (see `DeckStore`; tests and probes use their own `user://` path, as
+  `user://decks.json` is shared by every worktree).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
   bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
 - Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the
@@ -156,11 +163,11 @@ layout and centres it, so these coordinates no longer hold.
   `You lose` or `Draw`. A full board takes 36 placements; to
   check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full
   `MatchPosition` (see `Fixtures.nearly_full_match` in `test/helpers/fixtures.gd`) and don't commit it.
-- Rematch: hides the match-end screen and shows the pre-match overlay again on the same decks
-  (`Layout/Status` `Choose your true rule.`, Guess back in the rules panel). After the tap the overlay
-  reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other player goes
-  first) and the row numbers flip with it. Continue from the end screen with
-  `click:271,540 until:Layout/PreMatch:visible=true wait:30 click:428,422 until:Layout/PreMatch:visible=false`.
+- Rematch: hides the match-end screen and shows the match setup screen again, titled `Rematch`, with
+  the deck picker and the other levels disabled (same decks, same level): tap a rule and Start. The
+  toss then reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other
+  player goes first) and the row numbers flip with it. Continue from the end screen with
+  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:640,478 wait:5 click:733,648 until:Layout/MatchSetup:visible=false`.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
@@ -188,10 +195,10 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
 - **`ss` under `--headless` used to hang forever**: nothing draws, so `frame_post_draw` never fires.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
 - **Every match is random**: the AI's deck and true rule, the coin toss, the AI's colours, cells and
-  pauses are unseeded (your starter deck is fixed). If you go second, the first thing the match waits
+  pauses are unseeded (your deck is the one you pick). If you go second, the first thing the match waits
   for is your colour pick (`Layout/Status` says so), so `until:Layout/PlayerBall:draggable=true` times
   out; click a colour first. Clicking a disabled picker does nothing, so `wait:150 click:624,660` right
-  after the pre-match tap is safe either way.
+  after Start is safe either way.
 - **Reaching skips**: you can't see legal cells from the driver, so play blind. Each turn:
   `until:Layout/PlayerBall:draggable=true`, then drag onto every cell, `wait:12` after each (illegal
   drops snap back; once one lands the ball is no longer draggable and the rest do nothing), then
@@ -201,8 +208,8 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   colours, so allow many turns, and call the Godot exe directly rather than the `godot.cmd` shim: a
   long command list overflows cmd.exe's 8 KB line. Read `Layout/Status` to see who skipped.
 - **Fixed `wait:N` counts can fall out of step** when the window is slow to start, so a click lands on
-  the wrong screen (e.g. a Rematch click picking a pre-match rule). Gate each screen with `until:` on
-  its state (`Layout/PreMatch:visible`, `Layout/MatchEnd:visible`), and put a `wait:60` between the
+  the wrong screen (e.g. a Rematch click picking a rule on the setup screen). Gate each screen with `until:` on
+  its state (`Layout/MatchSetup:visible`, `Layout/MatchEnd:visible`), and put a `wait:60` between the
   Single Player click and the first `until:`: right after a scene change there is no current scene
   and `until:` errors out, leaving the window open (kill that Godot process).
 - **One windowed run at a time**: two windowed runs (e.g. from parallel agents) fight over the real
