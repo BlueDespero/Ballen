@@ -36,7 +36,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:30 click:428,364 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
-Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends your turn.` and writes
+Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
 `.claude/skills/run-ballen/out/turn.png` (gitignored). Exit code 0; 1 on an unknown command.
 
 | command | what it does |
@@ -83,7 +83,9 @@ layout and centres it, so these coordinates no longer hold.
 - Your waiting ball: `Layout/PlayerBall`, centre (440,660); `draggable` is true on your placement turn.
   A drop on a non-legal cell or off the board snaps it back to `position (408,628)`.
 - Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
-  green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second).
+  green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second):
+  then a yellow ring pulses around each button and `Layout/Status` contains `Pick the AI's next colour.`;
+  otherwise the buttons are dimmed (`Layout/ColourPicker:enabled`).
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
 - A skipped ball appears on its owner's waiting spot in the skipped colour and shrinks and fades
   (0.4 s); the skip pips fill after it.
