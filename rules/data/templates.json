@@ -89,5 +89,14 @@
 			"part": "count_at_least", "n": 1,
 			"of": { "part": "empty", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
 		}
+	},
+	"zone_on_turn_parity": {
+		"blanks": { "parity": ["even", "odd"], "zone": ["edge"] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "own_turn_parity", "parity": "$parity" },
+			"then": { "part": "count_at_least", "n": 1,
+				"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } } }
+		}
 	}
 }

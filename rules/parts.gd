@@ -40,6 +40,9 @@ static var _parts: Dictionary[String, Callable] = {
 	# Combiners
 	"all": _all,
 	"any": _any,
+	# Time and game-state parts (if_then, then conditions on the position)
+	"if_then": _if_then,
+	"own_turn_parity": _own_turn_parity,
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
@@ -254,3 +257,20 @@ static func _in_row_relative(node: Dictionary, ctx: PlacementContext) -> Array[V
 		if beyond_all:
 			kept.append(cell)
 	return kept
+
+
+# Time and game-state parts --------------------------------------------------
+# A combiner for "if X, then Y" rules, and conditions that read the position
+# before the placement (turn, skips) rather than cells.
+
+## Passes when "if" fails or "then" passes: "then" only applies while "if"
+## holds. {"part": "if_then", "if": <condition>, "then": <condition>}
+static func _if_then(node: Dictionary, ctx: PlacementContext) -> bool:
+	return not evaluate(node["if"], ctx) or evaluate(node["then"], ctx)
+
+
+## The holder's own turn count (1 on their first turn) is even or odd.
+## {"part": "own_turn_parity", "parity": "odd"}
+static func _own_turn_parity(node: Dictionary, ctx: PlacementContext) -> bool:
+	var remainder: int = 0 if node.parity == "even" else 1
+	return ctx.own_turn() % 2 == remainder
