@@ -13,7 +13,7 @@ const ROW_HEIGHT: float = 56.0
 const NAME_WIDTH: float = 240.0
 const ROW_BUTTON_WIDTH: float = 96.0
 const NAME_FIELD_FONT_SIZE: int = 20
-const DELETE_COLOUR: Color = Color(0.92, 0.36, 0.32)
+const DELETE_COLOUR: Color = Palette.RED_COLOUR
 ## Each row keeps the name of its deck here; rows are named Row0 (Starter),
 ## Row1, ... in list order, as deck names needn't make distinct node names.
 const DECK_NAME_META: StringName = &"deck_name"
@@ -58,7 +58,7 @@ func _ready() -> void:
 		item.name = TierBadge.title(tier)
 		item.add_theme_constant_override("separation", 6)
 		item.add_child(TierBadge.dot(tier))
-		item.add_child(_label(TierBadge.title(tier), TierBadge.colour(tier), 15))
+		item.add_child(Palette.label(TierBadge.title(tier), TierBadge.colour(tier), 15))
 		%Legend.add_child(item)
 	Settings.changed.connect(_apply_text_scale)
 	_fill()
@@ -95,7 +95,7 @@ func _deck_row(deck_name: String) -> PanelContainer:
 	row.set_meta(DECK_NAME_META, deck_name)
 	row.custom_minimum_size.y = ROW_HEIGHT
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = RulesPanel.ROW_COLOUR
+	style.bg_color = Palette.ROW_COLOUR
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 16
 	style.content_margin_right = 10
@@ -106,7 +106,7 @@ func _deck_row(deck_name: String) -> PanelContainer:
 	line.name = "Line"
 	line.add_theme_constant_override("separation", 10)
 	row.add_child(line)
-	var name_label: Label = _label(deck_name, Color.WHITE, 20)
+	var name_label: Label = Palette.label(deck_name, Color.WHITE, 20)
 	name_label.name = "DeckName"
 	name_label.custom_minimum_size.x = NAME_WIDTH
 	name_label.clip_text = true
@@ -119,11 +119,11 @@ func _deck_row(deck_name: String) -> PanelContainer:
 	line.add_child(rules)
 	for rule: Rule in _store.deck(deck_name).rules:
 		rules.add_child(TierBadge.dot(rule.tier))
-		var id_label: Label = _label(rule.id, RulesPanel.ID_COLOUR, 17)
+		var id_label: Label = Palette.label(rule.id, Palette.ID_COLOUR, 17)
 		id_label.custom_minimum_size.x = 40
 		rules.add_child(id_label)
 	if _store.is_read_only(deck_name):
-		line.add_child(_label("Built in", RulesPanel.HINT_COLOUR, 15))
+		line.add_child(Palette.label("Built in", Palette.HINT_COLOUR, 15))
 		line.add_child(_row_button("Copy", _copy.bind(deck_name)))
 	else:
 		line.add_child(_row_button("Edit", _edit.bind(deck_name)))
@@ -218,9 +218,9 @@ func _row_button(text: String, on_pressed: Callable, colour: Color = Color.WHITE
 	button.add_theme_font_size_override("font_size", 16)
 	button.add_theme_color_override("font_color", colour)
 	button.add_theme_color_override("font_hover_color", colour)
-	button.add_theme_stylebox_override("normal", _button_style(RulesPanel.ROW_COLOUR.lightened(0.08), 0.0))
-	button.add_theme_stylebox_override("hover", _button_style(RulesPanel.ROW_COLOUR.lightened(0.18), 0.5))
-	button.add_theme_stylebox_override("pressed", _button_style(RulesPanel.ROW_COLOUR.lightened(0.18), 0.5))
+	button.add_theme_stylebox_override("normal", _button_style(Palette.ROW_COLOUR.lightened(0.08), 0.0))
+	button.add_theme_stylebox_override("hover", _button_style(Palette.ROW_COLOUR.lightened(0.18), 0.5))
+	button.add_theme_stylebox_override("pressed", _button_style(Palette.ROW_COLOUR.lightened(0.18), 0.5))
 	button.pressed.connect(on_pressed)
 	return button
 
@@ -232,16 +232,6 @@ func _button_style(colour: Color, border_light: float) -> StyleBoxFlat:
 	style.set_border_width_all(2)
 	style.border_color = colour.lightened(border_light)
 	return style
-
-
-func _label(text: String, colour: Color, font_size: int) -> Label:
-	var label: Label = Label.new()
-	label.text = text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size_flags_vertical = Control.SIZE_FILL
-	label.add_theme_color_override("font_color", colour)
-	label.add_theme_font_size_override("font_size", font_size)
-	return label
 
 
 ## Larger text: labels and buttons scale; the rename field by hand.

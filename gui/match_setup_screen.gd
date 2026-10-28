@@ -67,10 +67,10 @@ func _ready() -> void:
 	_deck_picker.item_selected.connect(_on_deck_selected)
 	_start_button.pressed.connect(_on_start_pressed)
 	_main_menu_button.pressed.connect(main_menu_requested.emit)
-	_deck_picker.add_theme_stylebox_override("normal", _style(RulesPanel.ROW_COLOUR, 0))
-	_deck_picker.add_theme_stylebox_override("hover", _style(RulesPanel.ROW_COLOUR.lightened(0.1), 2))
-	_deck_picker.add_theme_stylebox_override("pressed", _style(RulesPanel.ROW_COLOUR.lightened(0.1), 2))
-	_deck_picker.add_theme_stylebox_override("disabled", _style(RulesPanel.ROW_COLOUR, 0))
+	_deck_picker.add_theme_stylebox_override("normal", _style(Palette.ROW_COLOUR, 0))
+	_deck_picker.add_theme_stylebox_override("hover", _style(Palette.ROW_COLOUR.lightened(0.1), 2))
+	_deck_picker.add_theme_stylebox_override("pressed", _style(Palette.ROW_COLOUR.lightened(0.1), 2))
+	_deck_picker.add_theme_stylebox_override("disabled", _style(Palette.ROW_COLOUR, 0))
 	for level: AILevel.Level in AILevel.ALL:
 		_level_buttons.add_child(_level_button(level))
 	_fit_card()
@@ -210,13 +210,13 @@ func _rule_button(rule: Rule) -> Button:
 ## A choice button: a plain row, outlined on hover, gold once chosen (like the
 ## true rule in the rules panel), dimmed when it can't be chosen.
 func _style_choice(button: Button, margin: int = 16) -> void:
-	var chosen: StyleBoxFlat = _style(RulesPanel.TRUE_ROW_COLOUR, 2, margin)
-	button.add_theme_stylebox_override("normal", _style(RulesPanel.ROW_COLOUR, 0, margin))
-	button.add_theme_stylebox_override("hover", _style(RulesPanel.ROW_COLOUR.lightened(0.1), 2, margin))
+	var chosen: StyleBoxFlat = _style(Palette.TRUE_ROW_COLOUR, 2, margin)
+	button.add_theme_stylebox_override("normal", _style(Palette.ROW_COLOUR, 0, margin))
+	button.add_theme_stylebox_override("hover", _style(Palette.ROW_COLOUR.lightened(0.1), 2, margin))
 	button.add_theme_stylebox_override("pressed", chosen)
 	button.add_theme_stylebox_override("hover_pressed", chosen)
-	button.add_theme_stylebox_override("disabled", _style(RulesPanel.ROW_COLOUR.darkened(0.3), 0, margin))
-	button.add_theme_color_override("font_disabled_color", RulesPanel.ID_COLOUR.darkened(0.2))
+	button.add_theme_stylebox_override("disabled", _style(Palette.ROW_COLOUR.darkened(0.3), 0, margin))
+	button.add_theme_color_override("font_disabled_color", Palette.ID_COLOUR.darkened(0.2))
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	button.add_theme_color_override("font_hover_pressed_color", Color.WHITE)
 
@@ -228,5 +228,5 @@ func _style(colour: Color, border: int, margin: int = 16) -> StyleBoxFlat:
 	style.content_margin_left = margin
 	style.content_margin_right = margin
 	style.set_border_width_all(border)
-	style.border_color = RulesPanel.TRUE_BORDER_COLOUR
+	style.border_color = Palette.GOLD_COLOUR
 	return style

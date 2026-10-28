@@ -16,8 +16,8 @@ const CROSS_HALF: float = 5.0
 const OFF_COLOUR: Color = Color(0.6, 0.64, 0.7, 0.6)
 const HOVER_COLOUR: Color = Color(0.85, 0.88, 0.92)
 const HOVER_FILL: Color = Color(1.0, 1.0, 1.0, 0.08)
-const CROSS_COLOUR: Color = Color(0.92, 0.36, 0.32)
-const QUESTION_COLOUR: Color = Color(1.0, 0.82, 0.3)
+const CROSS_COLOUR: Color = Palette.RED_COLOUR
+const QUESTION_COLOUR: Color = Palette.GOLD_COLOUR
 ## The glyph on a filled (lit) button.
 const LIT_GLYPH_COLOUR: Color = Color(0.1, 0.11, 0.14)
 

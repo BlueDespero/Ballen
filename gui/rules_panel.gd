@@ -15,15 +15,7 @@ signal guess_requested(rule_id: String)
 signal seal_requested(rule_id: String)
 
 const ROW_HEIGHT: float = 44.0
-const ROW_COLOUR: Color = Color(0.17, 0.19, 0.23)
-const TRUE_ROW_COLOUR: Color = Color(0.33, 0.27, 0.1)
-const TRUE_BORDER_COLOUR: Color = Color(1.0, 0.82, 0.3)
-const SELECTED_ROW_COLOUR: Color = Color(0.16, 0.24, 0.34)
-const SELECTED_BORDER_COLOUR: Color = Color(0.45, 0.72, 1.0)
-const ID_COLOUR: Color = Color(0.6, 0.64, 0.7)
-const HINT_COLOUR: Color = Color(0.7, 0.74, 0.8)
 const PIP_SIZE: float = 16.0
-const PIP_FILLED_COLOUR: Color = Color(0.92, 0.36, 0.32)
 const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
 const CROSS_TEXT_ALPHA: float = 0.45
 ## How far down a line of text a ✗ rule's strike runs (0 top, 1 bottom).
@@ -111,8 +103,8 @@ var _ai_true_rule_id: String = ""
 func _ready() -> void:
 	_guess_button.guessed.connect(_on_guessed)
 	_seal_button.guessed.connect(_on_sealed)
-	_guess_hint.add_theme_color_override("font_color", HINT_COLOUR)
-	_mark_hint.add_theme_color_override("font_color", HINT_COLOUR)
+	_guess_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
+	_mark_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
 	_apply_spacing()
 	_update_guess()
 
@@ -252,7 +244,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		if String(panel.name) == ai_true_rule.id:
 			# Right after the text, before the mark buttons.
-			var true_label: Label = _label("TRUE", TRUE_BORDER_COLOUR)
+			var true_label: Label = Palette.label("TRUE", Palette.GOLD_COLOUR)
 			panel.get_node("Line").add_child(true_label)
 			panel.get_node("Line").move_child(true_label, panel.get_node("Line/Text").get_index() + 1)
 	_update_guess()
@@ -296,7 +288,7 @@ func _draw_suspect_edge(row: PanelContainer) -> void:
 	edge.draw_center = false
 	edge.set_corner_radius_all(8)
 	edge.border_width_left = SUSPECT_EDGE_WIDTH
-	edge.border_color = NoteMarkButton.QUESTION_COLOUR
+	edge.border_color = Palette.GOLD_COLOUR
 	row.draw_style_box(edge, Rect2(Vector2.ZERO, row.size))
 
 
@@ -363,8 +355,8 @@ func _pip(filled: bool) -> Panel:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.set_corner_radius_all(int(PIP_SIZE / 2.0))
 	style.set_border_width_all(2)
-	style.border_color = PIP_FILLED_COLOUR if filled else PIP_EMPTY_COLOUR
-	style.bg_color = PIP_FILLED_COLOUR if filled else Color.TRANSPARENT
+	style.border_color = Palette.RED_COLOUR if filled else PIP_EMPTY_COLOUR
+	style.bg_color = Palette.RED_COLOUR if filled else Color.TRANSPARENT
 	pip.add_theme_stylebox_override("panel", style)
 	return pip
 
@@ -387,10 +379,10 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	line.add_theme_constant_override("separation", 12)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(line)
-	var id_label: Label = _label(rule.id, ID_COLOUR)
+	var id_label: Label = Palette.label(rule.id, Palette.ID_COLOUR)
 	id_label.custom_minimum_size.x = 40
 	line.add_child(id_label)
-	var text_label: Label = _label(rule.text, Color.WHITE)
+	var text_label: Label = Palette.label(rule.text, Color.WHITE)
 	text_label.name = "Text"
 	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# A long rule takes two lines rather than losing its end, in smaller text
@@ -401,28 +393,19 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 		text_label.add_theme_constant_override("line_spacing", LARGER_LINE_SPACING)
 	line.add_child(text_label)
 	if is_true:
-		line.add_child(_label("TRUE", TRUE_BORDER_COLOUR))
+		line.add_child(Palette.label("TRUE", Palette.GOLD_COLOUR))
 	return row
 
 
 ## A rule row's box. Selected rows turn blue and the true rule gold.
 func _style(is_selected: bool, is_true: bool) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = ROW_COLOUR
+	style.bg_color = Palette.ROW_COLOUR
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
 	if is_true or is_selected:
-		style.bg_color = TRUE_ROW_COLOUR if is_true else SELECTED_ROW_COLOUR
+		style.bg_color = Palette.TRUE_ROW_COLOUR if is_true else Palette.SELECTED_ROW_COLOUR
 		style.set_border_width_all(2)
-		style.border_color = TRUE_BORDER_COLOUR if is_true else SELECTED_BORDER_COLOUR
+		style.border_color = Palette.GOLD_COLOUR if is_true else Palette.SELECTED_BORDER_COLOUR
 	return style
-
-
-func _label(text: String, colour: Color) -> Label:
-	var label: Label = Label.new()
-	label.text = text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size_flags_vertical = Control.SIZE_FILL
-	label.add_theme_color_override("font_color", colour)
-	return label

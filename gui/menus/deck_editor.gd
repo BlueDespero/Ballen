@@ -129,10 +129,10 @@ func _rule_row(rule: Rule) -> PanelContainer:
 	line.add_theme_constant_override("separation", 14)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(line)
-	var id_label: Label = _label(rule.id, RulesPanel.ID_COLOUR)
+	var id_label: Label = Palette.label(rule.id, Palette.ID_COLOUR, 18)
 	id_label.custom_minimum_size.x = 44
 	line.add_child(id_label)
-	var text_label: Label = _label(rule.text, Color.WHITE)
+	var text_label: Label = Palette.label(rule.text, Color.WHITE, 18)
 	text_label.name = "Text"
 	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -157,7 +157,7 @@ func _set_hovered(rule_id: String) -> void:
 func _style_row(row: PanelContainer) -> void:
 	var picked: bool = _draft.has(row.name)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = RulesPanel.TRUE_ROW_COLOUR if picked else RulesPanel.ROW_COLOUR
+	style.bg_color = Palette.TRUE_ROW_COLOUR if picked else Palette.ROW_COLOUR
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 14
 	style.content_margin_right = 14
@@ -165,11 +165,11 @@ func _style_row(row: PanelContainer) -> void:
 	style.content_margin_bottom = 6
 	style.set_border_width_all(2)
 	if picked:
-		style.border_color = RulesPanel.TRUE_BORDER_COLOUR
+		style.border_color = Palette.GOLD_COLOUR
 	elif row.name == _hovered_rule_id:
-		style.border_color = RulesPanel.ROW_COLOUR.lightened(0.35)
+		style.border_color = Palette.ROW_COLOUR.lightened(0.35)
 	else:
-		style.border_color = RulesPanel.ROW_COLOUR
+		style.border_color = Palette.ROW_COLOUR
 	row.add_theme_stylebox_override("panel", style)
 
 
@@ -185,7 +185,7 @@ func _chip(tier: String) -> Button:
 	chip.custom_minimum_size = Vector2(CHIP_WIDTH, CHIP_HEIGHT)
 	chip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	chip.add_theme_font_size_override("font_size", 16)
-	var colour: Color = RulesPanel.ID_COLOUR if tier == ALL_TIERS else TierBadge.colour(tier)
+	var colour: Color = Palette.ID_COLOUR if tier == ALL_TIERS else TierBadge.colour(tier)
 	chip.add_theme_stylebox_override("normal", _chip_style(colour, false))
 	chip.add_theme_stylebox_override("hover", _chip_style(colour.lightened(0.2), false))
 	chip.add_theme_stylebox_override("pressed", _chip_style(colour, true))
@@ -200,23 +200,13 @@ func _chip(tier: String) -> Button:
 
 func _chip_style(colour: Color, on: bool) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = colour.darkened(0.55) if on else RulesPanel.ROW_COLOUR
+	style.bg_color = colour.darkened(0.55) if on else Palette.ROW_COLOUR
 	style.border_color = colour
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(18)
 	style.content_margin_left = CHIP_MARGIN
 	style.content_margin_right = CHIP_MARGIN
 	return style
-
-
-func _label(text: String, colour: Color) -> Label:
-	var label: Label = Label.new()
-	label.text = text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size_flags_vertical = Control.SIZE_FILL
-	label.add_theme_color_override("font_color", colour)
-	label.add_theme_font_size_override("font_size", 18)
-	return label
 
 
 ## Larger text: labels and buttons scale; the name field by hand.
