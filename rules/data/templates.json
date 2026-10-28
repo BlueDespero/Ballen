@@ -1,0 +1,44 @@
+{
+	"not_on_zone": {
+		"blanks": { "zone": ["edge"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } }
+		}
+	},
+	"only_on_axis": {
+		"blanks": { "axis": ["row"], "parity": ["even", "odd"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "with_parity", "axis": "$axis", "parity": "$parity", "of": { "part": "target" } }
+		}
+	},
+	"max_in_axis": {
+		"blanks": { "axis": ["row"], "ball": ["same_colour"], "n": [] },
+		"tree": {
+			"part": "count_at_most", "n": "$n",
+			"of": { "part": "$ball", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
+		}
+	},
+	"no_line_of": {
+		"blanks": { "n": [3] },
+		"tree": {
+			"part": "no_group_of", "n": "$n",
+			"of": { "part": "lines_through", "of": { "part": "target" } }
+		}
+	},
+	"not_next_to": {
+		"blanks": { "ball": ["same_colour", "opponent_ball", "my_last_ball"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
+	},
+	"min_empty_neighbours": {
+		"blanks": { "n": [1, 2, 3, 4, 5, 6, 7, 8] },
+		"tree": {
+			"part": "count_at_least", "n": "$n",
+			"of": { "part": "empty", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
+	}
+}

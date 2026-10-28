@@ -11,18 +11,36 @@ opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser fir
 
 ## Running the project
 
-Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.tscn`.
+Open `project.godot` in Godot 4.7 and press **Play**. The main scene is `main.tscn`; **Single Player**
+starts a match against the AI.
+
+From the repo root, with Godot 4.7 on the path as `godot` (PowerShell):
+
+```powershell
+# Once per fresh checkout, and after adding a class_name
+godot --headless --path . --import
+# Run the GUT test suite headless; exit code 0 means every test passed
+godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+# Play 100 AI-vs-AI matches and print balance numbers; exit code 1 if any match didn't finish
+godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+```
+
+`CLAUDE.md` has the details.
 
 ## Project layout
 
 | Path | What it holds |
 | --- | --- |
-| `main.tscn`, `main_game.tscn` | Entry scenes |
-| `gui/` | Ball, board, rules box and menu scenes and scripts |
-| `rules/` | Rule logic (`baserule.gd`, `class_name Rule`) |
-| `event_bus.gd`, `constants.gd`, `utils.gd` | Autoloads: global signals, ball colours, turn state |
+| `main.tscn`, `main_game.tscn` | Entry scenes: main menu and match |
+| `model/` | The match as plain GDScript: board, turns, commands, history, public views, controllers |
+| `rules/` | Rules engine; rules and templates as data in `rules/data/` |
+| `ai/` | The AI opponent: deduction, guessing, colour picks, placement |
+| `harness/` | Headless AI-vs-AI harness for balance numbers |
+| `gui/` | Board, ball, colour picker, guess button, rules panel, pre-match, match-end and menu scenes |
+| `event_bus.gd`, `constants.gd` | Autoloads: global signals, ball colours |
 | `assets/` | Kenney art assets |
-| `docs/` | Design document and research notes |
+| `test/`, `addons/gut/` | GUT tests and the vendored GUT addon |
+| `docs/` | Design documents, rules library, research notes, milestone briefs, ADRs |
 
 ## How the AI thinks
 
@@ -30,6 +48,11 @@ The AI opponent is built on decision making under uncertainty, following Mykel K
 [*Decision Making Under Uncertainty: Theory and Application*](https://web.stanford.edu/group/sisl/public/dmu.pdf)
 (MIT Press, 2015). Section numbers below refer to that book. The AI sees only what a human
 opponent would see: it never peeks at your true rule.
+
+This is the design the AI grows into. The prototype builds one level on hard evidence only: it rules
+out your rules, gives you the colour expected to rule out the most, guesses once one rule is left, and
+places where most of its own rules allow. Soft evidence, difficulty levels and scaled thinking time
+come later ([technical design](docs/technical-design.md#ai-opponent)).
 
 ### A belief over your rules
 

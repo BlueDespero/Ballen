@@ -41,12 +41,12 @@ flowchart TD
     first -- yes --> trigger["Pull the trigger<br/>right: you win · wrong: you lose"]
     first -- no --> legal{"Legal cell?"}
     legal -- yes --> place["Place on a glowing cell"]
-    legal -- no --> removed["Ball dissolves<br/>+1 skip; the 3rd skip loses"]
+    legal -- no --> removed["Ball dissolves<br/>+1 skip; the 3rd skip loses at once, no guess"]
     place --> guess{"Guess now?"}
     removed --> guess
     guess -- yes --> trigger
     guess -- no --> full{"Board full?"}
-    full -- yes --> both["Both must guess<br/>one right wins, else a draw"]
+    full -- yes --> both["Both must guess, sealed<br/>one right wins, else a draw"]
     full -- no --> pick["Pick your opponent's colour"]
     pick -- "opponent takes the same turn" --> start
 ```
@@ -56,12 +56,12 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 | Element | How it works |
 | --- | --- |
 | Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
-| Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. |
-| Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. |
+| Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. Rows are numbered 1–6 from the first player's side, the same for both players. "Next to" in a rule means on any of the 8 surrounding cells, diagonals included. |
+| Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. Picking your opponent's colour ends your turn. |
 | Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
-| Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. 3 skips in total and you lose. |
+| Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. Your third skip loses the match at once, with no guess. |
 | Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
-| Full board | Both players must guess. Exactly one right wins; both right or both wrong is a draw. |
+| Full board | Both players must guess. The guesses are sealed and revealed together, so neither side can react to the other. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
 | History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; any action returns to the live board. |
 
@@ -84,7 +84,7 @@ You play against an AI that plays by the same rules and sees only what you see. 
 | Normal | Reads your moves and keeps its own rule well hidden. |
 | Hard | Gives almost nothing away, reads every move, and never hesitates. |
 
-- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each match. Difficulty changes only how it plays, never which rules it gets.
+- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each new match. A rematch keeps the deck and draws a new true rule from it. Difficulty changes only how it plays, never which rules it gets.
 - **Silent:** no lines or reactions, so it never leaks what it knows.
 - **Thinking time:** up to 5 seconds, longer on harder choices. On Easy and Normal a longer pause honestly means it is less sure, a tell attentive players can read. Hard adds random variation so its pauses can't be read.
 - **Hard thinks on your turn too:** it keeps computing while you play, so its full search isn't limited to its own 5 seconds.
@@ -160,14 +160,14 @@ New players are never forced through the tutorial: How to Play glows until first
 | How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
-| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Not started |
-| Game screen | Board in the centre; opponent's rules in one side panel, yours in the other; your ball, colour picker for the opponent's next ball, skip counters, Guess (hold), history arrows under the board | In progress (`main_game.tscn`, `gui/rules_box.tscn`) |
+| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Prototype: an overlay over the board offers the fixed starter deck to tap a true rule, then shows the coin toss; no deck or level choice (`gui/pre_match_panel.tscn`) |
+| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | Prototype built without history arrows; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`) |
 | Notes | Tap an opponent rule to cycle ✗ ruled out / ? suspect / no mark | Not started |
 | History | Arrows under the board step through past boards; view-only, any action returns to live | Not started |
-| Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Not started |
+| Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
 | Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
 
-**Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board sits in the centre, with the opponent's rules in a side panel on one side and yours on the other. A portrait layout, with rules above and below the board, comes in a later release for phones.
+**Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board fills the main area, with your side at the bottom and the opponent's at the top; each player's ball waits on their side of the board. One rules panel on the right holds the opponent's rules on top and yours below. A portrait layout, with rules above and below the board, comes in a later release for phones.
 
 **Feedback:**
 

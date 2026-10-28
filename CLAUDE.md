@@ -20,7 +20,32 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 
 - Type everything: variables (`var x: int`), parameters, and return types (`-> void`).
 - Tabs for indentation.
-- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Utils` (turn state).
+- Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors). Turn state lives in the match.
+
+## Tests
+
+GUT 9.7.1 (`addons/gut`, config `.gutconfig.json`). Tests are `test/**/test_*.gd`, extending `GutTest`.
+Run the whole suite headless from the repo root; exit code 0 means every test passed:
+
+```powershell
+godot --headless --path . --import *> $null; godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+```
+
+In Git Bash, call `"$HOME/bin/godot.cmd"` instead of `godot` and redirect with `> /dev/null 2>&1`.
+
+Keep the import step: it registers new `class_name`s (and, in a fresh worktree, GUT's own). Skip it and
+GUT runs nothing yet exits 0, or a test using a new class fails to load. `test/post_run_hook.gd` turns a
+test script that fails to load into exit code 1.
+
+## AI-vs-AI harness
+
+Plays N matches between two AIs with random decks, headless and with no pauses, and prints balance numbers
+(results, end reasons, average turns, skip and win rate per true rule). Same seed, same output; exit code 1 if
+any match didn't finish. From the repo root, after the import step above:
+
+```powershell
+godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
+```
 
 ## Commits
 
@@ -40,10 +65,19 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 ## Layout
 
-- `main.tscn` / `main_game.tscn` — entry scenes
-- `gui/` — ball, board, rules UI scenes and scripts
-- `rules/` — rule logic (`baserule.gd`, `class_name Rule`)
+- `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
+- `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
+  menus (`gui/menus/`)
+- `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
+  `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
+  `MatchSetup`; plain `RefCounted`, no scene nodes
+- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
+  rule and template data in `rules/data/`
+- `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`
+- `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`
 - `assets/` — Kenney art assets
+- `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
+  `addons/gut/` — vendored GUT 9.7.1
 
 ## Agent skills
 

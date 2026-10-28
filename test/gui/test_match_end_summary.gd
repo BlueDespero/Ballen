@@ -1,0 +1,146 @@
+extends GutTest
+
+# What the match-end screen tells each viewer, built from their PublicView once
+# the match is over: win, lose or draw, how the match ended and both true rules.
+
+const Fixtures := preload("res://test/helpers/fixtures.gd")
+
+var _book: RuleBook
+
+
+func before_each() -> void:
+	_book = Fixtures.book()
+
+
+## A match whose true rules are "AT" (player 0) and "BT" (player 1), past the
+## first colour pick: the first player is to place.
+func _started(seed_value: int) -> Match:
+	var current_match: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
+	current_match.submit(Players.opponent(current_match.first_player()), Command.pick_colour(BallColour.RED))
+	return current_match
+
+
+## A match that ended when the guesser named this rule at the start of their
+## first turn. The first seed whose coin toss lets the guesser go first.
+func _guessed(guesser: int, rule_id: String) -> Match:
+	var current_match: Match = _started(1)
+	var seed_value: int = 1
+	while current_match.current_player() != guesser:
+		seed_value += 1
+		current_match = _started(seed_value)
+	assert_true(current_match.submit(guesser, Command.guess(rule_id)))
+	return current_match
+
+
+func test_a_right_guess_wins_for_the_guesser() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "BT").public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
+	assert_eq(summary.headline, "You win")
+	assert_eq(summary.reason, "You named BT \"Anywhere (BT)\", the AI's true rule.")
+
+
+func test_the_other_viewer_loses_the_same_match() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "BT").public_view(1))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
+	assert_eq(summary.headline, "You lose")
+	assert_eq(summary.reason, "The AI named BT \"Anywhere (BT)\", your true rule.")
+
+
+func test_a_wrong_guess_loses_for_the_guesser() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "B2").public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
+	assert_eq(summary.headline, "You lose")
+	assert_eq(summary.reason, "You named B2 \"Anywhere (B2)\", but it isn't the AI's true rule.")
+
+
+func test_the_ais_wrong_guess_wins_for_the_viewer() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(1, "A2").public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
+	assert_eq(summary.headline, "You win")
+	assert_eq(summary.reason, "The AI named A2 \"Anywhere (A2)\", but it isn't your true rule.")
+
+
+func test_each_viewer_sees_both_true_rules_from_their_side() -> void:
+	var current_match: Match = _guessed(0, "B2")
+	var mine: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(0))
+	assert_eq(mine.own_true_rule.id, "AT")
+	assert_eq(mine.opponent_true_rule.id, "BT")
+	var theirs: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(1))
+	assert_eq(theirs.own_true_rule.id, "BT")
+	assert_eq(theirs.opponent_true_rule.id, "AT")
+
+
+func test_there_is_no_summary_while_the_match_runs() -> void:
+	assert_null(MatchEndSummary.from_view(_started(1).public_view(0)))
+
+
+## A match that ended as it started: player 0 holds R04, the 16 inner cells
+## are full and it is their turn with 2 skips, so their third skip loses.
+func _third_skip_by_player_0() -> Match:
+	var position: MatchPosition = MatchPosition.new(Board.parse([
+		"......",
+		".RbRb.",
+		".bRbR.",
+		".RbRb.",
+		".bRbR.",
+		"......",
+	]), 0)
+	position.turn = 17
+	position.colour = BallColour.RED
+	position.skips = [2, 0]
+	var r04: Rule = _book.rule("R04")
+	var bt: Rule = Fixtures.anywhere(_book, "BT")
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, bt, "B")]
+	var true_rules: Array[Rule] = [r04, bt]
+	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	return current_match
+
+
+func test_the_viewers_third_skip_loses() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_third_skip_by_player_0().public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
+	assert_eq(summary.headline, "You lose")
+	assert_eq(summary.reason, "You skipped for the third time.")
+
+
+func test_the_ais_third_skip_wins_for_the_viewer() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_third_skip_by_player_0().public_view(1))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
+	assert_eq(summary.reason, "The AI skipped for the third time.")
+
+
+## A match that ended on a full board: player 0 placed the last ball, then
+## player 0 and player 1 made these forced guesses.
+func _forced(rule_id_0: String, rule_id_1: String) -> Match:
+	var current_match: Match = Fixtures.nearly_full_match(_book)
+	assert_true(current_match.submit(0, Command.place(Fixtures.LAST_EMPTY_CELL)))
+	assert_true(current_match.submit(0, Command.forced_guess(rule_id_0)))
+	assert_true(current_match.submit(1, Command.forced_guess(rule_id_1)))
+	return current_match
+
+
+func test_two_wrong_forced_guesses_draw_and_list_the_viewers_guess_first() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("B2", "A3").public_view(1))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
+	assert_eq(summary.headline, "Draw")
+	assert_eq(summary.reason, "The board is full. "
+		+ "You named A3 \"Anywhere (A3)\", but it isn't the AI's true rule. "
+		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your true rule.")
+
+
+func test_two_right_forced_guesses_draw() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("BT", "AT").public_view(0))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
+	assert_eq(summary.headline, "Draw")
+	assert_eq(summary.reason, "The board is full. "
+		+ "You named BT \"Anywhere (BT)\", the AI's true rule. "
+		+ "The AI named AT \"Anywhere (AT)\", your true rule.")
+
+
+func test_the_only_right_forced_guess_wins() -> void:
+	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("B2", "AT").public_view(1))
+	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
+	assert_eq(summary.reason, "The board is full. "
+		+ "You named AT \"Anywhere (AT)\", the AI's true rule. "
+		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your true rule.")
