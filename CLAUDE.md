@@ -63,6 +63,20 @@ godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
 Rule tiers combine it with a large harness run (1000+ matches); method and thresholds in
 `docs/technical-design.md` ("Rule tiers").
 
+## Web tests
+
+Playwright plays the web export in Desktop Chrome, Pixel 7 and iPhone 15 (WebKit) in landscape with touch, and
+Desktop Firefox. The game prints `[ballen] …` console markers in web builds (`WebMarkers`) and the tests wait for
+them; clicks are 1280×720 layout coordinates (run-ballen skill) scaled to the canvas. From the repo root, after
+the import step (`build/` is gitignored; Godot needs the folder to exist):
+
+```powershell
+New-Item -ItemType Directory -Force build/web > $null; godot --headless --path . --export-release "Web" build/web/index.html
+cd web-test; npm ci; npx playwright install; npx playwright test
+```
+
+`serve.mjs` serves `build/web` on port 8137 (`PORT` to change it); `--project=desktop-chrome` runs one browser.
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.
@@ -97,6 +111,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `assets/` — Kenney art assets
 - `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
   `addons/gut/` — vendored GUT 9.7.1
+- `web-test/` — Playwright tests of the web export (own `package.json`): `serve.mjs`, `playwright.config.ts`,
+  `tests/` (`game.ts` drives the canvas)
 
 ## Agent skills
 
