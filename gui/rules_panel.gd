@@ -33,6 +33,17 @@ const STRIKE_HEIGHT: float = 0.55
 ## smaller (Larger text scales it from there), so its two lines fit a row's
 ## height.
 const LONG_RULE_FONT_SIZE: int = 14
+## Larger text: more rules wrap (and so drop the step), and rows and
+## sections sit closer, so the panel still fits 720 px with long rules in
+## both decks.
+const LARGER_ROW_HEIGHT: float = 40.0
+const ROW_SEPARATION: int = 4
+const LARGER_ROW_SEPARATION: int = 2
+const SECTION_SEPARATION: int = 8
+const LARGER_SECTION_SEPARATION: int = 4
+## Between the two lines of a wrapped rule with Larger text (the font's own
+## spacing is generous; this leaves lines about 1.1 times the text size).
+const LARGER_LINE_SPACING: int = -5
 ## The yellow left edge of a rule marked ?.
 const SUSPECT_EDGE_WIDTH: int = 4
 
@@ -65,11 +76,13 @@ var guess_without_holding: bool = false:
 			_seal_button.tap_to_confirm = value
 		_update_guess()
 
-## Larger text: the panel's text is this many times its built size.
+## Larger text: the panel's text is this many times its built size. Rows are
+## built for the scale set when the decks are shown.
 var text_scale: float = 1.0:
 	set(value):
 		text_scale = value
 		TextScale.apply(self, value)
+		_apply_spacing()
 
 ## The id of the AI's rule the player selected; "" for none.
 var selected_rule_id: String = ""
@@ -84,6 +97,7 @@ var _marks: Dictionary[String, int] = {}
 ## The AI's true rule once the match is over; "" before.
 var _ai_true_rule_id: String = ""
 
+@onready var _sections: VBoxContainer = $Sections
 @onready var _ai_rules: VBoxContainer = %AIRules
 @onready var _player_rules: VBoxContainer = %PlayerRules
 @onready var _guess_button: GuessButton = %GuessButton
@@ -99,7 +113,22 @@ func _ready() -> void:
 	_seal_button.guessed.connect(_on_sealed)
 	_guess_hint.add_theme_color_override("font_color", HINT_COLOUR)
 	_mark_hint.add_theme_color_override("font_color", HINT_COLOUR)
+	_apply_spacing()
 	_update_guess()
+
+
+func _larger_text() -> bool:
+	return text_scale > 1.0
+
+
+## Larger text sets the sections and the rule rows closer together.
+func _apply_spacing() -> void:
+	if not is_node_ready():
+		return
+	var larger: bool = _larger_text()
+	_sections.add_theme_constant_override("separation", LARGER_SECTION_SEPARATION if larger else SECTION_SEPARATION)
+	for list: VBoxContainer in [_ai_rules, _player_rules]:
+		list.add_theme_constant_override("separation", LARGER_ROW_SEPARATION if larger else ROW_SEPARATION)
 
 
 ## Shows both decks for a new match (also a rematch: the match-over marks go).
@@ -351,7 +380,7 @@ func _fill(list: VBoxContainer, deck: Deck, true_rule: Rule) -> void:
 func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	var row: PanelContainer = PanelContainer.new()
 	row.name = rule.id
-	row.custom_minimum_size.y = ROW_HEIGHT
+	row.custom_minimum_size.y = LARGER_ROW_HEIGHT if _larger_text() else ROW_HEIGHT
 	row.add_theme_stylebox_override("panel", _style(false, is_true))
 	var line: HBoxContainer = HBoxContainer.new()
 	line.name = "Line"
@@ -368,6 +397,8 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	# (see _fit_rule_text) so the row keeps its height and the panel fits the
 	# screen.
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if _larger_text():
+		text_label.add_theme_constant_override("line_spacing", LARGER_LINE_SPACING)
 	line.add_child(text_label)
 	if is_true:
 		line.add_child(_label("TRUE", TRUE_BORDER_COLOUR))
