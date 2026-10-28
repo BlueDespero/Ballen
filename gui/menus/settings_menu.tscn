@@ -211,9 +211,54 @@ uri = "https://godotengine.org/license"
 
 [node name="Buttons" type="HBoxContainer" parent="Centre/CreditsCard/Content"]
 layout_mode = 2
+theme_override_constants/separation = 16
 alignment = 2
 
+[node name="Licences" type="Button" parent="Centre/CreditsCard/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Licences"
+
 [node name="CreditsBack" type="Button" parent="Centre/CreditsCard/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Back"
+
+[node name="LicencesCard" type="PanelContainer" parent="Centre"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(900, 640)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Centre/LicencesCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/LicencesCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Licences"
+
+[node name="Scroll" type="ScrollContainer" parent="Centre/LicencesCard/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LicencesList" type="VBoxContainer" parent="Centre/LicencesCard/Content/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Buttons" type="HBoxContainer" parent="Centre/LicencesCard/Content"]
+layout_mode = 2
+alignment = 2
+
+[node name="LicencesBack" type="Button" parent="Centre/LicencesCard/Content/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
