@@ -8,8 +8,8 @@ export const BASE = { width: 1280, height: 720 };
 
 // Known spots at 1280×720 (see .claude/skills/run-ballen/SKILL.md, "Layout").
 export const SPOT = {
-  singlePlayer: { x: 640, y: 362 },
-  decks: { x: 640, y: 398 },
+  singlePlayer: { x: 640, y: 345 },
+  decks: { x: 640, y: 393 },
   setupRuleR08: { x: 368, y: 528 },
   start: { x: 461, y: 648 },
   pickRed: { x: 624, y: 660 },
@@ -26,7 +26,7 @@ export function cell(x: number, y: number): { x: number; y: number } {
 
 // The rule row Rnn in the deck editor with All shown (R01 to R09 are visible).
 export function editorRule(n: number): { x: number; y: number } {
-  return { x: 600, y: 164 + 54 * (n - 1) };
+  return { x: 600, y: 172 + 54 * (n - 1) };
 }
 
 // Playwright's WebKit reports this WebGL validation error every frame from
