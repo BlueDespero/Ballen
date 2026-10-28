@@ -55,6 +55,13 @@ static func skip(p_player: int, p_colour: String) -> HistoryEntry:
 	return entry
 
 
+## Whether this is the board half of a turn: a placement, or the skip that
+## takes its place. Every turn has exactly one; the other events (colour picks,
+## guesses) leave the board alone.
+func is_placement_or_skip() -> bool:
+	return type == Type.PLACEMENT or type == Type.SKIP
+
+
 func copy() -> HistoryEntry:
 	var entry: HistoryEntry = HistoryEntry.new(type, player)
 	entry.cell = cell

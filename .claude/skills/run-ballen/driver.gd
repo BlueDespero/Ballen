@@ -12,6 +12,7 @@ extends SceneTree
 ##   release:X,Y          left release at X,Y
 ##   drag:X1,Y1,X2,Y2     press at X1,Y1, move to X2,Y2 in steps, release
 ##   touch:X1,Y1,X2,Y2    the same drag with a finger (screen touch + drag events)
+##   key:NAME             press + release a key, named as OS.find_keycode_from_string reads it (Left, Right, Space)
 ##   ss:NAME              save a screenshot to .claude/skills/run-ballen/out/NAME.png
 ##   tree                 print the scene tree under the current scene
 ##   get:PATH:PROP        print a property of a node, PATH relative to the current scene
@@ -70,6 +71,14 @@ func _run() -> void:
 					await _touch_drag(at, at - last)
 					last = at
 				await _touch(to, false)
+			"key":
+				var keycode: Key = OS.find_keycode_from_string(args[0])
+				if keycode == KEY_NONE:
+					push_error("[driver] unknown key: " + args[0])
+					quit(1)
+					return
+				await _key(keycode, true)
+				await _key(keycode, false)
 			"until":
 				var target: PackedStringArray = parts[2].split("=", true, 1) if parts.size() > 2 else PackedStringArray(["", ""])
 				var waited: int = 0
@@ -133,6 +142,15 @@ func _button(at: Vector2, pressed: bool) -> void:
 	event.global_position = at
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+	event.pressed = pressed
+	Input.parse_input_event(event)
+	await _settle()
+
+
+func _key(keycode: Key, pressed: bool) -> void:
+	var event: InputEventKey = InputEventKey.new()
+	event.keycode = keycode
+	event.physical_keycode = keycode
 	event.pressed = pressed
 	Input.parse_input_event(event)
 	await _settle()

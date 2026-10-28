@@ -143,6 +143,11 @@ one right wins, otherwise the match is a draw.
 **Public view**:
 Everything one player is allowed to know about a match: all of it except the opponent's true rule.
 
+**Note mark**:
+A private note a player keeps on one of the opponent's deck rules: ✗ ruled out or ? suspect. It records
+the player's own belief, not proof; the game never checks it, and a rematch clears it.
+_Avoid_: Tag, flag
+
 ## AI
 
 **Confidence**:

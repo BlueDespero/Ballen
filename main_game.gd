@@ -7,23 +7,40 @@ extends Control
 ## MatchDriver runs the player's HumanController and the AI, pausing before
 ## each AI action. At match end, Rematch goes back to choosing a true rule
 ## on the same decks.
+##
+## The history view (the arrows and Live under the board, or the ← and → keys)
+## steps turn by turn through past boards, rebuilt from the player's view; a
+## HistoryBrowser keeps which turn is on show. It only shows: the glow and
+## dragging pause, and only the player's own actions (pressing their ball, a
+## colour pick, Guess or Seal, Live, or stepping past the latest turn) return
+## to the live board. The AI playing on meanwhile leaves the past board on show
+## and lights up Live.
 
 const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
 
 const AI_FLY_SECONDS: float = 0.3
-## Shorter than the AI's shortest pause, so a skip is shown before its next action.
-const SKIP_DISSOLVE_SECONDS: float = 0.4
+## A skipped ball stays at its owner's side this long, labelled, then
+## dissolves; the driver holds the match until it is gone.
+const SKIP_HOLD_SECONDS: float = 1.5
+const SKIP_DISSOLVE_SECONDS: float = 0.8
 const MAIN_MENU_SCENE: String = "res://main.tscn"
+## On the status line whenever the player's colour pick is due.
+const PICK_PROMPT: String = "Pick the AI's next colour."
+## The waiting balls fade to this while a past board is on show.
+const PAUSED_BALL_ALPHA: float = 0.35
 
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
 @onready var _ai_ball: BallView = %AIBall
+@onready var _player_skip_note: Label = %PlayerSkipNote
+@onready var _ai_skip_note: Label = %AISkipNote
 @onready var _picker: ColourPicker = %ColourPicker
 @onready var _rules_panel: RulesPanel = %RulesPanel
 @onready var _status: Label = %Status
 @onready var _pre_match: PreMatchPanel = %PreMatch
 @onready var _match_end: MatchEndOverlay = %MatchEnd
+@onready var _history_nav: HistoryNav = %HistoryNav
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _setup: MatchSetup
@@ -32,6 +49,9 @@ var _human: HumanController = HumanController.new()
 var _driver: MatchDriver = null
 ## How many history events the screen has shown.
 var _shown_events: int = 0
+## The history view's state; it holds the player's view as last drawn, and is
+## busy while a run of _on_match_changed shows new events.
+var _history: HistoryBrowser = HistoryBrowser.new()
 
 
 func _ready() -> void:
@@ -44,6 +64,9 @@ func _ready() -> void:
 	_pre_match.rule_chosen.connect(_on_true_rule_chosen)
 	_match_end.rematch_requested.connect(_on_rematch_requested)
 	_match_end.main_menu_requested.connect(_on_main_menu_requested)
+	_history_nav.back_pressed.connect(_step_back)
+	_history_nav.live_pressed.connect(_go_live)
+	_history_nav.forward_pressed.connect(_step_forward)
 	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
 	_show_pre_match()
 
@@ -66,6 +89,8 @@ func _show_pre_match() -> void:
 	_picker.enabled = false
 	_pre_match.show_deck(_setup.deck(HUMAN))
 	_status.text = "Choose your true rule."
+	_history.reset()
+	_update_history_nav()
 
 
 ## Starts the match (its coin toss picks the first player; in a rematch the
@@ -81,13 +106,13 @@ func _on_true_rule_chosen(true_rule: Rule) -> void:
 	_status.text = "You go first." if player_goes_first else "The AI goes first."
 	await _pre_match.show_coin_toss(player_goes_first, is_rematch)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
-	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait)
+	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
-	_refresh()
+	_redraw_from_match()
 	_driver.run()
 
 
-## The driver awaits this before each AI action.
+## The driver awaits this before each AI action and while a skip is shown.
 func _wait(seconds: float) -> Signal:
 	return get_tree().create_timer(seconds).timeout
 
@@ -101,17 +126,22 @@ func _on_player_ball_dropped(cell: Vector2i) -> void:
 	_human.choose(Command.place(cell))
 
 
+## The player's own actions return to the live board first, so what they
+## cause animates there.
 func _on_colour_picked(colour: String) -> void:
+	_go_live()
 	_human.choose(Command.pick_colour(colour))
 
 
 ## Guess names the AI's true rule outright: right wins, wrong loses.
 func _on_guess_requested(rule_id: String) -> void:
+	_go_live()
 	_human.choose(Command.guess(rule_id))
 
 
 ## On a full board, Seal makes the player's sealed forced guess.
 func _on_seal_requested(rule_id: String) -> void:
+	_go_live()
 	_human.choose(Command.forced_guess(rule_id))
 
 
@@ -126,40 +156,152 @@ func _on_main_menu_requested() -> void:
 
 
 ## One command can add several events (a colour pick, then the next player's
-## skip), so every event since the last redraw is shown in order.
+## skip), so every event since the last redraw is shown in order. One run shows
+## them all: a change that comes in while it animates is picked up by its loop,
+## so the history view never opens mid-animation. While a past board is on
+## show nothing animates: it stays on show and Live lights up, until the match
+## is over.
 func _on_match_changed() -> void:
-	var history: Array[HistoryEntry] = _match.history()
-	var first_new: int = _shown_events
-	_shown_events = history.size()
-	for i: int in range(first_new, history.size()):
-		var event: HistoryEntry = history[i]
+	if _history.busy:
+		return
+	_history.busy = true
+	_update_history_nav()
+	while _shown_events < _match.history().size():
+		var event: HistoryEntry = _match.history()[_shown_events]
+		_shown_events += 1
+		if _history.viewing_past():
+			continue
 		if event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
 			await _ai_ball.fly_to(_board_view.cell_centre(event.cell), AI_FLY_SECONDS)
 		elif event.type == HistoryEntry.Type.SKIP:
-			var ball: BallView = _player_ball if event.player == HUMAN else _ai_ball
-			await ball.dissolve(event.colour, SKIP_DISSOLVE_SECONDS)
-	_refresh()
+			await _show_skip(event)
+	_history.busy = false
+	_redraw_from_match()
 
 
-## Redraws everything from the player's view of the match.
-func _refresh() -> void:
-	var view: PublicView = _match.public_view(HUMAN)
+## The skipped ball appears at its owner's side with a note, stays, then
+## dissolves with it. No input meanwhile; the skip pip fills on the redraw
+## after.
+func _show_skip(skip: HistoryEntry) -> void:
+	_player_ball.draggable = false
+	_picker.enabled = false
+	_rules_panel.guess_enabled = false
+	_rules_panel.seal_enabled = false
+	_status.text = ""
+	var ball: BallView = _waiting_ball(skip.player)
+	var note: Label = _player_skip_note if skip.player == HUMAN else _ai_skip_note
+	note.modulate.a = 1.0
+	note.visible = true
+	# The player's note sits where the history arrows are.
+	_history_nav.visible = skip.player != HUMAN
+	var fade: Tween = note.create_tween()
+	fade.tween_interval(SKIP_HOLD_SECONDS)
+	fade.tween_property(note, "modulate:a", 0.0, SKIP_DISSOLVE_SECONDS)
+	await ball.dissolve(skip.colour, SKIP_HOLD_SECONDS, SKIP_DISSOLVE_SECONDS)
+	note.visible = false
+	_history_nav.visible = true
+
+
+## The player's waiting ball under the board, or the AI's above it.
+func _waiting_ball(player: int) -> BallView:
+	return _player_ball if player == HUMAN else _ai_ball
+
+
+## Pressing your ball while a past board is on show is an action: back to the
+## live board (the press then starts the drag). The arrow keys step through
+## history.
+func _input(event: InputEvent) -> void:
+	var key: InputEventKey = event as InputEventKey
+	if key != null and key.pressed:
+		if key.keycode == KEY_LEFT:
+			_step_back()
+			get_viewport().set_input_as_handled()
+		elif key.keycode == KEY_RIGHT:
+			_step_forward()
+			get_viewport().set_input_as_handled()
+		return
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if (button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT
+			and _history.viewing_past() and _player_ball.get_global_rect().has_point(button.global_position)):
+		_go_live()
+
+
+func _step_back() -> void:
+	if _history.step_back():
+		_show_viewed_board()
+
+
+func _step_forward() -> void:
+	if _history.step_forward():
+		_show_viewed_board()
+
+
+func _go_live() -> void:
+	if _history.go_live():
+		_show_viewed_board()
+
+
+func _update_history_nav() -> void:
+	_history_nav.set_state(_history.can_go_back(), _history.viewing_past(), _history.moved_on)
+
+
+## Takes the player's view of the match afresh and redraws everything from it.
+func _redraw_from_match() -> void:
+	_history.live_view = _match.public_view(HUMAN)
+	_show_viewed_board()
+
+
+## Shows the live board, or the past turn the history view is on. Either way
+## the player's actions (colour pick, Guess, Seal) follow the live match.
+func _show_viewed_board() -> void:
+	_show_actions(_history.live_view)
+	if _history.viewing_past():
+		_show_past_turn()
+	else:
+		_show_live_match(_history.live_view)
+	_update_history_nav()
+
+
+## Which of the player's actions are open now.
+func _show_actions(view: PublicView) -> void:
+	_picker.enabled = view.colour_pick_due()
+	_rules_panel.board_full = view.phase == Match.Phase.FORCED_GUESS
+	_rules_panel.guess_enabled = view.current_player == HUMAN and view.can_guess()
+	_rules_panel.seal_enabled = view.forced_guess_due()
+
+
+## The past turn on show: the board right after it with its ball ringed, or
+## its skipped ball on its owner's waiting spot; the waiting balls fade and
+## nothing glows or drags.
+func _show_past_turn() -> void:
+	var past: MatchPosition = _history.past_position()
+	var event: HistoryEntry = past.history[-1]
+	var placed: bool = event.type == HistoryEntry.Type.PLACEMENT
+	_board_view.show_board(past.board, [], HUMAN, past.first_player, event.cell if placed else BoardView.NO_CELL)
+	_player_ball.reset()
+	_player_ball.draggable = false
+	_player_ball.modulate.a = PAUSED_BALL_ALPHA
+	_ai_ball.reset()
+	_ai_ball.modulate.a = PAUSED_BALL_ALPHA
+	if not placed:
+		var owner_ball: BallView = _waiting_ball(event.player)
+		owner_ball.colour = event.colour
+		owner_ball.modulate.a = 1.0
+	_rules_panel.show_skips(past.skips[AI], past.skips[HUMAN])
+	_status.text = _history.past_turn_text()
+
+
+## The live board and everything around it, from the player's view.
+func _show_live_match(view: PublicView) -> void:
 	var my_turn: bool = view.current_player == HUMAN
 	var my_placement: bool = my_turn and view.phase == Match.Phase.PLACE
 	var ai_placement: bool = view.current_player == AI and view.phase == Match.Phase.PLACE
-	var legal: Array[Vector2i] = []
-	if my_placement:
-		legal = _match.legal_cells()
-	_board_view.show_board(view.position.board, legal, HUMAN, view.position.first_player)
+	_board_view.show_board(view.position.board, view.own_legal_cells(), HUMAN, view.position.first_player)
 	_player_ball.reset()
 	_player_ball.colour = view.position.colour if view.current_player == HUMAN and view.phase == Match.Phase.PLACE else ""
 	_player_ball.draggable = my_placement
 	_ai_ball.reset()
 	_ai_ball.colour = view.position.colour if ai_placement else ""
-	_picker.enabled = my_turn and (view.phase == Match.Phase.FIRST_COLOUR or view.phase == Match.Phase.PICK_COLOUR)
-	_rules_panel.board_full = view.phase == Match.Phase.FORCED_GUESS
-	_rules_panel.guess_enabled = my_turn and view.can_guess()
-	_rules_panel.seal_enabled = view.forced_guess_due()
 	_rules_panel.show_skips(view.position.skips[AI], view.position.skips[HUMAN])
 	_status.text = _status_text(view)
 	if view.phase == Match.Phase.OVER:
@@ -177,7 +319,7 @@ func _status_text(view: PublicView) -> String:
 	var skip: HistoryEntry = _skip_this_turn(view)
 	if skip != null:
 		if skip.player == HUMAN:
-			return "You had no legal cell for %s, so your ball was skipped. Pick the colour of the AI's next ball." % skip.colour
+			return "You had no legal cell for %s, so your ball was skipped. %s" % [skip.colour, PICK_PROMPT]
 		return "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…" % skip.colour
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
@@ -185,11 +327,11 @@ func _status_text(view: PublicView) -> String:
 		return "The AI is thinking…"
 	match view.phase:
 		Match.Phase.FIRST_COLOUR:
-			return "The AI goes first. Pick the colour of its first ball."
+			return "The AI goes first. " + PICK_PROMPT
 		Match.Phase.PLACE:
 			return "Your turn. Drag your ball onto a glowing cell."
 		Match.Phase.PICK_COLOUR:
-			return "Pick the colour of the AI's next ball. That ends your turn."
+			return PICK_PROMPT + " That ends your turn."
 	return ""
 
 

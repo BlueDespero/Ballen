@@ -1,7 +1,8 @@
 class_name BoardView
 extends Control
 
-## Draws the board: its cells, the balls on them, the glow on legal cells and
+## Draws the board: its cells, the balls on them, the glow on legal cells, a
+## ring around one highlighted ball (a past turn's, in the history view) and
 ## the row numbers along its left edge. It shows what it is given and never
 ## decides what is legal. Row y = 0 is drawn at the top (the AI's side), y = 5
 ## at the bottom (the player's side); row numbers count from the first player's
@@ -12,8 +13,12 @@ const CELL_SIZE: float = 80.0
 const CELL_TEXTURE: Texture2D = preload("res://assets/Tiles/resized048.png")
 const BALL_TEXTURE: Texture2D = preload("res://assets/Tiles/Large tiles/Thin outline/resized039.png")
 const BALL_INSET: float = 8.0
+## The "act here" colour: legal cells glow in it, and the colour picker's ring
+## and the lit Live button share it.
 const GLOW_COLOUR: Color = Color(1.0, 0.92, 0.45)
 const OPPONENT_MARK_COLOUR: Color = Color(0.08, 0.09, 0.11, 0.85)
+const HIGHLIGHT_COLOUR: Color = Color(1.0, 1.0, 1.0)
+const HIGHLIGHT_WIDTH: float = 4.0
 ## Row labels sit in a strip this wide left of the board, right-aligned with a gap.
 const ROW_LABEL_WIDTH: float = 20.0
 const ROW_LABEL_GAP: float = 4.0
@@ -24,6 +29,7 @@ var _board: Board = Board.new()
 var _legal_cells: Array[Vector2i] = []
 var _viewer: int = Players.NONE
 var _first_player: int = 0
+var _highlighted: Vector2i = NO_CELL
 
 
 func _ready() -> void:
@@ -31,12 +37,15 @@ func _ready() -> void:
 
 
 ## Shows a board. Glows on legal_cells; balls not owned by viewer are marked;
-## rows are numbered from first_player's side.
-func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int, first_player: int) -> void:
+## rows are numbered from first_player's side; the ball on highlighted (if
+## any) gets a ring.
+func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int, first_player: int,
+		highlighted: Vector2i = NO_CELL) -> void:
 	_board = board
 	_legal_cells = legal_cells.duplicate()
 	_viewer = viewer
 	_first_player = first_player
+	_highlighted = highlighted
 	queue_redraw()
 
 
@@ -78,6 +87,9 @@ func _draw() -> void:
 		var ball: Ball = _board.ball_at(cell)
 		if ball != null:
 			draw_ball(self, rect.grow(-BALL_INSET), ball.colour, ball.owner != _viewer)
+	if Board.contains(_highlighted):
+		var centre: Vector2 = _cell_rect(_highlighted).get_center()
+		draw_arc(centre, CELL_SIZE / 2.0 - BALL_INSET / 2.0, 0.0, TAU, 48, HIGHLIGHT_COLOUR, HIGHLIGHT_WIDTH, true)
 	_draw_row_labels()
 
 

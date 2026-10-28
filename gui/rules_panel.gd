@@ -4,8 +4,9 @@ extends PanelContainer
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
 ## with their true rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
-## by holding Guess under them. On a full board, holding Seal beside Guess
-## makes the player's sealed forced guess instead.
+## by holding Guess under them. A small button on the left of each AI rule
+## keeps the player's private note mark on it. On a full board, holding Seal
+## beside Guess makes the player's sealed forced guess instead.
 
 ## The player held Guess to the end with one of the AI's rules selected.
 signal guess_requested(rule_id: String)
@@ -23,6 +24,7 @@ const HINT_COLOUR: Color = Color(0.7, 0.74, 0.8)
 const PIP_SIZE: float = 16.0
 const PIP_FILLED_COLOUR: Color = Color(0.92, 0.36, 0.32)
 const PIP_EMPTY_COLOUR: Color = Color(0.6, 0.64, 0.7)
+const CROSS_TEXT_ALPHA: float = 0.45
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -46,6 +48,11 @@ var board_full: bool = false:
 
 ## The id of the AI's rule the player selected; "" for none.
 var selected_rule_id: String = ""
+
+## The player's note mark (`NoteMark.Mark`) on each of the AI's rules, by rule
+## id. Private notes the game never reads; new decks (a rematch) start unmarked.
+var marks: Dictionary[String, int]:
+	get = _get_marks
 
 var _match_over: bool = false
 
@@ -74,7 +81,34 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 		var panel: PanelContainer = row as PanelContainer
 		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
+		_add_mark_button(panel)
 	_select("")
+
+
+## A note mark button on the left of an AI rule row. It takes its own taps, so
+## tapping it never selects the row; the row starts unmarked.
+func _add_mark_button(row: PanelContainer) -> void:
+	var line: HBoxContainer = row.get_child(0) as HBoxContainer
+	var button: NoteMarkButton = NoteMarkButton.new()
+	button.name = "Mark"
+	line.add_child(button)
+	line.move_child(button, 0)
+	var text_label: Label = line.get_node("Text") as Label
+	button.mark_changed.connect(_on_mark_changed.bind(text_label))
+
+
+## A rule marked ✗ fades so the rules the player still considers stand out.
+func _on_mark_changed(mark: NoteMark.Mark, text_label: Label) -> void:
+	text_label.modulate.a = CROSS_TEXT_ALPHA if mark == NoteMark.Mark.CROSS else 1.0
+
+
+func _get_marks() -> Dictionary[String, int]:
+	var result: Dictionary[String, int] = {}
+	for row: Node in _ai_rules.get_children():
+		var button: NoteMarkButton = row.get_child(0).get_node_or_null("Mark") as NoteMarkButton
+		if button != null:
+			result[String(row.name)] = button.mark
+	return result
 
 
 ## Once the match is over: marks the AI's true rule and closes guessing.
@@ -195,6 +229,7 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	id_label.custom_minimum_size.x = 40
 	line.add_child(id_label)
 	var text_label: Label = _label(rule.text, Color.WHITE)
+	text_label.name = "Text"
 	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	line.add_child(text_label)
