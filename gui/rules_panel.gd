@@ -60,6 +60,7 @@ var board_full: bool = false:
 	set(value):
 		board_full = value
 		_update_guess()
+		_update_mark_hint()
 
 ## Guess and Seal fire on a tap and a Confirm tap instead of a hold.
 var guess_without_holding: bool = false:
@@ -142,8 +143,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
 		_marks[String(panel.name)] = NoteMark.Mark.NONE
 		_add_mark_buttons(panel)
-	# Explains the mark buttons until the player first uses one.
-	_mark_hint.visible = not Settings.note_marks_seen
+	_update_mark_hint()
 	_select("")
 	TextScale.apply(self, text_scale)
 	for list: VBoxContainer in [_ai_rules, _player_rules]:
@@ -207,7 +207,7 @@ func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	text_label.queue_redraw()
 	_style_ai_row(row as PanelContainer)
 	Settings.mark_note_marks_seen()
-	_mark_hint.hide()
+	_update_mark_hint()
 
 
 ## Over a ✗ rule's text: a line through the middle of each line of text, as
@@ -230,6 +230,14 @@ func _strike_through(text_label: Label, rule_id: String) -> void:
 		var line: Vector3 = lines[top]
 		var y: float = top + (line.z - top) * STRIKE_HEIGHT
 		text_label.draw_line(Vector2(line.x, y), Vector2(line.y, y), Color.WHITE, width, true)
+
+
+## The note marks hint explains the mark buttons until the player first uses
+## one. On a full board it gives way, so the longer forced-guess hints beside
+## Guess and Seal still leave the panel inside the screen.
+func _update_mark_hint() -> void:
+	if is_node_ready():
+		_mark_hint.visible = not Settings.note_marks_seen and not board_full
 
 
 ## The hint's ✗, drawn (the web build's font has none) at the size of the
@@ -334,9 +342,10 @@ func _update_guess() -> void:
 	elif selected_rule_id == "":
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
 	elif guess_enabled and seal_enabled:
-		_guess_hint.text = "%s to name %s now (right wins, wrong loses), or Seal for your forced guess." % [_how("Guess"), selected_rule_id]
+		# Short: it shares its line with both buttons.
+		_guess_hint.text = "Guess %s now, or Seal it as your forced guess." % selected_rule_id
 	elif seal_enabled:
-		_guess_hint.text = "%s to seal %s as your forced guess. One right guess wins; else a draw." % [_how("Seal"), selected_rule_id]
+		_guess_hint.text = "%s to make %s your forced guess. One right guess wins; else a draw." % [_how("Seal"), selected_rule_id]
 	else:
 		_guess_hint.text = "%s to name %s. Right wins, wrong loses." % [_how("Guess"), selected_rule_id]
 
