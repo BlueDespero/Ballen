@@ -149,7 +149,10 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium webkit firefox
-          npx playwright test
+          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+          # Firefox runs headed (no WebGL2 headless without a GPU), so give it
+          # a virtual display; Mesa draws WebGL in software.
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" npx playwright test
 
       - name: Upload Playwright report
         if: failure()
