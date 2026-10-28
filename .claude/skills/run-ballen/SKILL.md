@@ -99,7 +99,11 @@ layout and centres it, so these coordinates no longer hold.
   `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
   (y≈514); click x≈500 on the row. Credits (702,595), Back (857,595). Every change is saved to
   `user://settings.cfg` at once (`%APPDATA%\Godot\app_userdata\Ballen\settings.cfg`); Back or Escape
-  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns). Larger text makes
+  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns): Licences (702,511),
+  Back (857,511). Licences shows `Centre/LicencesCard` (x 190–1090, y 40–680; Back (987,634) or Escape
+  returns to Credits): a scroll list `%LicencesList` of labels, filled on first open from
+  `Engine.get_license_text()`, `get_copyright_info()` and `get_license_info()`. With Larger text,
+  Credits (702,648) and Licences (702,536); the Licences card keeps its size. Larger text makes
   the card taller, so these y values drift; read positions with `get:…:global_position` (headless runs
   centre the card in a 1280×1280 window: subtract 280 from y).
 - Settings in a match: the match reads the `Settings` autoload when the scene opens. To play with an
