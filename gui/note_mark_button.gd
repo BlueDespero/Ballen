@@ -59,10 +59,7 @@ func _draw() -> void:
 		glyph_colour = colour
 	draw_style_box(box, Rect2(centre - Vector2(BOX_SIZE, BOX_SIZE) / 2.0, Vector2(BOX_SIZE, BOX_SIZE)))
 	if mark == NoteMark.Mark.CROSS:
-		var a: Vector2 = Vector2(CROSS_HALF, CROSS_HALF)
-		var b: Vector2 = Vector2(CROSS_HALF, -CROSS_HALF)
-		draw_line(centre - a, centre + a, glyph_colour, LINE_WIDTH + 0.5, true)
-		draw_line(centre - b, centre + b, glyph_colour, LINE_WIDTH + 0.5, true)
+		Glyph.draw_cross(self, centre, CROSS_HALF, glyph_colour, LINE_WIDTH + 0.5)
 	else:
 		var font: Font = get_theme_font("font")
 		var font_size: int = get_theme_font_size("font_size")
