@@ -72,6 +72,7 @@ layout and centres it, so these coordinates no longer hold.
 - Main menu: the board backdrop (`MainMenu/Backdrop`, a `BoardBackdrop`) fills the screen, with the
   "Ballen" title (`MainMenu/Title`) above the buttons on a dark card. Buttons (centre x 640): Single
   Player y=362, Decks y=398, Options y=435, Quit y=471 (with Larger text on: 357, 397, 437, 477).
+  The version (`MainMenu/Version`, `v` + `application/config/version`) sits in the bottom-right corner.
 - Decks screen (Decks; scene `Decks`, `gui/menus/decks_screen.tscn`, or `scene:` it directly): one row
   per deck under `Margin/Card/Content/Scroll/DeckList` (`%DeckList`), named `Row0`, `Row1`, … in list
   order (Starter first, then saved decks in save order; the deck's name is in meta `deck_name`), row centres y=176, 240, 304, … (step 64). Each row shows the

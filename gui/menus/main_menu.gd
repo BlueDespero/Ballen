@@ -1,7 +1,8 @@
 extends Control
 
 ## The main menu: the game's title over the board backdrop, and the buttons on
-## a dark card so they stay readable over the falling balls.
+## a dark card so they stay readable over the falling balls. The game's version
+## sits in the bottom-right corner, so a build can be traced.
 
 const SETTINGS_SCENE: String = "res://gui/menus/settings_menu.tscn"
 const DECKS_SCENE: String = "res://gui/menus/decks_screen.tscn"
@@ -20,10 +21,12 @@ const CARD_MARGIN: float = 24.0
 @onready var _title: HBoxContainer = %Title
 @onready var _card: Panel = %Card
 @onready var _buttons: VBoxContainer = $GameButtons
+@onready var _version: Label = %Version
 
 
 func _ready() -> void:
 	_build_title()
+	_version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
 	_buttons.resized.connect(_place_card)
 	_title.resized.connect(_place_card)
 	Settings.changed.connect(_apply_text_scale)
