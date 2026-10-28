@@ -23,8 +23,12 @@ const LEVEL_BUTTON_HEIGHT: float = 44.0
 ## Narrow, so three level buttons fit beside the caption with "(coming soon)".
 const LEVEL_BUTTON_MARGIN: int = 6
 const DEFAULT_LEVEL: AILevel.Level = AILevel.Level.NORMAL
-## With larger text the card packs its rows closer, so a deck of long
-## (two-line) rules still fits the screen's height.
+## The card leaves the board backdrop showing on both sides. With larger text
+## it widens a little, so the level buttons still fit beside their caption,
+## and packs its rows closer, so a deck of long (two-line) rules still fits
+## the screen's height.
+const CARD_WIDTH: float = 640.0
+const LARGER_TEXT_CARD_WIDTH: float = 704.0
 const ROW_GAP: int = 10
 const LARGER_TEXT_ROW_GAP: int = 6
 
@@ -37,6 +41,7 @@ var text_scale: float = 1.0:
 			_fit_card()
 
 @onready var _backdrop: ColorRect = %Backdrop
+@onready var _card: PanelContainer = %Card
 @onready var _content: VBoxContainer = %Content
 @onready var _title: Label = %Title
 @onready var _deck_picker: OptionButton = %DeckPicker
@@ -113,9 +118,10 @@ func show_coin_toss(player_goes_first: bool, is_rematch: bool = false) -> void:
 	visible = false
 
 
-## Larger text packs the card's rows closer.
+## Larger text widens the card and packs its rows closer.
 func _fit_card() -> void:
 	var larger: bool = text_scale > 1.0
+	_card.custom_minimum_size.x = LARGER_TEXT_CARD_WIDTH if larger else CARD_WIDTH
 	_content.add_theme_constant_override("separation", LARGER_TEXT_ROW_GAP if larger else ROW_GAP)
 
 
