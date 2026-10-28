@@ -38,6 +38,8 @@ const LARGER_SECTION_SEPARATION: int = 4
 const LARGER_LINE_SPACING: int = -5
 ## The yellow left edge of a rule marked ?.
 const SUSPECT_EDGE_WIDTH: int = 4
+## Half the width of the note marks hint's ✗, as a share of its text size.
+const HINT_CROSS_HALF: float = 0.25
 
 ## Whether one of the player's guess windows is open; Guess also needs a
 ## selected rule.
@@ -95,7 +97,9 @@ var _ai_true_rule_id: String = ""
 @onready var _guess_button: GuessButton = %GuessButton
 @onready var _seal_button: GuessButton = %SealButton
 @onready var _guess_hint: Label = %GuessHint
-@onready var _mark_hint: Label = %MarkHint
+@onready var _mark_hint: HBoxContainer = %MarkHint
+@onready var _mark_hint_text: Label = %MarkHint/Text
+@onready var _mark_hint_cross: Control = %MarkHint/Cross
 @onready var _ai_skip_pips: HBoxContainer = %AISkipPips
 @onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
 
@@ -104,7 +108,8 @@ func _ready() -> void:
 	_guess_button.guessed.connect(_on_guessed)
 	_seal_button.guessed.connect(_on_sealed)
 	_guess_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
-	_mark_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
+	_mark_hint_text.add_theme_color_override("font_color", Palette.HINT_COLOUR)
+	_mark_hint_cross.draw.connect(_draw_hint_cross)
 	_apply_spacing()
 	_update_guess()
 
@@ -121,6 +126,7 @@ func _apply_spacing() -> void:
 	_sections.add_theme_constant_override("separation", LARGER_SECTION_SEPARATION if larger else SECTION_SEPARATION)
 	for list: VBoxContainer in [_ai_rules, _player_rules]:
 		list.add_theme_constant_override("separation", LARGER_ROW_SEPARATION if larger else ROW_SEPARATION)
+	_mark_hint_cross.queue_redraw()
 
 
 ## Shows both decks for a new match (also a rematch: the match-over marks go).
@@ -224,6 +230,14 @@ func _strike_through(text_label: Label, rule_id: String) -> void:
 		var line: Vector3 = lines[top]
 		var y: float = top + (line.z - top) * STRIKE_HEIGHT
 		text_label.draw_line(Vector2(line.x, y), Vector2(line.y, y), Color.WHITE, width, true)
+
+
+## The hint's ✗, drawn (the web build's font has none) at the size of the
+## hint's text, so it follows Larger text.
+func _draw_hint_cross() -> void:
+	var font_size: int = _mark_hint_text.get_theme_font_size("font_size")
+	var centre: Vector2 = _mark_hint_cross.size / 2.0
+	Glyph.draw_cross(_mark_hint_cross, centre, font_size * HINT_CROSS_HALF, Palette.HINT_COLOUR, maxf(1.5, font_size / 9.0))
 
 
 func _get_marks() -> Dictionary[String, int]:

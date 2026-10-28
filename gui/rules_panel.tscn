@@ -39,12 +39,22 @@ vertical_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="MarkHint" type="Label" parent="Sections"]
+[node name="MarkHint" type="HBoxContainer" parent="Sections"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Cross" type="Control" parent="Sections/MarkHint"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Sections/MarkHint"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "✗ ? = your private notes on the AI's rules"
+text = "? = your private notes on the AI's rules"
 autowrap_mode = 3
 
 [node name="AIRules" type="VBoxContainer" parent="Sections"]
