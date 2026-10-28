@@ -6,9 +6,15 @@ extends Button
 ## under the pointer, filled red (✗) or yellow (?) while the row has its mark.
 ## It draws its own glyph, so it shows whatever the font. The rules panel
 ## decides the row's mark on a press (`NoteMark.toggled`) and sets `lit`.
-## Works with mouse and touch.
+## Works with mouse and touch: it takes taps in a 44 px square (TOUCH_SIZE)
+## though it takes only 36 px of the row, so the rules panel still fits a
+## 720 px screen. ✗ reaches out to its left, ? to its right, so the two
+## buttons never share a point.
 
+## The room the button takes in the row.
 const HIT_SIZE: float = 36.0
+## The square it takes taps and clicks in, a finger's width.
+const TOUCH_SIZE: float = 44.0
 const BOX_SIZE: float = 28.0
 const CORNER_RADIUS: int = 6
 const LINE_WIDTH: float = 2.0
@@ -39,6 +45,18 @@ func _init(button_mark: NoteMark.Mark = NoteMark.Mark.CROSS) -> void:
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	tooltip_text = "Rule out (your note)" if mark == NoteMark.Mark.CROSS else "Suspect (your note)"
+
+
+## Where the button takes taps, in its own coordinates: TOUCH_SIZE square,
+## centred vertically, reaching out sideways away from the other mark button.
+func touch_rect() -> Rect2:
+	var extra: Vector2 = Vector2(TOUCH_SIZE, TOUCH_SIZE) - size
+	var left: float = -extra.x if mark == NoteMark.Mark.CROSS else 0.0
+	return Rect2(Vector2(left, -extra.y / 2.0), Vector2(TOUCH_SIZE, TOUCH_SIZE))
+
+
+func _has_point(point: Vector2) -> bool:
+	return touch_rect().has_point(point)
 
 
 func _draw() -> void:
