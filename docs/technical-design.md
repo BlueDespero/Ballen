@@ -353,6 +353,31 @@ matches, including permissive rules written as data.
 CI (`.github/workflows/ci.yml`) runs the suite and a short harness on every push and pull request; on `master` it
 also exports the web build, gates it on the Playwright web tests and pushes it to itch.io with butler.
 
+## Web build
+
+The first release is the web export on itch.io. Commands and CI settings are in `CLAUDE.md` ("Web tests", "CI");
+what the build reaches and ships is in [release-audit.md](release-audit.md).
+
+- **Preset:** "Web" in `export_presets.cfg`, exporting to `build/web/index.html` (gitignored). The `nothreads`
+  template (thread support off), so the host needs no cross-origin isolation headers (no SharedArrayBuffer).
+  Canvas resize policy adaptive, PWA off. The exclude filter keeps tests, harness, GUT, docs, `web-test/` and
+  `.claude/` out of the pack; the include filter adds `assets/fonts/OFL.txt` for the Licences card.
+- **Version:** `config/version` in `project.godot` (0.2.0), shown in the main menu's corner. CI's deploy stamps it
+  `0.2.0+<short sha>` so a build on itch can be traced to its commit.
+- **Storage:** `user://` (settings, saved decks) lives in the browser's IndexedDB.
+- **Web-related autoloads:**
+  - `WebMarkers` prints `[ballen] …` console lines on scene changes and key events (web builds only) for the
+    tests, as the canvas has no DOM to inspect.
+  - `RotateHint` covers the screen with "Rotate your device" and takes input while the screen is taller than
+    wide (`RotateHint.should_show(size)`), in every build, until the portrait layout exists.
+  - `SymbolFont` adds the bundled Noto Sans Symbols as a fallback of the default font: the web has no system fonts
+    for the rule texts' arrows.
+- **Touch:** every tap target is at least 44 px at 1280×720; small glyphs (✗, ◀ ▶) are drawn, not typed.
+- **Web tests:** Playwright in `web-test/` plays the export in Desktop Chrome, Pixel 7 and iPhone 15 (WebKit) in
+  landscape with touch, and Desktop Firefox: it loads with WebGL2 and no console errors, a match starts, a ball
+  can be dragged (mouse; touch through CDP on Chromium, script-made touch events on WebKit), portrait shows the
+  rotate hint, and a saved deck survives a reload. Clicks use the run-ballen skill's layout coordinates.
+
 ## Daily duel
 
 - Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its true rule, its colour choices and who starts, so every player faces the same opponent.
@@ -362,5 +387,6 @@ also exports the web build, gates it on the Playwright web tests and pushes it t
 ## Open technical questions
 
 - [ ] Board representation: 64-bit bitmasks (36 cells) for speed in Hard's search?
-- [ ] Threads on the web export need cross-origin isolation; check against the chosen host (itch.io).
+- [x] Threads on the web export need cross-origin isolation: the web build uses the `nothreads` template (see Web
+  build).
 - [x] Save format and location for decks: rule ids in `user://decks.json` (see Saved decks).
