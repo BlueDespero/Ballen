@@ -78,6 +78,18 @@ cd web-test; npm ci; npx playwright install; npx playwright test
 
 `serve.mjs` serves `build/web` on port 8137 (`PORT` to change it); `--project=desktop-chrome` runs one browser.
 
+## CI
+
+`.github/workflows/ci.yml`, on GitHub Actions (Godot 4.7.1 on Linux):
+
+- `test`, on every push and pull request: import step, GUT suite, harness with `--matches 20 --seed 1`.
+- `deploy`, on pushes to `master` after `test` passes: stamps `config/version` with `+<short sha>`, exports Web,
+  runs the web tests in all four browsers, then `butler push build/web <ITCH_GAME>:html5`. Failing web tests stop
+  the push (the Playwright report is uploaded as an artifact).
+
+Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
+API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.

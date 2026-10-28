@@ -350,6 +350,9 @@ through the public seams only: the match (commands in; phase, result, history an
 `MatchEndSummary`. Every RNG is seeded. `test/helpers/fixtures.gd` builds rule books, decks and
 matches, including permissive rules written as data.
 
+CI (`.github/workflows/ci.yml`) runs the suite and a short harness on every push and pull request; on `master` it
+also exports the web build, gates it on the Playwright web tests and pushes it to itch.io with butler.
+
 ## Daily duel
 
 - Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its true rule, its colour choices and who starts, so every player faces the same opponent.
