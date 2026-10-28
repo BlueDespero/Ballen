@@ -15,7 +15,7 @@ const ROW_HEIGHT: float = 48.0
 const NAME_FONT_SIZE: int = 20
 const FLASH_COLOUR: Color = Color(1.0, 0.45, 0.4)
 const FLASH_SECONDS: float = 0.6
-const CHIP_HEIGHT: float = 36.0
+const CHIP_HEIGHT: float = 44.0
 ## Chips grow with their text (Larger text) beyond this width.
 const CHIP_WIDTH: float = 112.0
 const CHIP_MARGIN: float = 18.0
@@ -204,7 +204,7 @@ func _chip_style(colour: Color, on: bool) -> StyleBoxFlat:
 	style.bg_color = colour.darkened(0.55) if on else Palette.ROW_COLOUR
 	style.border_color = colour
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(18)
+	style.set_corner_radius_all(int(CHIP_HEIGHT / 2.0))
 	style.content_margin_left = CHIP_MARGIN
 	style.content_margin_right = CHIP_MARGIN
 	return style
