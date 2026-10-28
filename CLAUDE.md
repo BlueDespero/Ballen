@@ -23,7 +23,8 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 - Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Settings` (`game_settings.gd`:
   player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`), `WebMarkers`
   (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
-  changes and `EventBus` signals). Turn state lives in the match.
+  changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
+  is taller than wide). Turn state lives in the match.
 
 ## Tests
 
@@ -97,7 +98,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 - `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
-  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rule tier badges (`TierBadge`),
+  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rotate hint, rule tier badges (`TierBadge`),
   the menus' animated board backdrop (`BoardBackdrop`), shared colours and labels (`Palette`),
   menus (`gui/menus/`: main menu, Decks screen and deck editor, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
