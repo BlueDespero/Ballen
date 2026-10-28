@@ -13,6 +13,13 @@ func test_version_label_shows_the_project_version() -> void:
 	assert_eq(menu.get_node("%Version").text, "v" + version)
 
 
+# Quitting in a browser only freezes the canvas, so Quit is a desktop button.
+func test_quit_is_shown_on_desktop_only() -> void:
+	var quit_button: GDScript = preload("res://gui/menus/quit_button.gd")
+	assert_true(quit_button.is_shown(false), "desktop shows Quit")
+	assert_false(quit_button.is_shown(true), "the web hides Quit")
+
+
 # A web page's canvas starts tiny and grows after the menu is ready, which
 # moves the centred buttons without resizing them.
 func test_card_follows_the_buttons_when_the_screen_grows() -> void:
