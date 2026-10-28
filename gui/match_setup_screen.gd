@@ -20,6 +20,8 @@ signal main_menu_requested
 const COIN_TOSS_SECONDS: float = 2.0
 const RULE_BUTTON_HEIGHT: float = 44.0
 const LEVEL_BUTTON_HEIGHT: float = 44.0
+## The deck picker's list items, tall enough for a finger.
+const DECK_ITEM_HEIGHT: float = 44.0
 ## Narrow, so three level buttons fit beside the caption with "(coming soon)".
 const LEVEL_BUTTON_MARGIN: int = 6
 const DEFAULT_LEVEL: AILevel.Level = AILevel.Level.NORMAL
@@ -71,9 +73,17 @@ func _ready() -> void:
 	_deck_picker.add_theme_stylebox_override("hover", _style(Palette.ROW_COLOUR.lightened(0.1), 2))
 	_deck_picker.add_theme_stylebox_override("pressed", _style(Palette.ROW_COLOUR.lightened(0.1), 2))
 	_deck_picker.add_theme_stylebox_override("disabled", _style(Palette.ROW_COLOUR, 0))
+	_fit_deck_items()
 	for level: AILevel.Level in AILevel.ALL:
 		_level_buttons.add_child(_level_button(level))
 	_fit_card()
+
+
+## Spaces the deck picker's list so each item is DECK_ITEM_HEIGHT tall.
+func _fit_deck_items() -> void:
+	var popup: PopupMenu = _deck_picker.get_popup()
+	var font_height: float = popup.get_theme_font("font").get_height(popup.get_theme_font_size("font_size"))
+	popup.add_theme_constant_override("v_separation", ceili(DECK_ITEM_HEIGHT - font_height))
 
 
 ## Shows the setup for a new match: the saved decks to pick from (the first
