@@ -8,6 +8,21 @@ opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser fir
 - **Technical design:** [docs/technical-design.md](docs/technical-design.md)
 - **Rules library:** [docs/rules-library.md](docs/rules-library.md)
 - **AI research notes:** [docs/ai-decision-theory-research.md](docs/ai-decision-theory-research.md)
+- **Web release audit:** [docs/release-audit.md](docs/release-audit.md)
+
+## Playing in the browser
+
+Version 0.2.0 plays in the browser on itch.io: link coming soon. It runs in desktop browsers and on phones held
+sideways, with mouse or touch; settings and saved decks stay in the browser's storage. The version is in the main
+menu's bottom-right corner.
+
+To play the web build locally, export it and serve the folder (from the repo root, after the import step below;
+the export needs Godot's export templates):
+
+```powershell
+New-Item -ItemType Directory -Force build/web > $null; godot --headless --path . --export-release "Web" build/web/index.html
+node web-test/serve.mjs   # then open http://127.0.0.1:8137 (Node 18+, no packages needed)
+```
 
 ## Running the project
 
@@ -39,9 +54,10 @@ godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
 | `ai/` | The AI opponent: deduction, guessing, colour picks, placement, levels |
 | `harness/` | Headless AI-vs-AI harness and strictness check for balance numbers |
 | `gui/` | Board, ball, colour picker, guess button, rules panel, match setup, match-end and menu scenes |
-| `event_bus.gd`, `constants.gd` | Autoloads: global signals, ball colours |
+| `event_bus.gd`, `constants.gd`, `game_settings.gd` | Autoloads: global signals, ball colours, player settings; `WebMarkers`, `RotateHint` and `SymbolFont` live in `gui/` |
 | `assets/` | Kenney art assets |
 | `test/`, `addons/gut/` | GUT tests and the vendored GUT addon |
+| `web-test/` | Playwright tests of the web export |
 | `docs/` | Design documents, rules library, research notes, milestone briefs, ADRs |
 
 ## How the AI thinks
