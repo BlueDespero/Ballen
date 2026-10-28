@@ -62,31 +62,56 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="SinglePlayerButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Single Player"
 
 [node name="MultiPlayerButton" type="Button" parent="GameButtons"]
 visible = false
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Online Play"
 
 [node name="DecksButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Decks"
 
 [node name="OptionButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Options"
 
 [node name="QuitButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Quit"
 script = ExtResource("1_06t4h")
+
+[node name="Version" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -40.0
+offset_right = -12.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.7, 0.74, 0.8, 0.7)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [connection signal="pressed" from="GameButtons/SinglePlayerButton" to="." method="_on_single_player_button_pressed"]
 [connection signal="pressed" from="GameButtons/DecksButton" to="." method="_on_decks_button_pressed"]

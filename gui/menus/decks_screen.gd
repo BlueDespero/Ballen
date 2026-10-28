@@ -12,6 +12,7 @@ const EDITOR_SCENE: PackedScene = preload("res://gui/menus/deck_editor.tscn")
 const ROW_HEIGHT: float = 56.0
 const NAME_WIDTH: float = 240.0
 const ROW_BUTTON_WIDTH: float = 96.0
+const ROW_BUTTON_HEIGHT: float = 44.0
 const NAME_FIELD_FONT_SIZE: int = 20
 const DELETE_COLOUR: Color = Palette.RED_COLOUR
 ## Each row keeps the name of its deck here; rows are named Row0 (Starter),
@@ -88,6 +89,7 @@ func _fill() -> void:
 		row.name = "Row%d" % _deck_list.get_child_count()
 		_deck_list.add_child(row)
 	_apply_text_scale()
+	EventBus.decks_listed.emit(_store.names())
 
 
 func _deck_row(deck_name: String) -> PanelContainer:
@@ -211,7 +213,7 @@ func _row_button(text: String, on_pressed: Callable, colour: Color = Color.WHITE
 	var button: Button = Button.new()
 	button.name = text
 	button.text = text
-	button.custom_minimum_size = Vector2(ROW_BUTTON_WIDTH, 40)
+	button.custom_minimum_size = Vector2(ROW_BUTTON_WIDTH, ROW_BUTTON_HEIGHT)
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND

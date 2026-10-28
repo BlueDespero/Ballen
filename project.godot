@@ -15,14 +15,19 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Ballen"
+config/version="0.2.0"
 run/main_scene="uid://dkeh6trij7nd7"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://assets/icon/icon.png"
 
 [autoload]
 
 EventBus="*res://event_bus.gd"
 Constants="*res://constants.gd"
 Settings="*res://game_settings.gd"
+WebMarkers="*res://gui/web_markers.gd"
+RotateHint="*res://gui/rotate_hint.gd"
+SymbolFont="*res://gui/symbol_font.gd"
 
 [display]
 

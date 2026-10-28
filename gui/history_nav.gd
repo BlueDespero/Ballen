@@ -10,9 +10,11 @@ signal back_pressed
 signal live_pressed
 signal forward_pressed
 
-const BUTTON_HEIGHT: float = 36.0
-const ARROW_WIDTH: float = 36.0
+const BUTTON_HEIGHT: float = 44.0
+const ARROW_WIDTH: float = 44.0
 const LIVE_WIDTH: float = 52.0
+## Half the height of a drawn ◀ or ▶.
+const ARROW_HALF: float = 7.0
 ## One fade of the lit Live button from bright to dim (or back).
 const PULSE_SECONDS: float = 0.6
 const PULSE_DIM_ALPHA: float = 0.45
@@ -35,10 +37,28 @@ var _live_pulse: Tween = null
 
 
 func _ready() -> void:
-	_back = _button("Back", "◀", ARROW_WIDTH, "Previous turn (←)", back_pressed)
+	_back = _button("Back", "", ARROW_WIDTH, "Previous turn (Left arrow key)", back_pressed)
 	_live = _button("Live", "Live", LIVE_WIDTH, "Back to the live board", live_pressed)
-	_forward = _button("Forward", "▶", ARROW_WIDTH, "Next turn (→)", forward_pressed)
+	_forward = _button("Forward", "", ARROW_WIDTH, "Next turn (Right arrow key)", forward_pressed)
+	_back.draw.connect(_draw_arrow.bind(_back, -1))
+	_forward.draw.connect(_draw_arrow.bind(_forward, 1))
 	set_state(false, false)
+
+
+## The arrows are drawn (the web build's font has no ◀ or ▶), in the colour
+## the button's text would have in its state.
+func _draw_arrow(button: Button, direction: int) -> void:
+	var colour_name: String = "font_color"
+	match button.get_draw_mode():
+		BaseButton.DRAW_DISABLED:
+			colour_name = "font_disabled_color"
+		BaseButton.DRAW_PRESSED:
+			colour_name = "font_pressed_color"
+		BaseButton.DRAW_HOVER:
+			colour_name = "font_hover_color"
+		BaseButton.DRAW_HOVER_PRESSED:
+			colour_name = "font_hover_pressed_color"
+	Glyph.draw_triangle(button, button.size / 2.0, ARROW_HALF, direction, button.get_theme_color(colour_name))
 
 
 ## Back works while there is an earlier turn to show; Live and forward only

@@ -33,7 +33,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 # Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,362 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,345 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -69,9 +69,15 @@ Headless, the match never starts: it waits on the match setup screen's Start, wh
 At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
 layout and centres it, so these coordinates no longer hold.
 
+- Rotate hint: the `RotateHint` autoload (`/root/RotateHint`, a CanvasLayer on layer 100) covers every
+  screen with "Rotate your device" and turns input off while the window is taller than wide
+  (`--resolution 720x1280`); web builds log `[ballen] rotate_hint=shown|hidden`.
+- Tap targets are at least 44 px; the note mark buttons draw 36 px but take taps in a 44 px square
+  (✗ reaches 8 px further left, ? 8 px further right).
 - Main menu: the board backdrop (`MainMenu/Backdrop`, a `BoardBackdrop`) fills the screen, with the
   "Ballen" title (`MainMenu/Title`) above the buttons on a dark card. Buttons (centre x 640): Single
-  Player y=362, Decks y=398, Options y=435, Quit y=471 (with Larger text on: 357, 397, 437, 477).
+  Player y=345, Decks y=393, Options y=441, Quit y=489 (44 px tall; with Larger text the card grows: read `global_position`).
+  The version (`MainMenu/Version`, `v` + `application/config/version`) sits in the bottom-right corner.
 - Decks screen (Decks; scene `Decks`, `gui/menus/decks_screen.tscn`, or `scene:` it directly): one row
   per deck under `Margin/Card/Content/Scroll/DeckList` (`%DeckList`), named `Row0`, `Row1`, … in list
   order (Starter first, then saved decks in save order; the deck's name is in meta `deck_name`), row centres y=176, 240, 304, … (step 64). Each row shows the
@@ -85,8 +91,8 @@ layout and centres it, so these coordinates no longer hold.
 - Deck editor (New deck, Edit or Copy; node `DeckEditor`, a child of `Decks`, covering it): paths under
   `DeckEditor/Margin/Card/Content`. Name field `Header/NameField` (650,58; click it, then `type:My deck`),
   counter `Header/Counter:text` (`3 / 5`; flashes red on a 6th pick, which does nothing), filter chips
-  `Filters/Chips/All|Simple|Intermediate|Hardcore` at y=110 (x≈215, 355, 495, 635), the rule rows
-  `Scroll/RuleList/R01` … (click x≈600; with All shown R01 y=164, R02 218, … step 54, R09 596 is the
+  `Filters/Chips/All|Simple|Intermediate|Hardcore` at y=114 (x≈205, 325, 458, 591; 44 px tall), the rule rows
+  `Scroll/RuleList/R01` … (click x≈600; with All shown R01 y=172, R02 226, … step 54, R09 604 is the
   last one visible; scroll or filter for the rest; a picked row turns gold). Footer: `Footer/Hint:text`
   (`Pick 5 rules (3 picked)`, `Name the deck`, `A deck named X already exists`, empty when it can be
   saved), Cancel (947,660), Save (1113,660, `Footer/SaveButton:disabled`). Save or Cancel (or Escape)
@@ -94,11 +100,16 @@ layout and centres it, so these coordinates no longer hold.
   player's game**: back up `%APPDATA%\Godot\app_userdata\Ballen\decks.json` before a run that saves
   and restore it (or delete it if there was none) afterwards.
 - Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
-  nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y≈172), switches
-  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
-  (y≈514); click x≈500 on the row. Credits (702,595), Back (857,595). Every change is saved to
+  nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y 141–185), switches
+  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈346), `GuessWithoutHolding` (y≈449), `LargerText`
+  (y≈529); click x≈500 on the row. Switches, slider and the Credits links are 44 px tall, like
+  every button. Credits (702,609), Back (858,609). Every change is saved to
   `user://settings.cfg` at once (`%APPDATA%\Godot\app_userdata\Ballen\settings.cfg`); Back or Escape
-  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns). Larger text makes
+  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns): links
+  www.kenney.nl (y≈336) and godotengine.org/license (y≈466), Licences (702,531), Back (858,531). Licences shows `Centre/LicencesCard` (x 190–1090, y 40–680; Back (987,634) or Escape
+  returns to Credits): a scroll list `%LicencesList` of labels, filled on first open from
+  `Engine.get_license_text()`, `get_copyright_info()` and `get_license_info()`. With Larger text,
+  Credits (702,650) and Licences (702,552); the Licences card keeps its size. Larger text makes
   the card taller, so these y values drift; read positions with `get:…:global_position` (headless runs
   centre the card in a 1280×1280 window: subtract 280 from y).
 - Settings in a match: the match reads the `Settings` autoload when the scene opens. To play with an
@@ -117,7 +128,7 @@ layout and centres it, so these coordinates no longer hold.
   marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
   (x 48–688, y 30–690; with Larger text x 16–720, y 31–688) over the board backdrop
   (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
-  centre (434,122); click it, then the list's items at x≈226, y=162, 189, 216, … (step 27). AI level buttons
+  centre (434,122); click it, then the list's items at x≈226, y≈170, 214, 258, … (step 44). AI level buttons
   (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; only
   Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
   the level. Your deck's rules as toggle buttons (x 80–656, centre x 368; a long rule wraps onto two
@@ -139,8 +150,8 @@ layout and centres it, so these coordinates no longer hold.
   green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second):
   then a yellow ring pulses around each button and `Layout/Status` contains `Pick the AI's next colour.`;
   otherwise the buttons are dimmed (`Layout/ColourPicker:enabled`).
-- History view: `Layout/HistoryNav`, left of `You` under the board (x 200–336, y 642–678): ◀ centre
-  (218,660), Live (268,660), ▶ (318,660); `key:Left` / `key:Right` do the same. ◀ (from the live
+- History view: `Layout/HistoryNav`, left of `You` under the board (x 200–352, y 638–682, buttons 44 px tall; the arrows are drawn triangles): ◀ centre
+  (222,660), Live (276,660), ▶ (330,660); `key:Left` / `key:Right` do the same. ◀ (from the live
   board) shows the latest turn with a placement or skip, then earlier ones; ▶ past the latest returns to
   live. A past board rings that turn's ball (a skipped ball shows at its owner's waiting spot), fades
   the waiting balls, shows no glow, sets `Layout/PlayerBall:draggable` false and the skip pips as they
@@ -176,7 +187,7 @@ layout and centres it, so these coordinates no longer hold.
   `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
 - Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
   `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
-  explains the marks and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
+  explains the marks (it gives way on a full board) and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
   your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
   `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
   taps a mark, and restore it afterwards.
@@ -199,7 +210,9 @@ layout and centres it, so these coordinates no longer hold.
   `Layout/RulesPanel:seal_enabled` is true, the Seal button shows and `Layout/Status` starts
   `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
   stays too (`guess_enabled` true; right wins, wrong loses) and Seal sits left of it, centre
-  (1022,356); otherwise Seal alone takes Guess's place, centre (1188,344). A sealed guess stays
+  (1022,347), Guess (1173,347); otherwise Seal alone takes Guess's place, centre (1188,344). The note
+  marks hint is hidden while the board is full (so the y values without it hold), which keeps the
+  panel inside 720 px with long rules in both decks. A sealed guess stays
   sealed (the status says so) until the AI's is in, then the match-end screen shows `You win`,
   `You lose` or `Draw`. A full board takes 36 placements; to
   check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full

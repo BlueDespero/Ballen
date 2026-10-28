@@ -15,14 +15,20 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   adding or changing a rule.
 - `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
   colour picks, guessing, difficulty levels).
+- `docs/release-audit.md`: what the web build reaches (network, files, autoloads) and ships, licences, known
+  gaps; update it when adding network, file or OS access, an autoload or an asset, and re-run its checklist
+  before each public release.
 
 ## Conventions
 
 - Type everything: variables (`var x: int`), parameters, and return types (`-> void`).
 - Tabs for indentation.
 - Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Settings` (`game_settings.gd`:
-  player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`). Turn state
-  lives in the match.
+  player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`), `WebMarkers`
+  (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
+  changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
+  is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
+  default font, for arrows the web build has no system font for). Turn state lives in the match.
 
 ## Tests
 
@@ -62,6 +68,32 @@ godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
 Rule tiers combine it with a large harness run (1000+ matches); method and thresholds in
 `docs/technical-design.md` ("Rule tiers").
 
+## Web tests
+
+Playwright plays the web export in Desktop Chrome, Pixel 7 and iPhone 15 (WebKit) in landscape with touch, and
+Desktop Firefox. The game prints `[ballen] …` console markers in web builds (`WebMarkers`) and the tests wait for
+them; clicks are 1280×720 layout coordinates (run-ballen skill) scaled to the canvas. From the repo root, after
+the import step (`build/` is gitignored; Godot needs the folder to exist):
+
+```powershell
+New-Item -ItemType Directory -Force build/web > $null; godot --headless --path . --export-release "Web" build/web/index.html
+cd web-test; npm ci; npx playwright install; npx playwright test
+```
+
+`serve.mjs` serves `build/web` on port 8137 (`PORT` to change it); `--project=desktop-chrome` runs one browser.
+
+## CI
+
+`.github/workflows/ci.yml`, on GitHub Actions (Godot 4.7.1 on Linux):
+
+- `test`, on every push and pull request: import step, GUT suite, harness with `--matches 20 --seed 1`.
+- `deploy`, on pushes to `master` after `test` passes: stamps `config/version` with `+<short sha>`, exports Web,
+  runs the web tests in all four browsers, then `butler push build/web <ITCH_GAME>:html5`. Failing web tests stop
+  the push (the Playwright report is uploaded as an artifact).
+
+Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
+API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.
+
 ## Commits
 
 IMPORTANT: history must read as a series of small, self-contained changes.
@@ -82,7 +114,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 
 - `main.tscn` (main menu) / `main_game.tscn` + `main_game.gd` (match scene) — entry scenes
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
-  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rule tier badges (`TierBadge`),
+  colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rotate hint, rule tier badges (`TierBadge`),
   the menus' animated board backdrop (`BoardBackdrop`), shared colours and labels (`Palette`),
   menus (`gui/menus/`: main menu, Decks screen and deck editor, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
@@ -96,6 +128,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `assets/` — Kenney art assets
 - `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
   `addons/gut/` — vendored GUT 9.7.1
+- `web-test/` — Playwright tests of the web export (own `package.json`): `serve.mjs`, `playwright.config.ts`,
+  `tests/` (`game.ts` drives the canvas)
 
 ## Agent skills
 
