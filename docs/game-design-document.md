@@ -165,7 +165,7 @@ New players are never forced through the tutorial: How to Play glows until first
 | Notes | A small mark button on each opponent rule cycles ✗ ruled out / ? suspect / no mark; tapping the rule itself still selects it for Guess | Built: the mark button sits left of each of the AI's rules and a ✗ rule's text fades; private, kept at match end and cleared by a rematch (`gui/note_mark_button.gd`, `NoteMark`) |
 | History | Arrows under the board step through past boards; view-only, your own action returns to live; the opponent playing on lights up Live | Built: ◀ Live ▶ under the board and the ← → keys; the turn's ball is ringed, a skipped ball shows at its owner's side (`gui/history_nav.gd`, `MatchPosition.after_turn`) |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
-| Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Not started |
+| Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Built: volume (stored; sound comes later), colour-blind symbols, reduced motion, guess without holding, larger text, Credits (`gui/menus/settings_menu.tscn`); language waits |
 
 **Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board fills the main area, with your side at the bottom and the opponent's at the top; each player's ball waits on their side of the board. One rules panel on the right holds the opponent's rules on top and yours below. A portrait layout, with rules above and below the board, comes in a later release for phones.
 
@@ -193,7 +193,7 @@ The prototype uses free [Kenney](https://kenney.nl) assets (CC0: free for commer
 | --- | --- | --- | --- |
 | Board, balls, tokens | [Board Game Pack](https://kenney.nl/assets/boardgame-pack) | Custom vector art | Swap from current pixel UI and platformer tiles |
 | Menus, panels, buttons | [UI Pack 2.0](https://kenney.nl/assets/ui-pack) | Custom vector art | Swap from UI Pack – Pixel Adventure |
-| Icons, colour-blind symbols | [Game Icons](https://kenney.nl/assets/game-icons) | Custom symbols | Not started |
+| Icons, colour-blind symbols | [Game Icons](https://kenney.nl/assets/game-icons) | Custom symbols | Colour-blind symbols drawn in code (`gui/ball_symbol.gd`) until Game Icons are added |
 | Fonts | [Kenney Fonts](https://kenney.nl/assets/kenney-fonts) | To decide | Not started |
 | Effects | Godot shaders and particles | Same | Not started |
 | Sound effects | [Interface Sounds](https://kenney.nl/assets/interface-sounds), [UI Audio](https://kenney.nl/assets/ui-audio), [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Same or custom | Not started |

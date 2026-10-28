@@ -12,6 +12,12 @@ const COIN_TOSS_SECONDS: float = 2.0
 const BUTTON_HEIGHT: float = 52.0
 const HOVER_BORDER_COLOUR: Color = RulesPanel.TRUE_BORDER_COLOUR
 
+## Larger text: the panel's text is this many times its built size.
+var text_scale: float = 1.0:
+	set(value):
+		text_scale = value
+		TextScale.apply(self, value)
+
 @onready var _choice: VBoxContainer = %Choice
 @onready var _rule_buttons: VBoxContainer = %RuleButtons
 @onready var _coin_toss: VBoxContainer = %CoinToss
@@ -29,6 +35,7 @@ func show_deck(deck: Deck) -> void:
 	_choice.visible = true
 	_coin_toss.visible = false
 	visible = true
+	TextScale.apply(self, text_scale)
 
 
 ## Shows who goes first, waits COIN_TOSS_SECONDS, then hides. A coroutine.

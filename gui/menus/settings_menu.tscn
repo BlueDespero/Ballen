@@ -1,0 +1,220 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://gui/menus/settings_menu.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 32.0
+content_margin_top = 24.0
+content_margin_right = 32.0
+content_margin_bottom = 24.0
+bg_color = Color(0.11, 0.12, 0.15, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_hint"]
+font_size = 14
+font_color = Color(0.7, 0.74, 0.8, 1)
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Centre" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Centre"]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Centre/Card"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+
+[node name="VolumeRow" type="HBoxContainer" parent="Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="VolumeLabel" type="Label" parent="Centre/Card/Content/VolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Volume"
+
+[node name="Volume" type="HSlider" parent="Centre/Card/Content/VolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_vertical = 4
+step = 5.0
+value = 80.0
+
+[node name="VolumeValue" type="Label" parent="Centre/Card/Content/VolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+text = "80%"
+horizontal_alignment = 2
+
+[node name="VolumeHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Sound effects and jingles."
+label_settings = SubResource("LabelSettings_hint")
+
+[node name="ColourBlindSymbols" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Colour-blind symbols"
+alignment = 0
+
+[node name="SymbolsRow" type="HBoxContainer" parent="Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SymbolsHint" type="Label" parent="Centre/Card/Content/SymbolsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "A distinct symbol on each ball colour, on the board and the colour buttons."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
+[node name="SymbolPreview" type="Control" parent="Centre/Card/Content/SymbolsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="ReducedMotion" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reduced motion"
+alignment = 0
+
+[node name="ReducedMotionHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Glows and rings hold still, balls jump instead of flying, skipped balls vanish without dissolving."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
+[node name="GuessWithoutHolding" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Guess without holding"
+alignment = 0
+
+[node name="GuessWithoutHoldingHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Tap Guess (or Seal), then tap Confirm, instead of holding it while the ring fills."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
+[node name="LargerText" type="CheckButton" parent="Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Larger text"
+alignment = 0
+
+[node name="LargerTextHint" type="Label" parent="Centre/Card/Content"]
+layout_mode = 2
+text = "Bigger text in the rules panel and the menus."
+label_settings = SubResource("LabelSettings_hint")
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="Credits" type="Button" parent="Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Credits"
+
+[node name="Back" type="Button" parent="Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Back"
+
+[node name="CreditsCard" type="PanelContainer" parent="Centre"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Centre/CreditsCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Credits"
+
+[node name="ArtTitle" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Art"
+
+[node name="Art" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+text = "Kenney: UI Pack – Pixel Adventure and other game assets, released under CC0 1.0 (public domain)."
+autowrap_mode = 3
+
+[node name="KenneyLink" type="LinkButton" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "www.kenney.nl"
+uri = "https://www.kenney.nl"
+
+[node name="EngineTitle" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Engine"
+
+[node name="Engine" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+text = "Made with the Godot Engine, under the MIT licence."
+autowrap_mode = 3
+
+[node name="GodotLink" type="LinkButton" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "godotengine.org/license"
+uri = "https://godotengine.org/license"
+
+[node name="Buttons" type="HBoxContainer" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+alignment = 2
+
+[node name="CreditsBack" type="Button" parent="Centre/CreditsCard/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+text = "Back"

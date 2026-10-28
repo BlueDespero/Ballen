@@ -67,6 +67,8 @@ func _ready() -> void:
 	_history_nav.back_pressed.connect(_step_back)
 	_history_nav.live_pressed.connect(_go_live)
 	_history_nav.forward_pressed.connect(_step_forward)
+	Settings.changed.connect(_apply_settings)
+	_apply_settings()
 	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
 	_show_pre_match()
 
@@ -75,6 +77,23 @@ func _exit_tree() -> void:
 	if _driver != null:
 		_driver.stop()
 	_human.choose(null)
+
+
+## Passes the player's settings (the Settings autoload) on to the views.
+func _apply_settings() -> void:
+	_board_view.symbols = Settings.colour_blind_symbols
+	_player_ball.symbols = Settings.colour_blind_symbols
+	_ai_ball.symbols = Settings.colour_blind_symbols
+	_picker.symbols = Settings.colour_blind_symbols
+	_history_nav.reduced_motion = Settings.reduced_motion
+	_board_view.reduced_motion = Settings.reduced_motion
+	_player_ball.reduced_motion = Settings.reduced_motion
+	_ai_ball.reduced_motion = Settings.reduced_motion
+	_picker.reduced_motion = Settings.reduced_motion
+	_rules_panel.guess_without_holding = Settings.guess_without_holding
+	_rules_panel.text_scale = Settings.text_scale()
+	_pre_match.text_scale = Settings.text_scale()
+	TextScale.apply(_match_end, Settings.text_scale())
 
 
 ## Both decks on show and an empty board; the player chooses a true rule
@@ -194,9 +213,11 @@ func _show_skip(skip: HistoryEntry) -> void:
 	note.visible = true
 	# The player's note sits where the history arrows are.
 	_history_nav.visible = skip.player != HUMAN
+	# With reduced motion the note goes with the ball, without fading.
+	var fade_seconds: float = 0.0 if Settings.reduced_motion else SKIP_DISSOLVE_SECONDS
 	var fade: Tween = note.create_tween()
-	fade.tween_interval(SKIP_HOLD_SECONDS)
-	fade.tween_property(note, "modulate:a", 0.0, SKIP_DISSOLVE_SECONDS)
+	fade.tween_interval(SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS - fade_seconds)
+	fade.tween_property(note, "modulate:a", 0.0, fade_seconds)
 	await ball.dissolve(skip.colour, SKIP_HOLD_SECONDS, SKIP_DISSOLVE_SECONDS)
 	note.visible = false
 	_history_nav.visible = true

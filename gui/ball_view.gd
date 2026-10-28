@@ -16,6 +16,14 @@ const SNAP_BACK_SECONDS: float = 0.15
 @export var board: BoardView
 ## Balls of the opponent carry the same mark as on the board.
 @export var marked: bool = false
+## Reduced motion: the ball jumps instead of flying or snapping back, and a
+## skipped ball stays still until it goes.
+var reduced_motion: bool = false
+## Colour-blind mode: the ball shows its colour's symbol.
+var symbols: bool = false:
+	set(value):
+		symbols = value
+		queue_redraw()
 
 ## Answers whether a cell is legal for this ball now: func(cell: Vector2i) -> bool.
 var legality: Callable
@@ -51,22 +59,31 @@ func reset() -> void:
 
 
 ## Shows a ball of this colour on its waiting spot for hold_seconds, then
-## fades it out over seconds while it shrinks: a skipped ball. Await it;
-## reset() brings the view back.
+## fades it out over seconds while it shrinks: a skipped ball. With reduced
+## motion it stays still for both and then goes. Await it; reset() brings the
+## view back.
 func dissolve(ball_colour: String, hold_seconds: float, seconds: float) -> void:
 	reset()
 	colour = ball_colour
 	pivot_offset = size / 2.0
 	var tween: Tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_interval(hold_seconds)
-	tween.tween_property(self, "scale", Vector2(0.3, 0.3), seconds)
-	tween.parallel().tween_property(self, "modulate:a", 0.0, seconds)
+	if reduced_motion:
+		tween.tween_interval(hold_seconds + seconds)
+		tween.tween_property(self, "modulate:a", 0.0, 0.0)
+	else:
+		tween.tween_interval(hold_seconds)
+		tween.tween_property(self, "scale", Vector2(0.3, 0.3), seconds)
+		tween.parallel().tween_property(self, "modulate:a", 0.0, seconds)
 	await tween.finished
 
 
-## Moves the ball to a point in canvas coordinates (e.g. a cell centre). Await it.
+## Moves the ball to a point in canvas coordinates (e.g. a cell centre); with
+## reduced motion it jumps there. Await it.
 func fly_to(global_centre: Vector2, seconds: float) -> void:
 	z_index = 1
+	if reduced_motion:
+		global_position = global_centre - size / 2.0
+		return
 	var tween: Tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "global_position", global_centre - size / 2.0, seconds)
 	await tween.finished
@@ -74,7 +91,7 @@ func fly_to(global_centre: Vector2, seconds: float) -> void:
 
 func _draw() -> void:
 	if colour != "":
-		BoardView.draw_ball(self, Rect2(Vector2.ZERO, size), colour, marked)
+		BoardView.draw_ball(self, Rect2(Vector2.ZERO, size), colour, marked, symbols)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -102,6 +119,9 @@ func _drop(global_point: Vector2) -> void:
 	if cell != BoardView.NO_CELL and legality.is_valid() and legality.call(cell):
 		global_position = board.cell_centre(cell) - size / 2.0
 		dropped.emit(cell)
+		return
+	if reduced_motion:
+		reset()
 		return
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "position", _home, SNAP_BACK_SECONDS)
