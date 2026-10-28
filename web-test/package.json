@@ -1,0 +1,13 @@
+{
+  "name": "ballen-web-test",
+  "private": true,
+  "description": "Playwright tests for Ballen's web export (build/web).",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}
