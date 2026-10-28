@@ -2,7 +2,7 @@ extends SceneTree
 ## Drives Ballen from the command line: loads the main scene, then runs the
 ## commands given after `--`, one per argument, in order.
 ##
-##   godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:30 ss:menu click:640,305 ss:game quit
+##   godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:30 ss:menu click:640,362 ss:game quit
 ##
 ## Commands (coordinates are viewport pixels, 1280x720 at the default window size):
 ##   wait:N               let N frames pass
@@ -13,6 +13,7 @@ extends SceneTree
 ##   drag:X1,Y1,X2,Y2     press at X1,Y1, move to X2,Y2 in steps, release
 ##   touch:X1,Y1,X2,Y2    the same drag with a finger (screen touch + drag events)
 ##   key:NAME             press + release a key, named as OS.find_keycode_from_string reads it (Left, Right, Space)
+##   type:TEXT            type TEXT into the focused control (click a text field first; quote spaces)
 ##   ss:NAME              save a screenshot to .claude/skills/run-ballen/out/NAME.png
 ##   tree                 print the scene tree under the current scene
 ##   get:PATH:PROP        print a property of a node, PATH relative to the current scene
@@ -79,6 +80,9 @@ func _run() -> void:
 					return
 				await _key(keycode, true)
 				await _key(keycode, false)
+			"type":
+				for character: String in command.substr("type:".length()):
+					await _character(character)
 			"until":
 				var target: PackedStringArray = parts[2].split("=", true, 1) if parts.size() > 2 else PackedStringArray(["", ""])
 				var waited: int = 0
@@ -152,6 +156,15 @@ func _key(keycode: Key, pressed: bool) -> void:
 	event.keycode = keycode
 	event.physical_keycode = keycode
 	event.pressed = pressed
+	Input.parse_input_event(event)
+	await _settle()
+
+
+## Types one character into the focused control (a key press carrying it).
+func _character(character: String) -> void:
+	var event: InputEventKey = InputEventKey.new()
+	event.unicode = character.unicode_at(0)
+	event.pressed = true
 	Input.parse_input_event(event)
 	await _settle()
 

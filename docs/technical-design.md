@@ -21,7 +21,7 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
-| Scenes / UI | Match scene (`main_game.tscn`), pre-match overlay (`gui/pre_match_panel.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table), `Settings` (player settings, `user://settings.cfg`) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
 
@@ -60,8 +60,8 @@ all run the same code.
 - The match-end screen (`gui/match_end_overlay.tscn`) shows what `MatchEndSummary.from_view()` makes
   of the player's finished view: win, lose or draw, how the match ended (a guess, a third skip or both
   forced guesses, read from the result and the guesses at the end of the history) and both true
-  rules. The rules panel marks the AI's true rule. Rematch goes back to the pre-match overlay on the
-  same decks; Main menu returns to `main.tscn`.
+  rules. The rules panel marks the AI's true rule. Rematch goes back to the match setup screen on the
+  same decks at the same level; Main menu returns to `main.tscn`.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
 - Past positions are rebuilt from a position's history: `MatchPosition.before(index)` is the position
@@ -77,13 +77,67 @@ all run the same code.
   the scene's event loop at a time, so the history view never opens mid-animation. Which turn is on
   show, the stepping and the past turn's status text live in `HistoryBrowser` (`gui/history_browser.gd`,
   unit-tested on a match's `PublicView`); `HistoryNav` only draws the buttons.
-- `MatchSetup` is what comes before a single-player match: the player's fixed starter deck and the
-  AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`). Both decks are shown first;
-  `MatchSetup.start(true_rule)` then draws the AI's true rule from its deck and creates the match,
-  whose coin toss picks the first player. The setup keeps both decks: `MatchSetup.rematch(true_rule)`
-  starts the next match on them, with the player's new true rule, a new random true rule drawn from
-  the AI's deck and no coin toss: whoever went second last time goes first (`Match.create` takes an
-  optional first player), so rows are numbered from that player's side.
+- The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
+  a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
+  (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
+  of the deck to make it true, and presses Start. The AI's deck is drawn when the screen opens, and
+  the rules panel beside the screen shows it and the picked deck while the player chooses (the AI's
+  true rule stays hidden); the coin toss is then shown over the board.
+- `MatchSetup.against_ai(deck, ai_deck, level, rng)` is what comes before a single-player match: the
+  picked deck, the AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`) and the level
+  (a level not built yet is refused). `MatchSetup.start(true_rule)` then draws the AI's true rule
+  from its deck and creates the match, whose coin toss picks the first player. The setup keeps both
+  decks and the level: `MatchSetup.rematch(true_rule)` starts the next match on them, with the
+  player's new true rule, a new random true rule drawn from the AI's deck and no coin toss: whoever
+  went second last time goes first (`Match.create` takes an optional first player), so rows are
+  numbered from that player's side. A rematch shows the setup screen with the deck and level locked.
+
+### Saved decks
+
+`DeckStore` (`model/deck_store.gd`) keeps the player's named decks in `user://decks.json` (the path
+is injectable for tests; on the web export Godot keeps `user://` in the browser's IndexedDB). A deck
+is stored as its 5 rule ids, in the order the decks were saved; the rules themselves stay data in the
+`RuleBook`, which turns the ids back into rules on load:
+
+```json
+{ "decks": [ { "name": "Mixed", "rules": ["R02", "R04", "R06", "R07", "R09"] } ] }
+```
+
+- The starter deck (`DeckStore.STARTER_DECK_NAME`, `STARTER_DECK_IDS`) is built in, never in the file:
+  `names()` always lists it first, then the saved decks; `is_read_only(name)` is true only for it.
+- `deck(name)` (a new `Deck` of the book's rules), `save(name, deck)` (replaces a deck of the same
+  name), `rename(old, new)` (keeps the deck's place), `replace(old, new, deck)` (a rename and a save in
+  one write) and `delete(name)`. Each change writes the file at once and returns false, changing
+  nothing, if it can't. `save` refuses the starter deck's name; `rename`, `replace` and `delete` refuse
+  the starter deck and unknown names, and `rename` and `replace` a blank or taken name.
+- `name_problem(name, own_name = "")`: why a deck can't take a name ("Name the deck", "A deck named X
+  already exists"; a deck may keep `own_name`), or "". The screens show it as a hint.
+- On load, a deck with no name, the starter deck's name, a name already used, an unknown rule id, a
+  repeated rule or not exactly 5 rules is skipped with an error; a file that isn't JSON or has the
+  wrong shape loads as no decks. `save` refuses the same decks, so the file only ever holds decks that
+  load.
+
+### Deck builder
+
+The Decks screen (`gui/menus/decks_screen.tscn`, opened by the main menu's Decks button) lists every
+deck of the `DeckStore` with its rule ids and tier dots. A saved deck has Edit, Rename and Delete (a
+confirm first); the read-only starter deck has only Copy. The deck editor
+(`gui/menus/deck_editor.tscn`) opens over the screen and emits `closed(saved)` on Save or Cancel.
+
+The editor's logic is `DeckDraft` (`model/deck_draft.gd`), so the screen only draws it:
+
+- A name and up to `Deck.SIZE` distinct rule ids in pick order. `DeckDraft.new()` is a new deck;
+  `DeckDraft.editing(store, name)` edits a saved deck and may keep its name;
+  `DeckDraft.copy_of(store, name)` is a new deck named "<name> copy" (or "<name> copy 2", …).
+- `toggle(rule_id)` picks or drops a rule and returns false, changing nothing, for a pick past 5 (the
+  editor flashes its counter); `count()`, `has()`, `rule_ids()`.
+- `problem(store)`: the hint line and what disables Save: "Pick 5 rules (3 picked)" first, then the
+  store's `name_problem`; "" when the draft can be saved.
+- `to_deck(book)`; `save_to(store, book)` saves a new deck, or replaces the edited deck in place (one
+  write, so a failed save keeps it as it was). Names are saved without leading or trailing spaces.
+- Each rule's tier (`Rule.tier`: `simple`, `intermediate` or `hardcore`, from `rules.json`) shows as a
+  badge or dot (`TierBadge`: Simple green, Intermediate amber, Hardcore red); the editor's chips show
+  one tier at a time.
 
 ## Rules engine
 
@@ -106,19 +160,24 @@ Some rules judge groups of cells rather than single cells. A group selector yiel
 group condition judges them (`rules/group_parts.gd`). Example: "Never complete a line of 3" = the lines
 through the target (one per direction: horizontal, vertical, both diagonals) + no group of 3 or more.
 
-Built so far, enough for the milestone 1 rules:
+Built so far:
 
 | Kind | Parts |
 | --- | --- |
-| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row) |
-| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `opponent_ball`; `my_last_ball`; `empty` |
-| Condition | `count_at_most`; `count_at_least` |
-| Combiner | `all` (with an empty list it always passes: the permissive rule tests use) |
+| Selector | `target`; `neighbours` (8, diagonals included); `same_axis` (the whole row); `whole_board`; `other_cells` (the board without the `of` cells); `within_distance` (n king moves) |
+| Filter | `in_zone` (the edge); `with_parity` (even or odd row); `same_colour`; `of_colour` (a fixed colour); `next_colour` (yellow → blue → red → green); `any_ball`; `opponent_ball`; `my_last_ball`; `opponent_last_ball`; `empty` |
+| Condition | `count_at_most`; `count_at_least`; `no_more_than` (no more cells in one selection than in another) |
+| Combiner | `all` (with an empty list it always passes: the permissive rule tests use); `any` |
 | Group selector, condition | `lines_through` (the unbroken same-colour stretch through a ball, per direction); `no_group_of` |
+| Filter, row comparison | `in_row_relative` (row numbered higher or lower than every reference cell, e.g. your last ball; with no reference cell every cell is kept) |
+| Time and game state | Combiner `if_then` ("then" applies only while "if" holds); conditions `own_turn_parity`, `own_turn_at_most` (the holder's own turn count, 1 on their first turn), `skips_at_least` (both players' skips); filters `in_rows` (row numbers from–to), `my_ball` (the holder's balls) |
 
 Filters read the board after the placement. Rows are numbered 1–6 from the first player's side
 (`Board.row_number`). In template ids and blanks a row or column is an `axis` (only rows are built);
 "line" means only a line of one colour, as in the [glossary](../GLOSSARY.md).
+Distances count king moves (`Board.distance`), so neighbours are 1 apart. A "must touch" rule
+(template `must_touch`) passes when a ball of its kind is on a neighbour of the target or when no such
+ball is anywhere else on the board: with nothing to touch it allows every cell.
 
 ### Data format
 
@@ -126,8 +185,11 @@ A rule is a **template plus the values in its blanks**, with an id and its hand-
 Built-in and player-made rules share one JSON-ready format (`rules/data/rules.json`):
 
 ```json
-{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" } }
+{ "id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": { "zone": "edge" }, "tier": "intermediate" }
 ```
+
+`tier` (`simple`, `intermediate` or `hardcore`) mirrors the rules library's Tier column and is optional
+(test rules leave it out); any other value is rejected like a bad blank value.
 
 A template is data too ([ADR 0001](adr/0001-rule-templates-are-data.md), `rules/data/templates.json`):
 its blanks with their allowed values, and a tree of parts. Each node names a part and gives its
@@ -162,9 +224,52 @@ Used for player-made rules (later release) and to tune built-in ones: simulate t
 boards and record the share of placements it forbids. Accept rules that forbid roughly 20–60%
 (thresholds set in playtesting). Store the measured value in the rules library.
 
+`StrictnessCheck` (`harness/strictness_check.gd`) does it; `harness/run_strictness.gd` prints one row per
+built rule (command in `CLAUDE.md`):
+
+- **Random positions** (`random_positions(count, seed)`, one seeded RNG): a coin toss picks the first
+  player, then turns are played until the board holds a random number of balls, uniform from 0 to 35.
+  Each turn starts with a colour pick of a random colour by the other player; the player then skips
+  (chance `SKIP_CHANCE`, 5%, never a third time) or places that colour on a random empty cell. So every
+  position is one a match could reach, with owners, last balls, turn numbers and skip counts in its
+  history for the history, time and game-state rules. The position ends at the start of a turn: the
+  current player is the holder and places the last picked colour.
+- **Share forbidden** of one position: empty cells the rule forbids its holder ÷ empty cells.
+- **Strictness**: the average share over the positions, each position weighing the same; the same
+  positions are used for every rule. **No legal cell**: the share of positions where the rule forbids
+  every empty cell (its holder would skip).
+- 2000 boards take about 3 minutes; seeds 1 and 2 agree within about 1 point per rule.
+- The average hides how a rule forbids: a colour-gated rule such as R06 forbids everything or nothing
+  (strictness = no-legal-cell share), so it scores low here and is harsh in play.
+
 ### Rule tiers
 
 AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal cells per turn, win rate as the true rule). The results rank each rule Simple, Intermediate or Hardcore, stored in the rules library's Tier column.
+
+**Method (provisional, #17).** Run the harness on at least 1000 matches (2000 at seed 1 gives each rule
+about 180 holdings, so a win rate is good to about ±4 points) and the strictness check on 2000 boards.
+The tier comes from the harness; strictness is a cross-check.
+
+| Tier | Provisional threshold |
+| --- | --- |
+| Simple | win rate as the true rule ≥ 55% and skip rate < 5% |
+| Hardcore | win rate as the true rule < 33% or skip rate ≥ 10% |
+| Intermediate | everything else |
+
+Why these numbers:
+
+- Win rate as the true rule is the headline: it folds in both ways a rule hurts its holder, by
+  skipping (R06, R15, R16) and by being easy to read (R17 skips on under 8% of turns, but every placement
+  touches the next colour in the cycle, so the opponent rules the other rules out fast). In the 2000-match run the rules fall into
+  three clusters with clear gaps: 61–74% (10 rules), 38–52% (6) and 4–28% (6). The thresholds sit in the
+  gaps, so a few points of noise don't move a rule.
+- Skip rate is a guard: a rule its holder skips under on 10% or more of turns is Hardcore whatever its
+  win rate (each skip is a step to losing and a clue), and a Simple rule should almost never skip.
+- Strictness agrees at the ends: every Simple rule forbids at most about 31% of cells; the two rules
+  above the 60% band (R07, R11) are not Simple. It does not separate Intermediate from Simple well, since
+  loose colour-gated rules (R02, R05, R10) score low but are read quickly through colour picks.
+- Re-measure when the AI changes (M3 levels): the win rates depend on how the AI picks colours and
+  deduces.
 
 ## AI opponent
 
@@ -224,6 +329,7 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 | `MatchRecord` | What a match leaves: each player's true rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
 | `HarnessStats` | The numbers over finished matches, and `summary()`, the text the script prints |
 | `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1) |
+| `StrictnessCheck`, `run_strictness.gd` | The strictness check and its command-line entry (`--boards`, `--seed`; defaults 2000 and 1); see "Strictness check" |
 
 - The summary: matches finished out of matches played; first player's wins, losses and draws; how
   matches ended (right guess, wrong guess, third skip, forced guesses); average turns per match; and per
@@ -254,4 +360,4 @@ matches, including permissive rules written as data.
 
 - [ ] Board representation: 64-bit bitmasks (36 cells) for speed in Hard's search?
 - [ ] Threads on the web export need cross-origin isolation; check against the chosen host (itch.io).
-- [ ] Save format and location for decks (local storage on web, user:// on mobile).
+- [x] Save format and location for decks: rule ids in `user://decks.json` (see Saved decks).

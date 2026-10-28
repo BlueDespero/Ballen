@@ -95,7 +95,9 @@ How the AI decides is in the [AI research notes](ai-decision-theory-research.md)
 
 The rules library is Ballen's main content. Every rule is plain data assembled from shared parts, so a new rule needs no code, and a new mechanic is one new part that leaves existing rules untouched.
 
-**How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips. How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
+**How rules work.** Every rule is a fill-in-the-blank sentence, such as "Ball can't be placed in the same \_\_\_ as \_\_\_", so built-in and player-made rules look and read the same. Rules can look at colours, neighbours, position, counts, ball owner, placement history, turn number and skips; a turn number in rule text counts only its holder's turns ("for your first 5 turns, only rows 3 and 4"). How the engine builds and checks them is in the [technical design](technical-design.md#rules-engine).
+
+**Rule text reads the same for both players.** It names rows by number, 1–6 from the first player's side, and never uses perspective words such as "above", "own half" or "towards the opponent": "only in a row numbered higher than your last ball's row", not "above your last ball".
 
 **Examples:** never next to the same colour; only on even rows; not next to the ball you placed last; after any skip, must touch one of your own balls. The full catalogue, with each rule's status and strictness, is the [rules library](rules-library.md).
 
@@ -156,13 +158,13 @@ New players are never forced through the tutorial: How to Play glows until first
 
 | Screen | Contents | Status |
 | --- | --- | --- |
-| Main menu | Play vs AI (quick match or daily duel), Decks, Collection, How to Play, Settings; Online later | Built, needs new buttons (`gui/menus/main_menu.tscn`) |
+| Main menu | Play vs AI (quick match or daily duel), Decks, Collection, How to Play, Settings; Online later | Built, needs new buttons: the "Ballen" title in ball colours above the buttons on a dark card, over an animated board backdrop where balls drop into empty cells and fade (a still scatter with reduced motion) (`gui/menus/main_menu.tscn`, `gui/board_backdrop.gd`) |
 | How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
-| Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Not started |
+| Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Built: the Decks screen (main menu's Decks) lists every deck with its rule ids and tier dots; edit, rename, delete, or copy the read-only starter deck; the editor picks any 5 distinct built rules, shown with tier badges and tier filter chips (`gui/menus/decks_screen.tscn`, `gui/menus/deck_editor.tscn`). The guided Simple-only mode waits for #33's no-deck flow |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
-| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. For the daily duel the opponent is fixed and the level shows its score multiplier | Prototype: an overlay over the board offers the fixed starter deck to tap a true rule, then shows the coin toss; no deck or level choice (`gui/pre_match_panel.tscn`) |
+| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. The AI's deck is shown while you choose; its true rule stays hidden. For the daily duel the opponent is fixed and the level shows its score multiplier | Built for quick matches: the starter deck first, then the saved decks, Easy and Hard shown as coming soon, the AI's deck in the rules panel beside the screen, then the coin toss over the board; Rematch returns with the deck and level locked. The card sits over the same board backdrop as the main menu. No daily duel yet (`gui/match_setup_screen.tscn`) |
 | Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | Prototype; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`) |
-| Notes | A small mark button on each opponent rule cycles ✗ ruled out / ? suspect / no mark; tapping the rule itself still selects it for Guess | Built: the mark button sits left of each of the AI's rules and a ✗ rule's text fades; private, kept at match end and cleared by a rematch (`gui/note_mark_button.gd`, `NoteMark`) |
+| Notes | Two small icon buttons on each opponent rule, ✗ ruled out and ? suspect: tapping one sets that mark, tapping the lit one clears it; tapping the rule itself still selects it for Guess. A one-time hint explains them until first used | Built: ✗ and ? buttons at the right end of each of the AI's rules (tooltips "Rule out" / "Suspect"); a ✗ rule fades and is struck through, a ? rule gets a yellow left edge; the hint sits under the AI's rules title until the first mark (`[hints] note_marks_seen` in `settings.cfg`); private, kept at match end and cleared by a rematch (`gui/note_mark_button.gd`, `NoteMark`) |
 | History | Arrows under the board step through past boards; view-only, your own action returns to live; the opponent playing on lights up Live | Built: ◀ Live ▶ under the board and the ← → keys; the turn's ball is ringed, a skipped ball shows at its owner's side (`gui/history_nav.gd`, `MatchPosition.after_turn`) |
 | Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
 | Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Built: volume (stored; sound comes later), colour-blind symbols, reduced motion, guess without holding, larger text, Credits (`gui/menus/settings_menu.tscn`); language waits |
@@ -180,7 +182,7 @@ New players are never forced through the tutorial: How to Play glows until first
 The first release includes:
 
 - **Colour-blind mode (optional):** a distinct symbol on each ball colour; every ball skin supports it.
-- **Reduced motion:** turns off the slow-down, heartbeat and dissolve effects.
+- **Reduced motion:** turns off the slow-down, heartbeat and dissolve effects, and the menus' falling balls.
 - **Guess without holding:** tap then confirm, instead of hold-to-guess.
 - **Larger text:** a text-size setting for rule panels and menus.
 - **No turn timer** against the AI.

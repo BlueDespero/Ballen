@@ -30,10 +30,10 @@ godot --headless --path . --import
 One process per script of commands; read the `[driver]` lines on stdout, look at the PNGs.
 
 ```powershell
-# Menu -> Single Player -> tap R03 to make it your true rule -> wait out the coin toss
+# Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:30 click:428,364 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,362 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -48,6 +48,7 @@ Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` an
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
 | `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
 | `key:NAME` | press and release a key by name (`Left`, `Right`, `Space`; `OS.find_keycode_from_string`) |
+| `type:TEXT` | type TEXT into the focused control, e.g. a name field you clicked (quote it if it has spaces) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
 | `tree` | print the current scene tree |
 | `get:NODE/PATH:prop` | print a property; path is relative to the current scene |
@@ -58,18 +59,40 @@ Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` an
 Headless runs read state only: clicks, drags and touches reach no control, so play needs a window.
 
 ```powershell
-godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:60 get:Layout/Status:text get:Layout/PreMatch:visible
+godot --headless --path . -s .claude/skills/run-ballen/driver.gd -- scene:res://main_game.tscn wait:60 get:Layout/MatchSetup:visible get:Layout/MatchSetup/Backdrop/Centre/Card/Content/LevelDescription:text
 ```
 
-Headless, the match never starts: it waits on the pre-match tap, which needs a window.
+Headless, the match never starts: it waits on the match setup screen's Start, which needs a window.
 
 ### Layout (landscape: 1280×720 base, stretch `canvas_items`, aspect `expand`)
 
 At the default window size viewport px = window px. Another size (`--resolution WxH`) scales the
 layout and centres it, so these coordinates no longer hold.
 
-- Main menu buttons (centre x 640): Single Player y=305, Loadout y=342, Options y=378, Quit y=414
-  (with Larger text on: 301, 341, 381, 421).
+- Main menu: the board backdrop (`MainMenu/Backdrop`, a `BoardBackdrop`) fills the screen, with the
+  "Ballen" title (`MainMenu/Title`) above the buttons on a dark card. Buttons (centre x 640): Single
+  Player y=362, Decks y=398, Options y=435, Quit y=471 (with Larger text on: 357, 397, 437, 477).
+- Decks screen (Decks; scene `Decks`, `gui/menus/decks_screen.tscn`, or `scene:` it directly): one row
+  per deck under `Margin/Card/Content/Scroll/DeckList` (`%DeckList`), named `Row0`, `Row1`, … in list
+  order (Starter first, then saved decks in save order; the deck's name is in meta `deck_name`), row centres y=176, 240, 304, … (step 64). Each row shows the
+  name, its 5 rule ids with tier dots (`<row>/Line/Rules`) and buttons `<row>/Line/Edit|Rename|Delete`
+  at x≈850, 956, 1062; Starter has only `Copy` (1062). Back (245,640), New deck (1035,640); Escape =
+  Back (to `Main`). Rename and Delete open `%Dialog` (centred card): `%DialogName` (selected, so typing
+  replaces it), `%DialogHint` (the name problem), `%DialogCancel` (642,431) and `%DialogConfirm`
+  (798,431; Delete's card is shorter: (798,404)), disabled while the name has a problem; Enter confirms,
+  Escape cancels. Larger text moves rows down (≈222, 286) and the dialog buttons too: read
+  `global_position` with `get:`.
+- Deck editor (New deck, Edit or Copy; node `DeckEditor`, a child of `Decks`, covering it): paths under
+  `DeckEditor/Margin/Card/Content`. Name field `Header/NameField` (650,58; click it, then `type:My deck`),
+  counter `Header/Counter:text` (`3 / 5`; flashes red on a 6th pick, which does nothing), filter chips
+  `Filters/Chips/All|Simple|Intermediate|Hardcore` at y=110 (x≈215, 355, 495, 635), the rule rows
+  `Scroll/RuleList/R01` … (click x≈600; with All shown R01 y=164, R02 218, … step 54, R09 596 is the
+  last one visible; scroll or filter for the rest; a picked row turns gold). Footer: `Footer/Hint:text`
+  (`Pick 5 rules (3 picked)`, `Name the deck`, `A deck named X already exists`, empty when it can be
+  saved), Cancel (947,660), Save (1113,660, `Footer/SaveButton:disabled`). Save or Cancel (or Escape)
+  returns to the list. A saved deck lands in `user://decks.json`, **shared by every worktree and the
+  player's game**: back up `%APPDATA%\Godot\app_userdata\Ballen\decks.json` before a run that saves
+  and restore it (or delete it if there was none) afterwards.
 - Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
   nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y≈172), switches
   `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
@@ -83,17 +106,29 @@ layout and centres it, so these coordinates no longer hold.
   `[IO.File]::WriteAllText($cfg, "[accessibility]`n`nreduced_motion=true`n")`; `Set-Content -Encoding
   utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
   the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
-  `guess_without_holding`, `larger_text`. With guess without holding, a click on Guess arms it
-  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text moves the rules
-  panel's rows down a few pixels (AI rows y≈98–290, Guess ≈(1173,347)).
+  `guess_without_holding`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). With guess without holding, a click on Guess arms it
+  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text packs the rules
+  panel tighter: e.g. with one wrapped AI rule and the Starter deck, AI rows y≈71–293 (40 px each,
+  49 when wrapped, 2 apart), Guess ≈(1173,325), your rows y≈405–613 (hint gone; see the Rules panel
+  note).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
-- Pre-match overlay: `Layout/PreMatch`, over the board (x 176–680, y 120–600), visible when the scene
-  opens. Your starter deck as buttons (x 200–656, centre x≈428): R01 y=306, R03 y=364, R05 y=422,
-  R08 y=480, R18 y=538 (nodes `Layout/PreMatch/Choice/RuleButtons/R01` …). Tapping one makes it your
-  true rule and starts the match; the overlay then shows the coin toss ("Coin toss: you go first" /
-  "…the AI goes first") for 2 s (`wait:150` covers it) and hides. Both decks are in the rules panel
-  from the start; `Layout/Status` reads `Choose your true rule.`, then `You go first.` /
-  `The AI goes first.` during the toss.
+- Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
+  the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
+  marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
+  (x 48–688, y 30–690; with Larger text x 16–720, y 31–688) over the board backdrop
+  (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
+  centre (434,122); click it, then the list's items at x≈226, y=162, 189, 216, … (step 27). AI level buttons
+  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; only
+  Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
+  the level. Your deck's rules as toggle buttons (x 80–656, centre x 368; a long rule wraps onto two
+  lines, moving the rows below it down): starter deck R01 y=378,
+  R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01` …); a tapped rule turns gold.
+  Start (`Buttons/StartButton`, disabled until a rule is tapped) centre (461,648), Main menu centre
+  (275,648). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /
+  "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s (`wait:150` covers it), then
+  `Layout/MatchSetup:visible` turns false. The rules panel marks your true rule with the toss;
+  `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
+  another deck, save one on the Decks screen first (back up `decks.json`, see above).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
   bottom (y=5). Cell `(x,y)` centre is `(240+80*x, 160+80*y)`. Legal cells glow on your turn.
 - Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the
@@ -126,12 +161,25 @@ layout and centres it, so these coordinates no longer hold.
   (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
   238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`;
-  a note mark button at x≈790 on the left of each row cycles none → ✗ ruled out → ? suspect → none
-  without selecting the row; `get:Layout/RulesPanel:marks` prints `{ "R10": 1, … }`, 0 none, 1 ✗
-  (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match end and cleared by a rematch),
-  then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
-  (y≈454–646) with the true one highlighted. Three skip pips at the right of each title
-  (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
+  two note mark buttons at the right end of each row, ✗ "Rule out" x≈1180 and ? "Suspect" x≈1218
+  (nodes `…/AIRules/<id>/Line/Marks/Cross|Question`, `lit` true while on): a tap sets that mark,
+  switches from the other or clears it when lit, without selecting the row; a ✗ row fades and is
+  struck through, a ? row gets a yellow left edge. `get:Layout/RulesPanel:marks` prints
+  `{ "R10": 1, … }`, 0 none, 1 ✗ (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match
+  end and cleared by a rematch), then the Guess slot (hint text and the Guess button, centre
+  (1173,344)), yours below (y≈454–646) with the true one highlighted. Three skip pips at the right of
+  each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip. Rule text wraps
+  instead of being cut off: a rule too wide for one line (R15, R16, R17, R22) is one font step
+  smaller and takes two lines in a row of the usual height. With Larger text the panel packs tighter
+  (rows 40 px, 2 px apart; more rules wrap, so more drop the step) and a rule that wraps makes its
+  row about 47 px (51 with TRUE beside it), so the y values shift with the decks: read
+  `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
+- Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
+  `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
+  explains the marks and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
+  your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
+  `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
+  taps a mark, and restore it afterwards.
 - Guess: select an AI rule, then hold the button about 1 s: `press:1173,344 wait:90 release:1173,344`.
   Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
   your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
@@ -156,11 +204,11 @@ layout and centres it, so these coordinates no longer hold.
   `You lose` or `Draw`. A full board takes 36 placements; to
   check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full
   `MatchPosition` (see `Fixtures.nearly_full_match` in `test/helpers/fixtures.gd`) and don't commit it.
-- Rematch: hides the match-end screen and shows the pre-match overlay again on the same decks
-  (`Layout/Status` `Choose your true rule.`, Guess back in the rules panel). After the tap the overlay
-  reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other player goes
-  first) and the row numbers flip with it. Continue from the end screen with
-  `click:271,540 until:Layout/PreMatch:visible=true wait:30 click:428,422 until:Layout/PreMatch:visible=false`.
+- Rematch: hides the match-end screen and shows the match setup screen again, titled `Rematch`, with
+  the deck picker and the other levels disabled (same decks, same level): tap a rule and Start. The
+  toss then reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other
+  player goes first) and the row numbers flip with it. Continue from the end screen with
+  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:368,478 wait:5 click:461,648 until:Layout/MatchSetup:visible=false`.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 
@@ -188,10 +236,10 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
 - **`ss` under `--headless` used to hang forever**: nothing draws, so `frame_post_draw` never fires.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
 - **Every match is random**: the AI's deck and true rule, the coin toss, the AI's colours, cells and
-  pauses are unseeded (your starter deck is fixed). If you go second, the first thing the match waits
+  pauses are unseeded (your deck is the one you pick). If you go second, the first thing the match waits
   for is your colour pick (`Layout/Status` says so), so `until:Layout/PlayerBall:draggable=true` times
   out; click a colour first. Clicking a disabled picker does nothing, so `wait:150 click:624,660` right
-  after the pre-match tap is safe either way.
+  after Start is safe either way.
 - **Reaching skips**: you can't see legal cells from the driver, so play blind. Each turn:
   `until:Layout/PlayerBall:draggable=true`, then drag onto every cell, `wait:12` after each (illegal
   drops snap back; once one lands the ball is no longer draggable and the rest do nothing), then
@@ -201,8 +249,8 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   colours, so allow many turns, and call the Godot exe directly rather than the `godot.cmd` shim: a
   long command list overflows cmd.exe's 8 KB line. Read `Layout/Status` to see who skipped.
 - **Fixed `wait:N` counts can fall out of step** when the window is slow to start, so a click lands on
-  the wrong screen (e.g. a Rematch click picking a pre-match rule). Gate each screen with `until:` on
-  its state (`Layout/PreMatch:visible`, `Layout/MatchEnd:visible`), and put a `wait:60` between the
+  the wrong screen (e.g. a Rematch click picking a rule on the setup screen). Gate each screen with `until:` on
+  its state (`Layout/MatchSetup:visible`, `Layout/MatchEnd:visible`), and put a `wait:60` between the
   Single Player click and the first `until:`: right after a scene change there is no current scene
   and `until:` errors out, leaving the window open (kill that Godot process).
 - **One windowed run at a time**: two windowed runs (e.g. from parallel agents) fight over the real

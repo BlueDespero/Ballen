@@ -5,7 +5,8 @@ extends RefCounted
 ##
 ## Template data: {"blanks": {"<blank>": [allowed values]}, "tree": <part node>}.
 ## In the tree, a string "$<blank>" is replaced by the rule's value for that blank.
-## Rule data: {"id": "R04", "text": "...", "template": "<template id>", "values": {"<blank>": value}}.
+## Rule data: {"id": "R04", "text": "...", "template": "<template id>", "values": {"<blank>": value},
+## "tier": "simple" | "intermediate" | "hardcore"} (tier optional; built rules all have one).
 
 const TEMPLATES_PATH: String = "res://rules/data/templates.json"
 const RULES_PATH: String = "res://rules/data/rules.json"
@@ -75,7 +76,11 @@ func make_rule(data: Dictionary) -> Rule:
 	if not _parts_exist(tree):
 		push_error("Rule %s: template '%s' uses an unknown part" % [data.get("id", "?"), template_id])
 		return null
-	return Rule.new(data.get("id", ""), data.get("text", ""), template_id, values, tree)
+	var tier: Variant = data.get("tier", "")
+	if tier != "" and not Rule.TIERS.has(tier):
+		push_error("Rule %s: '%s' is not a tier (%s)" % [data.get("id", "?"), tier, ", ".join(Rule.TIERS)])
+		return null
+	return Rule.new(data.get("id", ""), data.get("text", ""), template_id, values, tree, tier)
 
 
 ## A built-in rule by id, e.g. "R04"; null if there is none.

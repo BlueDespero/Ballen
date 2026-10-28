@@ -53,7 +53,7 @@ func test_r03_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R03")
 	assert_eq(rule.text, "Only on even rows")
 	assert_eq(rule.to_data(), {"id": "R03", "text": "Only on even rows", "template": "only_on_axis",
-		"values": {"axis": "row", "parity": "even"}})
+		"values": {"axis": "row", "parity": "even"}, "tier": "intermediate"})
 
 
 # R05 At most 2 of a colour in any row ---------------------------------------
@@ -118,4 +118,4 @@ func test_r05_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R05")
 	assert_eq(rule.text, "At most 2 of a colour in any row")
 	assert_eq(rule.to_data(), {"id": "R05", "text": "At most 2 of a colour in any row", "template": "max_in_axis",
-		"values": {"axis": "row", "ball": "same_colour", "n": 2.0}}) # JSON numbers are floats
+		"values": {"axis": "row", "ball": "same_colour", "n": 2.0}, "tier": "intermediate"}) # JSON numbers are floats
