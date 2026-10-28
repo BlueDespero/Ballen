@@ -350,8 +350,9 @@ through the public seams only: the match (commands in; phase, result, history an
 `MatchEndSummary`. Every RNG is seeded. `test/helpers/fixtures.gd` builds rule books, decks and
 matches, including permissive rules written as data.
 
-CI (`.github/workflows/ci.yml`) runs the suite and a short harness on every push and pull request; on `master` it
-also exports the web build, gates it on the Playwright web tests and pushes it to itch.io with butler.
+CI (`.github/workflows/ci.yml`) runs the suite, a short harness and the Playwright web tests on an exported web
+build for every pull request and every push to `master`; on `master` it then pushes that tested build to itch.io
+with butler.
 
 ## Web build
 
