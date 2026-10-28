@@ -82,6 +82,7 @@ func _on_save_pressed() -> void:
 	if _save_button.disabled:
 		return
 	if _draft.save_to(_store, _book):
+		EventBus.deck_saved.emit(_draft.name.strip_edges())
 		closed.emit(true)
 
 

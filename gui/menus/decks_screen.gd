@@ -88,6 +88,7 @@ func _fill() -> void:
 		row.name = "Row%d" % _deck_list.get_child_count()
 		_deck_list.add_child(row)
 	_apply_text_scale()
+	EventBus.decks_listed.emit(_store.names())
 
 
 func _deck_row(deck_name: String) -> PanelContainer:

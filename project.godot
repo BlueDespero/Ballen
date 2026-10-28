@@ -25,6 +25,7 @@ config/icon="res://assets/icon/icon.png"
 EventBus="*res://event_bus.gd"
 Constants="*res://constants.gd"
 Settings="*res://game_settings.gd"
+WebMarkers="*res://gui/web_markers.gd"
 
 [display]
 

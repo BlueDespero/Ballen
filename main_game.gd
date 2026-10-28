@@ -145,6 +145,7 @@ func _on_start_requested(deck: Deck, level: AILevel.Level, true_rule: Rule) -> v
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
 	_redraw_from_match()
+	EventBus.match_started.emit(player_goes_first)
 	_driver.run()
 
 
@@ -206,12 +207,13 @@ func _on_match_changed() -> void:
 	while _shown_events < _match.history().size():
 		var event: HistoryEntry = _match.history()[_shown_events]
 		_shown_events += 1
-		if _history.viewing_past():
-			continue
-		if event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
+		var animates: bool = not _history.viewing_past()
+		if animates and event.type == HistoryEntry.Type.PLACEMENT and event.player == AI:
 			await _ai_ball.fly_to(_board_view.cell_centre(event.cell), AI_FLY_SECONDS)
-		elif event.type == HistoryEntry.Type.SKIP:
+		elif animates and event.type == HistoryEntry.Type.SKIP:
 			await _show_skip(event)
+		if event.type == HistoryEntry.Type.PLACEMENT:
+			EventBus.ball_placed.emit(event.player == HUMAN, event.cell)
 	_history.busy = false
 	_redraw_from_match()
 
