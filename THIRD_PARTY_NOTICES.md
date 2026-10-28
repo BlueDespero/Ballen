@@ -38,6 +38,22 @@ The art in `assets/` is Kenney's "UI Pack – Pixel Adventure" and other Kenney 
 ([www.kenney.nl](https://www.kenney.nl)), released under Creative Commons Zero (CC0 1.0, public domain). See
 [`License.txt`](License.txt).
 
+## Bundled font
+
+`assets/fonts/NotoSansSymbols-Variable.ttf` is Noto Sans Symbols
+([notofonts/symbols](https://github.com/notofonts/symbols), taken from
+[google/fonts](https://github.com/google/fonts/tree/main/ofl/notosanssymbols)), the fallback of the default font for
+symbols such as the rule texts' arrows. The bundled copy is modified: its line metrics (hhea and OS/2 ascent and
+descent) are set to 1069 and 293 units, the default font's proportions, so it doesn't make lines taller; the glyphs
+are unchanged. It is released under the SIL Open Font License 1.1; the full text is in
+[`assets/fonts/OFL.txt`](assets/fonts/OFL.txt) and on the Licences card:
+
+```text
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/symbols)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+```
+
 ## GUT (development only)
 
 [GUT](https://github.com/bitwes/Gut) (Godot Unit Test, MIT), vendored in `addons/gut/`, runs the test suite during
