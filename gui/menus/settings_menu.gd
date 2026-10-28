@@ -4,7 +4,7 @@ extends Control
 ## goes straight into the Settings autoload and is saved at once; Back (or
 ## Escape) returns to the main menu. Credits swaps the card for the credits
 ## (Kenney and the engine) until its Back or Escape; the credits' Licences
-## opens the engine's licence notices the same way.
+## opens the licence notices (the engine's and the bundled font's) the same way.
 
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 const PREVIEW_BALL_SIZE: float = 40.0
@@ -13,6 +13,9 @@ const HEADING_SIZE: int = 20
 const SUBHEADING_SIZE: int = 18
 ## The engine's own entry in its copyright info; its licence is shown first.
 const ENGINE_COMPONENT: String = "Godot Engine"
+## The symbol font the default font falls back on (`SymbolFont`), and its licence.
+const BUNDLED_FONT: String = "Noto Sans Symbols, by the Noto Project Authors, under the SIL Open Font License 1.1."
+const BUNDLED_FONT_LICENCE: String = "res://assets/fonts/OFL.txt"
 
 @onready var _volume: HSlider = %Volume
 @onready var _volume_value: Label = %VolumeValue
@@ -120,6 +123,9 @@ func _fill_licences() -> void:
 				lines.append("© " + holder)
 			lines.append("Licence: " + part["license"])
 		_add_licence_label("\n".join(lines))
+	_add_licence_label("Bundled font", HEADING_SIZE)
+	_add_licence_label(BUNDLED_FONT)
+	_add_licence_label(FileAccess.get_file_as_string(BUNDLED_FONT_LICENCE))
 	_add_licence_label("Licence texts", HEADING_SIZE)
 	var texts: Dictionary = Engine.get_license_info()
 	for licence: String in texts:
