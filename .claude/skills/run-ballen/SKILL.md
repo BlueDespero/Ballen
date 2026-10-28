@@ -100,15 +100,16 @@ layout and centres it, so these coordinates no longer hold.
   player's game**: back up `%APPDATA%\Godot\app_userdata\Ballen\decks.json` before a run that saves
   and restore it (or delete it if there was none) afterwards.
 - Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
-  nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y≈172), switches
-  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈341), `GuessWithoutHolding` (y≈439), `LargerText`
-  (y≈514); click x≈500 on the row. Credits (702,595), Back (857,595). Every change is saved to
+  nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y 141–185), switches
+  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈346), `GuessWithoutHolding` (y≈449), `LargerText`
+  (y≈529); click x≈500 on the row. Switches, slider and the Credits links are 44 px tall, like
+  every button. Credits (702,609), Back (858,609). Every change is saved to
   `user://settings.cfg` at once (`%APPDATA%\Godot\app_userdata\Ballen\settings.cfg`); Back or Escape
-  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns): Licences (702,511),
-  Back (857,511). Licences shows `Centre/LicencesCard` (x 190–1090, y 40–680; Back (987,634) or Escape
+  returns to `Main`. Credits shows `Centre/CreditsCard` (its Back or Escape returns): links
+  www.kenney.nl (y≈336) and godotengine.org/license (y≈466), Licences (702,531), Back (858,531). Licences shows `Centre/LicencesCard` (x 190–1090, y 40–680; Back (987,634) or Escape
   returns to Credits): a scroll list `%LicencesList` of labels, filled on first open from
   `Engine.get_license_text()`, `get_copyright_info()` and `get_license_info()`. With Larger text,
-  Credits (702,648) and Licences (702,536); the Licences card keeps its size. Larger text makes
+  Credits (702,650) and Licences (702,552); the Licences card keeps its size. Larger text makes
   the card taller, so these y values drift; read positions with `get:…:global_position` (headless runs
   centre the card in a 1280×1280 window: subtract 280 from y).
 - Settings in a match: the match reads the `Settings` autoload when the scene opens. To play with an
@@ -186,7 +187,7 @@ layout and centres it, so these coordinates no longer hold.
   `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
 - Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
   `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
-  explains the marks and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
+  explains the marks (it gives way on a full board) and pushes everything below it down 29 px: AI rows y=123–315, Guess (1173,373),
   your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
   `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
   taps a mark, and restore it afterwards.
@@ -209,7 +210,9 @@ layout and centres it, so these coordinates no longer hold.
   `Layout/RulesPanel:seal_enabled` is true, the Seal button shows and `Layout/Status` starts
   `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
   stays too (`guess_enabled` true; right wins, wrong loses) and Seal sits left of it, centre
-  (1022,356); otherwise Seal alone takes Guess's place, centre (1188,344). A sealed guess stays
+  (1022,347), Guess (1173,347); otherwise Seal alone takes Guess's place, centre (1188,344). The note
+  marks hint is hidden while the board is full (so the y values without it hold), which keeps the
+  panel inside 720 px with long rules in both decks. A sealed guess stays
   sealed (the status says so) until the AI's is in, then the match-end screen shows `You win`,
   `You lose` or `Draw`. A full board takes 36 placements; to
   check the screen quickly, temporarily start `main_game.gd`'s match from a nearly full
