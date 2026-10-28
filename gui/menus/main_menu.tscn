@@ -62,27 +62,32 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="SinglePlayerButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Single Player"
 
 [node name="MultiPlayerButton" type="Button" parent="GameButtons"]
 visible = false
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Online Play"
 
 [node name="DecksButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Decks"
 
 [node name="OptionButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Options"
 
 [node name="QuitButton" type="Button" parent="GameButtons"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Quit"
