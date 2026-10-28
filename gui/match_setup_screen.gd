@@ -23,14 +23,21 @@ const LEVEL_BUTTON_HEIGHT: float = 44.0
 ## Narrow, so three level buttons fit beside the caption with "(coming soon)".
 const LEVEL_BUTTON_MARGIN: int = 6
 const DEFAULT_LEVEL: AILevel.Level = AILevel.Level.NORMAL
+## With larger text the card packs its rows closer, so a deck of long
+## (two-line) rules still fits the screen's height.
+const ROW_GAP: int = 10
+const LARGER_TEXT_ROW_GAP: int = 6
 
 ## Larger text: the screen's text is this many times its built size.
 var text_scale: float = 1.0:
 	set(value):
 		text_scale = value
 		TextScale.apply(self, value)
+		if is_node_ready():
+			_fit_card()
 
 @onready var _backdrop: ColorRect = %Backdrop
+@onready var _content: VBoxContainer = %Content
 @onready var _title: Label = %Title
 @onready var _deck_picker: OptionButton = %DeckPicker
 @onready var _level_buttons: HBoxContainer = %LevelButtons
@@ -61,6 +68,7 @@ func _ready() -> void:
 	_deck_picker.add_theme_stylebox_override("disabled", _style(RulesPanel.ROW_COLOUR, 0))
 	for level: AILevel.Level in AILevel.ALL:
 		_level_buttons.add_child(_level_button(level))
+	_fit_card()
 
 
 ## Shows the setup for a new match: the saved decks to pick from (the first
@@ -103,6 +111,12 @@ func show_coin_toss(player_goes_first: bool, is_rematch: bool = false) -> void:
 	_timer.start(COIN_TOSS_SECONDS)
 	await _timer.timeout
 	visible = false
+
+
+## Larger text packs the card's rows closer.
+func _fit_card() -> void:
+	var larger: bool = text_scale > 1.0
+	_content.add_theme_constant_override("separation", LARGER_TEXT_ROW_GAP if larger else ROW_GAP)
 
 
 func _show() -> void:
@@ -175,6 +189,8 @@ func _rule_button(rule: Rule) -> Button:
 	button.name = rule.id
 	button.text = "%s    %s" % [rule.id, rule.text]
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	# A long rule takes two lines rather than widening the card.
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.toggle_mode = true
 	button.button_group = _rule_group
 	button.custom_minimum_size.y = RULE_BUTTON_HEIGHT
