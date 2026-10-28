@@ -36,7 +36,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,305 wait:30 click:428,364 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
-Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends your turn.` and writes
+Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
 `.claude/skills/run-ballen/out/turn.png` (gitignored). Exit code 0; 1 on an unknown command.
 
 | command | what it does |
@@ -47,6 +47,7 @@ Prints `Layout/Status.text = Pick the colour of the AI's next ball. That ends yo
 | `press:X,Y` / `release:X,Y` | left press, or release, at X,Y; put `wait:N` between them to hold |
 | `drag:X1,Y1,X2,Y2` | press at X1,Y1, move there in 10 steps, release at X2,Y2 |
 | `touch:X1,Y1,X2,Y2` | the same drag with a finger (screen touch and drag events) |
+| `key:NAME` | press and release a key by name (`Left`, `Right`, `Space`; `OS.find_keycode_from_string`) |
 | `ss:NAME` | save `.claude/skills/run-ballen/out/NAME.png` (needs a window) |
 | `tree` | print the current scene tree |
 | `get:NODE/PATH:prop` | print a property; path is relative to the current scene |
@@ -83,14 +84,34 @@ layout and centres it, so these coordinates no longer hold.
 - Your waiting ball: `Layout/PlayerBall`, centre (440,660); `draggable` is true on your placement turn.
   A drop on a non-legal cell or off the board snaps it back to `position (408,628)`.
 - Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
-  green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second).
+  green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second):
+  then a yellow ring pulses around each button and `Layout/Status` contains `Pick the AI's next colour.`;
+  otherwise the buttons are dimmed (`Layout/ColourPicker:enabled`).
+- History view: `Layout/HistoryNav`, left of `You` under the board (x 200–336, y 642–678): ◀ centre
+  (218,660), Live (268,660), ▶ (318,660); `key:Left` / `key:Right` do the same. ◀ (from the live
+  board) shows the latest turn with a placement or skip, then earlier ones; ▶ past the latest returns to
+  live. A past board rings that turn's ball (a skipped ball shows at its owner's waiting spot), fades
+  the waiting balls, shows no glow, sets `Layout/PlayerBall:draggable` false and the skip pips as they
+  were; `Layout/Status` reads `Turn 3 of 4: you placed blue. …` / `…the AI had no legal cell for blue,
+  so the ball was skipped. …`. Only your own actions return to live: pressing your ball (the press
+  then drags), a colour pick, Guess or Seal (these stay enabled as in the live match), Live, or ▶ past
+  the latest turn. When the AI plays meanwhile the past board stays (its `of N` count grows) and Live
+  lights up yellow and pulses (`get:Layout/HistoryNav:live_lit` true) until you return; the match
+  ending returns to live. `Layout/HistoryNav/Live:disabled` is false only while viewing; the buttons
+  are disabled before the match starts, during the AI's animations and once the match is over.
 - The AI's waiting ball: `Layout/AIBall`, centre (440,60); it flies onto its cell after a 0.5–1.5 s pause.
-- A skipped ball appears on its owner's waiting spot in the skipped colour and shrinks and fades
-  (0.4 s); the skip pips fill after it.
+- A skipped ball appears on its owner's waiting spot in the skipped colour with the note
+  `No legal cell, skipped` left of the side name (`Layout/AISkipNote` / `Layout/PlayerSkipNote`,
+  `visible` while shown), stays 1.5 s, then shrinks and fades with the note over 0.8 s; the skip pips
+  fill after it. Meanwhile `Layout/Status` is empty, input is off and the match waits (no AI action):
+  gate on `until:Layout/PlayerSkipNote:visible=false` before picking after your skip.
 - `Layout/Status` (left column) says whose turn it is and what to do, and names a skipped colour
   (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
-  238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`),
+  238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`;
+  a note mark button at x≈790 on the left of each row cycles none → ✗ ruled out → ? suspect → none
+  without selecting the row; `get:Layout/RulesPanel:marks` prints `{ "R10": 1, … }`, 0 none, 1 ✗
+  (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match end and cleared by a rematch),
   then the Guess slot (hint text and the Guess button, centre (1173,344)), yours below
   (y≈454–646) with the true one highlighted. Three skip pips at the right of each title
   (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip.
