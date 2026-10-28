@@ -1,0 +1,271 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://gui/match_setup_screen.gd" id="1_screen"]
+[ext_resource type="Script" uid="uid://ef2d3vxkqlo5" path="res://gui/board_backdrop.gd" id="2_backdrop"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 32.0
+content_margin_top = 18.0
+content_margin_right = 32.0
+content_margin_bottom = 18.0
+bg_color = Color(0.105, 0.118, 0.141, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.27, 0.3, 0.36, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_coin"]
+content_margin_left = 24.0
+content_margin_top = 24.0
+content_margin_right = 24.0
+content_margin_bottom = 24.0
+bg_color = Color(0.105, 0.118, 0.141, 0.96)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.23, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.47, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.26, 0.3, 0.37, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.72, 0.82, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start"]
+bg_color = Color(0.33, 0.27, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.3, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_disabled"]
+bg_color = Color(0.17, 0.19, 0.23, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.27, 0.3, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_caption"]
+font_size = 17
+font_color = Color(0.7, 0.74, 0.8, 1)
+
+[node name="MatchSetupScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+script = ExtResource("1_screen")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 736.0
+offset_bottom = 720.0
+color = Color(0.141, 0.161, 0.196, 1)
+
+[node name="BoardBackdrop" type="Control" parent="Backdrop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_backdrop")
+
+[node name="Centre" type="CenterContainer" parent="Backdrop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Card" type="PanelContainer" parent="Backdrop/Centre"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Content" type="VBoxContainer" parent="Backdrop/Centre/Card"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Backdrop/Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Match setup"
+horizontal_alignment = 1
+
+[node name="DeckRow" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DeckCaption" type="Label" parent="Backdrop/Centre/Card/Content/DeckRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Your deck"
+label_settings = SubResource("LabelSettings_caption")
+vertical_alignment = 1
+
+[node name="DeckPicker" type="OptionButton" parent="Backdrop/Centre/Card/Content/DeckRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="LevelRow" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LevelCaption" type="Label" parent="Backdrop/Centre/Card/Content/LevelRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "AI level"
+label_settings = SubResource("LabelSettings_caption")
+vertical_alignment = 1
+
+[node name="LevelButtons" type="HBoxContainer" parent="Backdrop/Centre/Card/Content/LevelRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LevelDescription" type="Label" parent="Backdrop/Centre/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "How the AI plays."
+horizontal_alignment = 2
+
+[node name="Rule" type="HSeparator" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+
+[node name="RuleCaption" type="Label" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Choose your true rule"
+
+[node name="Hint" type="Label" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Tap one of your rules to make it true. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is true."
+autowrap_mode = 3
+
+[node name="RuleButtons" type="VBoxContainer" parent="Backdrop/Centre/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ButtonsGap" type="Control" parent="Backdrop/Centre/Card/Content"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="MainMenuButton" type="Button" parent="Backdrop/Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+text = "Main menu"
+
+[node name="StartButton" type="Button" parent="Backdrop/Centre/Card/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_start")
+theme_override_styles/hover = SubResource("StyleBoxFlat_start")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_start")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_start_disabled")
+disabled = true
+text = "Start"
+
+[node name="CoinToss" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 176.0
+offset_top = 120.0
+offset_right = 680.0
+offset_bottom = 600.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_coin")
+
+[node name="Lines" type="VBoxContainer" parent="CoinToss"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 12
+
+[node name="CoinTitle" type="Label" parent="CoinToss/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Coin toss"
+horizontal_alignment = 1
+
+[node name="CoinDetail" type="Label" parent="CoinToss/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Timer" type="Timer" parent="."]
+unique_name_in_owner = true
+one_shot = true

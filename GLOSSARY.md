@@ -42,6 +42,11 @@ One of the up to 8 cells touching a cell, diagonals included. "Next to" in rule 
 "on a neighbour".
 _Avoid_: Adjacent, touching
 
+**Distance**:
+How many king moves apart two cells are: one step reaches any neighbour, diagonals included, so
+neighbours are at distance 1 and "within 2 cells" is the 5 × 5 square around a cell.
+_Avoid_: Manhattan or straight-line distance
+
 **Ball**:
 A piece with one colour and one owner, placed on a cell.
 _Avoid_: Piece, token, stone
@@ -129,9 +134,13 @@ _Avoid_: Probe (that is the AI's reason for a pick, not the act)
 Naming one of the opponent's deck rules as their true rule; right wins, wrong loses.
 _Avoid_: Accusation, pulling the trigger (that is flavour text only)
 
+**Match setup**:
+The screen before a match: pick a deck and the AI level, then choose the true rule.
+_Avoid_: Pre-match, lobby
+
 **Rematch**:
-A new match straight after one ends, with the same decks. Both players choose their true rule again,
-and the other player goes first.
+A new match straight after one ends, with the same decks and AI level. Both players choose their true
+rule again, and the other player goes first.
 
 **Full board**:
 The state where every cell holds a ball; both players then make a forced guess.
@@ -149,6 +158,11 @@ the player's own belief, not proof; the game never checks it, and a rematch clea
 _Avoid_: Tag, flag
 
 ## AI
+
+**AI level**:
+How well the AI plays: Easy, Normal or Hard, picked in match setup. Levels change how well it reads
+moves and hides its own, never what it knows or which rules it gets.
+_Avoid_: Difficulty setting, tier (that word belongs to rules)
 
 **Confidence**:
 The AI's probability that a given candidate is the opponent's true rule. The AI guesses when its top

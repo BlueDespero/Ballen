@@ -28,10 +28,37 @@
 		}
 	},
 	"not_next_to": {
-		"blanks": { "ball": ["same_colour", "opponent_ball", "my_last_ball"] },
+		"blanks": { "ball": ["same_colour", "opponent_ball", "my_last_ball", "opponent_last_ball"] },
 		"tree": {
 			"part": "count_at_most", "n": 0,
 			"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
+	},
+	"colour_only_next_to": {
+		"blanks": { "colour": ["yellow", "blue", "red", "green"], "other": ["yellow", "blue", "red", "green"] },
+		"tree": {
+			"part": "any",
+			"of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$colour", "of": { "part": "target" } } },
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$other", "of": { "part": "whole_board" } } },
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "of_colour", "colour": "$other", "of": { "part": "neighbours", "of": { "part": "target" } } } }
+			]
+		}
+	},
+	"never_more_than": {
+		"blanks": { "a": ["yellow", "blue", "red", "green"], "b": ["yellow", "blue", "red", "green"] },
+		"tree": {
+			"part": "any",
+			"of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "of_colour", "colour": "$a", "of": { "part": "target" } } },
+				{ "part": "no_more_than",
+					"of": { "part": "of_colour", "colour": "$a", "of": { "part": "whole_board" } },
+					"than": { "part": "of_colour", "colour": "$b", "of": { "part": "whole_board" } } }
+			]
 		}
 	},
 	"min_empty_neighbours": {
@@ -39,6 +66,78 @@
 		"tree": {
 			"part": "count_at_least", "n": "$n",
 			"of": { "part": "empty", "of": { "part": "neighbours", "of": { "part": "target" } } }
+		}
+	},
+	"not_same_axis_as": {
+		"blanks": { "axis": ["row"], "ball": ["my_last_ball"] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "$ball", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
+		}
+	},
+	"relative_to_last": {
+		"blanks": { "direction": ["higher", "lower"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "in_row_relative", "direction": "$direction",
+				"than": { "part": "my_last_ball", "of": { "part": "whole_board" } }, "of": { "part": "target" } }
+		}
+	},
+	"never_fill_axis": {
+		"blanks": { "axis": ["row"] },
+		"tree": {
+			"part": "count_at_least", "n": 1,
+			"of": { "part": "empty", "of": { "part": "same_axis", "axis": "$axis", "of": { "part": "target" } } }
+		}
+	},
+	"zone_on_turn_parity": {
+		"blanks": { "parity": ["even", "odd"], "zone": ["edge"] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "own_turn_parity", "parity": "$parity" },
+			"then": { "part": "count_at_least", "n": 1,
+				"of": { "part": "in_zone", "zone": "$zone", "of": { "part": "target" } } }
+		}
+	},
+	"rows_for_first_turns": {
+		"blanks": { "turns": [], "from": [1, 2, 3, 4, 5, 6], "to": [1, 2, 3, 4, 5, 6] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "own_turn_at_most", "n": "$turns" },
+			"then": { "part": "count_at_least", "n": 1,
+				"of": { "part": "in_rows", "from": "$from", "to": "$to", "of": { "part": "target" } } }
+		}
+	},
+	"touch_mine_after_skips": {
+		"blanks": { "skips": [] },
+		"tree": {
+			"part": "if_then",
+			"if": { "part": "skips_at_least", "n": "$skips" },
+			"then": { "part": "any", "of": [
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "my_ball", "of": { "part": "neighbours", "of": { "part": "target" } } } },
+				{ "part": "count_at_most", "n": 1,
+					"of": { "part": "my_ball", "of": { "part": "whole_board" } } }
+			] }
+		}
+	},
+	"must_touch": {
+		"blanks": { "ball": ["any_ball", "my_ball", "next_colour"] },
+		"tree": {
+			"part": "any", "of": [
+				{ "part": "count_at_most", "n": 0,
+					"of": { "part": "$ball", "of": { "part": "other_cells", "of": { "part": "target" } } } },
+				{ "part": "count_at_least", "n": 1,
+					"of": { "part": "$ball", "of": { "part": "neighbours", "of": { "part": "target" } } } }
+			]
+		}
+	},
+	"min_distance_from": {
+		"blanks": { "colour": ["yellow", "blue", "red", "green"], "n": [1, 2, 3, 4, 5] },
+		"tree": {
+			"part": "count_at_most", "n": 0,
+			"of": { "part": "of_colour", "colour": "$colour",
+				"of": { "part": "within_distance", "n": "$n", "of": { "part": "target" } } }
 		}
 	}
 }

@@ -1,12 +1,13 @@
 extends GutTest
 
-# Setting up a single-player match: the player's starter deck, the AI's random
+# Setting up a single-player match: the deck the player picked, the AI's random
 # deck and true rule, then the match itself (checked through its PublicView).
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
 const PLAYER: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
+const NORMAL: AILevel.Level = AILevel.Level.NORMAL
 
 var _book: RuleBook
 
@@ -22,21 +23,56 @@ func _ids(deck: Deck) -> Array[String]:
 	return ids
 
 
-func _setup(seed_value: int) -> MatchSetup:
-	return MatchSetup.against_ai(_book, Fixtures.rng(seed_value))
-
-
-func test_the_player_gets_the_starter_deck() -> void:
-	var expected: Array[String] = ["R01", "R03", "R05", "R08", "R18"]
-	assert_eq(_ids(_setup(1).deck(PLAYER)), expected)
-
-
-func test_the_ai_gets_5_distinct_rules_that_follow_the_seed() -> void:
-	var ids: Array[String] = _ids(_setup(4).deck(AI))
-	assert_eq(ids.size(), Deck.SIZE)
+func _deck(ids: Array[String]) -> Deck:
+	var rules: Array[Rule] = []
 	for rule_id: String in ids:
-		assert_eq(ids.count(rule_id), 1, "%s drawn once" % rule_id)
-	assert_eq(ids, _ids(_setup(4).deck(AI)))
+		rules.append(_book.rule(rule_id))
+	return Deck.new(rules)
+
+
+func _starter() -> Deck:
+	return _deck(["R01", "R03", "R05", "R08", "R18"])
+
+
+## Most tests: the player has R01 R03 R05 R08 R18, the AI a deck drawn with
+## the seed, and the AI plays at Normal.
+func _setup(seed_value: int) -> MatchSetup:
+	var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
+	return MatchSetup.against_ai(_starter(), Deck.draw(_book, rng), NORMAL, rng)
+
+
+func _ai_deck() -> Deck:
+	return _deck(["R04", "R10", "R11", "R19", "R22"])
+
+
+func test_the_player_gets_the_deck_they_picked() -> void:
+	var picked: Array[String] = ["R02", "R04", "R09", "R10", "R20"]
+	var setup: MatchSetup = MatchSetup.against_ai(_deck(picked), _ai_deck(), NORMAL, Fixtures.rng(1))
+	assert_eq(_ids(setup.deck(PLAYER)), picked)
+	assert_eq(_ids(setup.start(_book.rule("R10")).public_view(PLAYER).decks[PLAYER]), picked)
+
+
+## The AI's deck is drawn before the setup, so the player sees it while
+## choosing a true rule; the match is played with that deck.
+func test_the_ai_gets_the_deck_shown_at_setup() -> void:
+	var expected: Array[String] = ["R04", "R10", "R11", "R19", "R22"]
+	var setup: MatchSetup = MatchSetup.against_ai(_starter(), _ai_deck(), NORMAL, Fixtures.rng(1))
+	assert_eq(_ids(setup.deck(AI)), expected)
+	assert_eq(_ids(setup.start(_book.rule("R01")).public_view(PLAYER).decks[AI]), expected)
+
+
+func test_the_setup_keeps_the_ai_level_for_rematches() -> void:
+	var setup: MatchSetup = _setup(1)
+	setup.start(_book.rule("R01"))
+	setup.rematch(_book.rule("R03"))
+	assert_eq(setup.ai_level(), NORMAL)
+
+
+func test_a_level_not_built_yet_sets_up_nothing() -> void:
+	assert_null(MatchSetup.against_ai(_starter(), _ai_deck(), AILevel.Level.EASY, Fixtures.rng(1)))
+	assert_push_error("Easy is not built")
+	assert_null(MatchSetup.against_ai(_starter(), _ai_deck(), AILevel.Level.HARD, Fixtures.rng(1)))
+	assert_push_error("Hard is not built")
 
 
 func test_the_tapped_rule_is_the_player_s_true_rule() -> void:
@@ -74,7 +110,7 @@ func test_the_setup_follows_the_seeded_rng() -> void:
 	assert_eq(again.first_player(), first.first_player())
 
 
-func test_a_rule_outside_the_starter_deck_starts_no_match() -> void:
+func test_a_rule_outside_the_player_s_deck_starts_no_match() -> void:
 	assert_null(_setup(1).start(_book.rule("R04")))
 	assert_push_error("true rule")
 
@@ -136,16 +172,12 @@ func test_a_rematch_numbers_rows_from_the_new_first_player_s_side() -> void:
 
 
 ## Picks the first colour and, if the AI goes first, plays its first turn.
+## Yellow, because R06 forbids a red on a board with no blue.
 func _play_until_the_player_places(current_match: Match) -> void:
-	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
+	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.YELLOW))
 	if current_match.current_player() == AI:
 		current_match.submit(AI, Command.place(current_match.legal_cells()[0]))
 		current_match.submit(AI, Command.pick_colour(BallColour.BLUE))
-
-
-func test_a_book_without_the_starter_deck_sets_up_nothing() -> void:
-	assert_null(MatchSetup.against_ai(RuleBook.new(), Fixtures.rng(1)))
-	assert_push_error("starter deck")
 
 
 func test_a_rematch_before_any_match_starts_nothing() -> void:

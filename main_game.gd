@@ -1,12 +1,12 @@
 extends Control
 
 ## The match scene: shows the match from the player's side and sends the
-## player's commands. Before the match, the pre-match overlay lets the player
-## choose a true rule from the starter deck while both decks are shown; then
-## the coin toss is shown and play starts. The match decides what is legal; a
-## MatchDriver runs the player's HumanController and the AI, pausing before
-## each AI action. At match end, Rematch goes back to choosing a true rule
-## on the same decks.
+## player's commands. Before the match, the match setup screen lets the player
+## pick a deck and the AI level and choose a true rule while both decks are
+## shown; then the coin toss is shown and play starts. The match decides what is
+## legal; a MatchDriver runs the player's HumanController and the AI, pausing
+## before each AI action. At match end, Rematch goes back to the setup screen
+## to choose a true rule on the same decks at the same level.
 ##
 ## The history view (the arrows and Live under the board, or the ← and → keys)
 ## steps turn by turn through past boards, rebuilt from the player's view; a
@@ -38,12 +38,16 @@ const PAUSED_BALL_ALPHA: float = 0.35
 @onready var _picker: ColourPicker = %ColourPicker
 @onready var _rules_panel: RulesPanel = %RulesPanel
 @onready var _status: Label = %Status
-@onready var _pre_match: PreMatchPanel = %PreMatch
+@onready var _setup_screen: MatchSetupScreen = %MatchSetup
 @onready var _match_end: MatchEndOverlay = %MatchEnd
 @onready var _history_nav: HistoryNav = %HistoryNav
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
-var _setup: MatchSetup
+var _book: RuleBook = RuleBook.load_default()
+## Null until the first Start; then kept for rematches.
+var _setup: MatchSetup = null
+## Drawn when the setup screen opens, so the player sees it before Start.
+var _ai_deck: Deck = null
 var _match: Match = null
 var _human: HumanController = HumanController.new()
 var _driver: MatchDriver = null
@@ -61,7 +65,9 @@ func _ready() -> void:
 	_picker.picked.connect(_on_colour_picked)
 	_rules_panel.guess_requested.connect(_on_guess_requested)
 	_rules_panel.seal_requested.connect(_on_seal_requested)
-	_pre_match.rule_chosen.connect(_on_true_rule_chosen)
+	_setup_screen.deck_shown.connect(_on_setup_deck_shown)
+	_setup_screen.start_requested.connect(_on_start_requested)
+	_setup_screen.main_menu_requested.connect(_on_main_menu_requested)
 	_match_end.rematch_requested.connect(_on_rematch_requested)
 	_match_end.main_menu_requested.connect(_on_main_menu_requested)
 	_history_nav.back_pressed.connect(_step_back)
@@ -69,8 +75,7 @@ func _ready() -> void:
 	_history_nav.forward_pressed.connect(_step_forward)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
-	_setup = MatchSetup.against_ai(RuleBook.load_default(), _rng)
-	_show_pre_match()
+	_show_setup()
 
 
 func _exit_tree() -> void:
@@ -92,30 +97,42 @@ func _apply_settings() -> void:
 	_picker.reduced_motion = Settings.reduced_motion
 	_rules_panel.guess_without_holding = Settings.guess_without_holding
 	_rules_panel.text_scale = Settings.text_scale()
-	_pre_match.text_scale = Settings.text_scale()
+	_setup_screen.text_scale = Settings.text_scale()
 	TextScale.apply(_match_end, Settings.text_scale())
 
 
-## Both decks on show and an empty board; the player chooses a true rule
-## (again, in a rematch: the setup keeps both decks).
-func _show_pre_match() -> void:
-	_rules_panel.show_decks(_setup.deck(AI), _setup.deck(HUMAN), null)
+## An empty board under the match setup screen: a new match draws the AI's
+## deck and offers the saved decks and the AI levels; a rematch keeps the decks
+## and level (the setup keeps them) and the player chooses a true rule again.
+## The rules panel shows the AI's deck beside the screen.
+func _show_setup() -> void:
 	_rules_panel.show_skips(0, 0)
 	_board_view.show_board(Board.new(), [], HUMAN, HUMAN)
 	_player_ball.colour = ""
 	_player_ball.draggable = false
 	_ai_ball.colour = ""
 	_picker.enabled = false
-	_pre_match.show_deck(_setup.deck(HUMAN))
-	_status.text = "Choose your true rule."
+	if _setup == null:
+		_ai_deck = Deck.draw(_book, _rng)
+		_setup_screen.show_setup(DeckStore.new(_book))
+	else:
+		_setup_screen.show_rematch()
+	_status.text = ""
 	_history.reset()
 	_update_history_nav()
 
 
+## Both decks in the rules panel while the player chooses a true rule.
+func _on_setup_deck_shown(deck: Deck) -> void:
+	_rules_panel.show_decks(_ai_deck, deck, null)
+
+
 ## Starts the match (its coin toss picks the first player; in a rematch the
 ## other player goes first), shows who goes first, then lets the driver play.
-func _on_true_rule_chosen(true_rule: Rule) -> void:
+func _on_start_requested(deck: Deck, level: AILevel.Level, true_rule: Rule) -> void:
 	var is_rematch: bool = _match != null
+	if not is_rematch:
+		_setup = MatchSetup.against_ai(deck, _ai_deck, level, _rng)
 	_match = _setup.rematch(true_rule) if is_rematch else _setup.start(true_rule)
 	_shown_events = 0
 	var view: PublicView = _match.public_view(HUMAN)
@@ -123,7 +140,7 @@ func _on_true_rule_chosen(true_rule: Rule) -> void:
 	_board_view.show_board(view.position.board, [], HUMAN, view.position.first_player)
 	var player_goes_first: bool = view.position.first_player == HUMAN
 	_status.text = "You go first." if player_goes_first else "The AI goes first."
-	await _pre_match.show_coin_toss(player_goes_first, is_rematch)
+	await _setup_screen.show_coin_toss(player_goes_first, is_rematch)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
@@ -164,10 +181,11 @@ func _on_seal_requested(rule_id: String) -> void:
 	_human.choose(Command.forced_guess(rule_id))
 
 
-## Back to choosing a true rule for the next match on the same decks.
+## Back to the setup screen to choose a true rule for the next match on the
+## same decks.
 func _on_rematch_requested() -> void:
 	_match_end.hide_summary()
-	_show_pre_match()
+	_show_setup()
 
 
 func _on_main_menu_requested() -> void:

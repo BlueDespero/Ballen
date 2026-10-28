@@ -14,6 +14,7 @@ const LARGER_TEXT_SCALE: float = 1.25
 ## Sections of the config file.
 const AUDIO: String = "audio"
 const ACCESSIBILITY: String = "accessibility"
+const HINTS: String = "hints"
 
 ## The config file the settings load from and save to.
 var path: String = DEFAULT_PATH
@@ -43,6 +44,12 @@ var larger_text: bool = false:
 	set(value):
 		larger_text = value
 		_notify()
+## The player has used a note mark, so the rules panel no longer explains
+## them. Not shown on the Settings screen.
+var note_marks_seen: bool = false:
+	set(value):
+		note_marks_seen = value
+		_notify()
 
 var _loading: bool = false
 
@@ -65,6 +72,7 @@ func load_settings() -> void:
 	reduced_motion = _read(file, ACCESSIBILITY, "reduced_motion", false)
 	guess_without_holding = _read(file, ACCESSIBILITY, "guess_without_holding", false)
 	larger_text = _read(file, ACCESSIBILITY, "larger_text", false)
+	note_marks_seen = _read(file, HINTS, "note_marks_seen", false)
 	_loading = false
 	changed.emit()
 
@@ -72,6 +80,15 @@ func load_settings() -> void:
 ## How much bigger than built the rules panel and menu text is.
 func text_scale() -> float:
 	return LARGER_TEXT_SCALE if larger_text else 1.0
+
+
+## The player has used a note mark: remembers it and saves the settings, so
+## the hint never comes back. Does nothing once it is remembered.
+func mark_note_marks_seen() -> void:
+	if note_marks_seen:
+		return
+	note_marks_seen = true
+	save_settings()
 
 
 ## Writes the settings to `path`.
@@ -82,6 +99,7 @@ func save_settings() -> Error:
 	file.set_value(ACCESSIBILITY, "reduced_motion", reduced_motion)
 	file.set_value(ACCESSIBILITY, "guess_without_holding", guess_without_holding)
 	file.set_value(ACCESSIBILITY, "larger_text", larger_text)
+	file.set_value(HINTS, "note_marks_seen", note_marks_seen)
 	return file.save(path)
 
 

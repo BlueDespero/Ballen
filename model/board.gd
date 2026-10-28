@@ -61,6 +61,12 @@ static func neighbours(cell: Vector2i) -> Array[Vector2i]:
 	return cells
 
 
+## The distance between two cells in king moves (one step reaches any
+## neighbour, diagonals included): neighbours are 1 apart.
+static func distance(a: Vector2i, b: Vector2i) -> int:
+	return maxi(absi(a.x - b.x), absi(a.y - b.y))
+
+
 ## Builds a board from 6 strings of 6 characters, top row (y = 0) first.
 ## "." is empty; y, b, r, g are the colours; upper case belongs to player 0,
 ## lower case to player 1. Example row: "..Rb..".

@@ -1,53 +1,50 @@
 class_name MatchSetup
 extends RefCounted
 
-## What comes before a single-player match: the player's fixed starter deck
-## and the AI's deck of 5 rules drawn at random. Both decks are known before
-## the player chooses a true rule; start() then draws the AI's true rule and
-## creates the match, whose coin toss picks the first player. The setup keeps
-## both decks, so rematch() starts the next match from them, with the other
-## player going first. Every random choice uses the injected rng.
+## What comes before a single-player match: the deck the player picked, the
+## AI's level and its deck of 5 rules drawn at random. With the player's chosen
+## true rule, start() draws the AI's true rule and creates the match, whose
+## coin toss picks the first player. The setup keeps both decks and the level,
+## so rematch() starts the next match from them, with the other player going
+## first. Every random choice uses the injected rng.
 
 const PLAYER: int = 0
 const AI: int = 1
 
-## The prototype's fixed deck for the player.
-const STARTER_DECK_IDS: Array[String] = ["R01", "R03", "R05", "R08", "R18"]
-
 var _decks: Array[Deck] = []
+var _ai_level: AILevel.Level
 var _rng: RandomNumberGenerator
 var _last_first_player: int = Players.NONE
 
 
-func _init(decks: Array[Deck], rng: RandomNumberGenerator) -> void:
+func _init(decks: Array[Deck], level: AILevel.Level, rng: RandomNumberGenerator) -> void:
 	_decks = decks.duplicate()
+	_ai_level = level
 	_rng = rng
 
 
-## The player gets the starter deck, the AI a random deck from the book's rules.
-## Returns null (and reports an error) if the book lacks a starter deck rule or
-## has too few rules for the AI's deck.
-static func against_ai(book: RuleBook, rng: RandomNumberGenerator) -> MatchSetup:
-	var starter: Array[Rule] = []
-	for rule_id: String in STARTER_DECK_IDS:
-		var rule: Rule = book.rule(rule_id)
-		if rule == null:
-			push_error("MatchSetup: the book has no %s for the starter deck" % rule_id)
-			return null
-		starter.append(rule)
-	var ai_deck: Deck = Deck.draw(book, rng)
-	if ai_deck == null:
+## The player gets the deck they picked, the AI its deck (drawn with Deck.draw
+## before the setup, so the player sees it while choosing a true rule) and
+## plays at the level picked. Returns null (and reports an error) for a level
+## not built yet.
+static func against_ai(player_deck: Deck, ai_deck: Deck, level: AILevel.Level, rng: RandomNumberGenerator) -> MatchSetup:
+	if not AILevel.is_built(level):
+		push_error("MatchSetup: the AI level %s is not built yet" % AILevel.title(level))
 		return null
 	var decks: Array[Deck] = []
 	decks.resize(Players.COUNT)
-	decks[PLAYER] = Deck.new(starter)
-	decks[AI] = ai_deck
-	return MatchSetup.new(decks, rng)
+	decks[PLAYER] = player_deck.copy()
+	decks[AI] = ai_deck.copy()
+	return MatchSetup.new(decks, level, rng)
 
 
 ## A copy of a player's deck.
 func deck(player: int) -> Deck:
 	return _decks[player].copy()
+
+
+func ai_level() -> AILevel.Level:
+	return _ai_level
 
 
 ## Starts a match with the player's chosen true rule and a random true rule

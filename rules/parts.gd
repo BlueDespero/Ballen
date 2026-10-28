@@ -24,21 +24,39 @@ static var _parts: Dictionary[String, Callable] = {
 	"target": _target,
 	"neighbours": _neighbours,
 	"same_axis": _same_axis,
+	"whole_board": _whole_board,
+	"other_cells": _other_cells,
+	"within_distance": _within_distance,
 	# Filters
 	"in_zone": _in_zone,
 	"with_parity": _with_parity,
 	"same_colour": _same_colour,
 	"opponent_ball": _opponent_ball,
+	"my_ball": _my_ball,
 	"my_last_ball": _my_last_ball,
+	"opponent_last_ball": _opponent_last_ball,
+	"any_ball": _any_ball,
+	"next_colour": _next_colour,
 	"empty": _empty,
+	"of_colour": _of_colour,
 	# Conditions
 	"count_at_most": _count_at_most,
 	"count_at_least": _count_at_least,
+	"no_more_than": _no_more_than,
 	# Combiners
 	"all": _all,
+	"any": _any,
+	# Time and game-state parts (if_then, then conditions on the position)
+	"if_then": _if_then,
+	"own_turn_parity": _own_turn_parity,
+	"own_turn_at_most": _own_turn_at_most,
+	"in_rows": _in_rows,
+	"skips_at_least": _skips_at_least,
 	# Group parts (rules/group_parts.gd)
 	"lines_through": GroupParts.lines_through,
 	"no_group_of": GroupParts.no_group_of,
+	# Row comparison (R15, R16)
+	"in_row_relative": _in_row_relative,
 }
 
 
@@ -75,6 +93,33 @@ static func _neighbours(node: Dictionary, ctx: PlacementContext) -> Array[Vector
 	return cells
 
 
+## The cells within n steps (king moves, see Board.distance) of the cells of
+## "of", each listed once, leaving out the cells of "of" themselves. With n 1
+## these are the neighbours. {"part": "within_distance", "n": 2, "of": ...}
+static func _within_distance(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var centres: Array[Vector2i] = _cells(node.of, ctx)
+	var cells: Array[Vector2i] = []
+	for cell: Vector2i in Board.all_cells():
+		if centres.has(cell):
+			continue
+		for centre: Vector2i in centres:
+			if Board.distance(cell, centre) <= int(node.n):
+				cells.append(cell)
+				break
+	return cells
+
+
+## Every cell of the board except the cells of "of".
+## {"part": "other_cells", "of": {"part": "target"}}
+static func _other_cells(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var left_out: Array[Vector2i] = _cells(node.of, ctx)
+	var cells: Array[Vector2i] = []
+	for cell: Vector2i in Board.all_cells():
+		if not left_out.has(cell):
+			cells.append(cell)
+	return cells
+
+
 ## Every cell in the same row as a cell of "of", the "of" cells included, each
 ## listed once. {"part": "same_axis", "axis": "row", "of": {"part": "target"}}
 ## Axes: "row".
@@ -89,6 +134,11 @@ static func _same_axis(node: Dictionary, ctx: PlacementContext) -> Array[Vector2
 			if not cells.has(cell):
 				cells.append(cell)
 	return cells
+
+
+## Every cell of the board. {"part": "whole_board"}
+static func _whole_board(_node: Dictionary, _ctx: PlacementContext) -> Array[Vector2i]:
+	return Board.all_cells()
 
 
 # Filters --------------------------------------------------------------------
@@ -145,6 +195,18 @@ static func _opponent_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vec
 	return kept
 
 
+## Cells holding a ball owned by the holder, any colour. The target holds the
+## placed ball, which is the holder's, so over the whole board this counts it.
+## {"part": "my_ball", "of": ...}
+static func _my_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.owner == ctx.holder:
+			kept.append(cell)
+	return kept
+
+
 ## The cell of the holder's last ball, when it is among the cells of "of";
 ## nothing before the holder's first placement.
 ## {"part": "my_last_ball", "of": ...}
@@ -157,12 +219,60 @@ static func _my_last_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vect
 	return kept
 
 
+## The cell of the opponent's last ball (the holder's opponent), when it is
+## among the cells of "of"; nothing before the opponent's first placement.
+## {"part": "opponent_last_ball", "of": ...}
+static func _opponent_last_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var last: Array[Vector2i] = ctx.last_ball(Players.opponent(ctx.holder))
+	for cell: Vector2i in _cells(node.of, ctx):
+		if last.has(cell):
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball, any colour and owner (after the placement, so the
+## target counts). {"part": "any_ball", "of": ...}
+static func _any_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		if ctx.board.ball_at(cell) != null:
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball of the colour after the placed ball's colour in the
+## cycle yellow -> blue -> red -> green -> yellow, either owner.
+## {"part": "next_colour", "of": ...}
+static func _next_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
+	var next: String = cycle[(cycle.find(ctx.colour) + 1) % cycle.size()]
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.colour == next:
+			kept.append(cell)
+	return kept
+
+
 ## Cells holding no ball (after the placement, so never the target).
 ## {"part": "empty", "of": ...}
 static func _empty(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
 	var kept: Array[Vector2i] = []
 	for cell: Vector2i in _cells(node.of, ctx):
 		if ctx.board.is_empty(cell):
+			kept.append(cell)
+	return kept
+
+
+## Cells holding a ball of a fixed colour, either owner. The target holds the
+## placed ball, so of_colour over the target keeps it exactly when a ball of
+## that colour is placed. {"part": "of_colour", "colour": "red", "of": ...}
+static func _of_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var ball: Ball = ctx.board.ball_at(cell)
+		if ball != null and ball.colour == node.colour:
 			kept.append(cell)
 	return kept
 
@@ -179,6 +289,12 @@ static func _count_at_least(node: Dictionary, ctx: PlacementContext) -> bool:
 	return _cells(node.of, ctx).size() >= int(node.n)
 
 
+## No more cells in "of" than in "than".
+## {"part": "no_more_than", "of": ..., "than": ...}
+static func _no_more_than(node: Dictionary, ctx: PlacementContext) -> bool:
+	return _cells(node.of, ctx).size() <= _cells(node.than, ctx).size()
+
+
 # Combiners ------------------------------------------------------------------
 
 ## Passes when every condition passes; an empty list always passes, which makes
@@ -189,3 +305,82 @@ static func _all(node: Dictionary, ctx: PlacementContext) -> bool:
 		if not evaluate(condition, ctx):
 			return false
 	return true
+
+
+## Passes when at least one condition passes; an empty list never passes.
+## {"part": "any", "of": [<condition>, ...]}
+static func _any(node: Dictionary, ctx: PlacementContext) -> bool:
+	for condition: Dictionary in node.of:
+		if evaluate(condition, ctx):
+			return true
+	return false
+
+
+# Row comparison (R15, R16) ----------------------------------------------------
+
+## Filter: cells of "of" whose row number (1-6 from the first player's side) is
+## higher, or lower, than the row number of every cell of "than". With no "than"
+## cells every cell is kept, so a rule comparing with a last ball that doesn't
+## exist yet allows every cell.
+## {"part": "in_row_relative", "direction": "higher", "than": ..., "of": ...}
+## Directions: "higher", "lower".
+static func _in_row_relative(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	if node.direction != "higher" and node.direction != "lower":
+		push_error("in_row_relative: unknown direction '%s'" % node.direction)
+		return kept
+	var direction: int = 1 if node.direction == "higher" else -1
+	var first_player: int = ctx.position.first_player
+	var references: Array[Vector2i] = _cells(node.than, ctx)
+	for cell: Vector2i in _cells(node.of, ctx):
+		var row: int = Board.row_number(cell, first_player)
+		var beyond_all: bool = true
+		for reference: Vector2i in references:
+			if direction * (row - Board.row_number(reference, first_player)) <= 0:
+				beyond_all = false
+		if beyond_all:
+			kept.append(cell)
+	return kept
+
+
+# Time and game-state parts --------------------------------------------------
+# A combiner for "if X, then Y" rules, and conditions that read the position
+# before the placement (turn, skips) rather than cells.
+
+## Passes when "if" fails or "then" passes: "then" only applies while "if"
+## holds. {"part": "if_then", "if": <condition>, "then": <condition>}
+static func _if_then(node: Dictionary, ctx: PlacementContext) -> bool:
+	return not evaluate(node["if"], ctx) or evaluate(node["then"], ctx)
+
+
+## The holder's own turn count (1 on their first turn) is even or odd.
+## {"part": "own_turn_parity", "parity": "odd"}
+static func _own_turn_parity(node: Dictionary, ctx: PlacementContext) -> bool:
+	var remainder: int = 0 if node.parity == "even" else 1
+	return ctx.own_turn() % 2 == remainder
+
+
+## The holder's own turn count is at most n: true for their first n turns.
+## {"part": "own_turn_at_most", "n": 5}
+static func _own_turn_at_most(node: Dictionary, ctx: PlacementContext) -> bool:
+	return ctx.own_turn() <= int(node.n)
+
+
+## A filter: cells whose row number (1-6 from the first player's side) is
+## from "from" to "to", both included. {"part": "in_rows", "from": 3, "to": 4, "of": ...}
+static func _in_rows(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
+	var kept: Array[Vector2i] = []
+	for cell: Vector2i in _cells(node.of, ctx):
+		var row: int = Board.row_number(cell, ctx.position.first_player)
+		if row >= int(node.from) and row <= int(node.to):
+			kept.append(cell)
+	return kept
+
+
+## Both players together have skipped at least n times in the match so far.
+## {"part": "skips_at_least", "n": 1}
+static func _skips_at_least(node: Dictionary, ctx: PlacementContext) -> bool:
+	var total: int = 0
+	for count: int in ctx.position.skips:
+		total += count
+	return total >= int(node.n)

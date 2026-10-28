@@ -75,9 +75,11 @@ func cell_centre(cell: Vector2i) -> Vector2:
 ## Draws one ball into rect on any canvas item; marked balls (the opponent's)
 ## get a dark dot in the middle. With symbols (colour-blind mode) the ball
 ## also shows its colour's symbol: outlined on the player's balls, white on a
-## bigger dark dot on the opponent's.
-static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: bool, symbols: bool = false) -> void:
-	canvas.draw_texture_rect(BALL_TEXTURE, rect, false, Constants.colors[colour]["rgb"])
+## bigger dark dot on the opponent's. A tint multiplies the ball itself (not
+## the dot or symbol): the menu backdrop dims and fades its balls with it.
+static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: bool, symbols: bool = false,
+		tint: Color = Color.WHITE) -> void:
+	canvas.draw_texture_rect(BALL_TEXTURE, rect, false, Constants.colors[colour]["rgb"] * tint)
 	var centre: Vector2 = rect.get_center()
 	if not symbols:
 		if marked:

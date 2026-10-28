@@ -60,7 +60,8 @@ func test_an_occupied_cell_is_never_legal() -> void:
 func test_r04_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R04")
 	assert_eq(rule.text, "Never on the edge")
-	assert_eq(rule.to_data(), {"id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": {"zone": "edge"}})
+	assert_eq(rule.to_data(), {"id": "R04", "text": "Never on the edge", "template": "not_on_zone", "values": {"zone": "edge"},
+		"tier": "intermediate"})
 
 
 func test_a_rule_built_from_the_same_data_behaves_the_same() -> void:

@@ -32,3 +32,13 @@ func last_ball(player: int) -> Array[Vector2i]:
 	if entry != null:
 		cells.append(entry.cell)
 	return cells
+
+
+## The holder's own turn count: how many of the match's turns so far are the
+## holder's, this one included (1 on their first turn). Odd match turns belong
+## to the first player, even ones to the other player; a skipped turn counts.
+@warning_ignore("integer_division")
+func own_turn() -> int:
+	if holder == position.first_player:
+		return (position.turn + 1) / 2
+	return position.turn / 2
