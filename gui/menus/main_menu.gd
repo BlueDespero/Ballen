@@ -27,7 +27,9 @@ const CARD_MARGIN: float = 24.0
 func _ready() -> void:
 	_build_title()
 	_version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
-	_buttons.resized.connect(_place_card)
+	# item_rect_changed, not resized: a growing screen moves the centred
+	# buttons without resizing them (a web page's canvas starts tiny).
+	_buttons.item_rect_changed.connect(_place_card)
 	_title.resized.connect(_place_card)
 	Settings.changed.connect(_apply_text_scale)
 	_apply_text_scale()
