@@ -27,6 +27,7 @@ Constants="*res://constants.gd"
 Settings="*res://game_settings.gd"
 WebMarkers="*res://gui/web_markers.gd"
 RotateHint="*res://gui/rotate_hint.gd"
+SymbolFont="*res://gui/symbol_font.gd"
 
 [display]
 
