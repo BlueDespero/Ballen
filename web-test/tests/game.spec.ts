@@ -40,15 +40,11 @@ test("placing a ball by dragging it onto the board", async ({ page }, testInfo) 
   expect(game.errors).toEqual([]);
 });
 
-// Depends on ticket B's RotateHint autoload, which prints the marker in web
-// builds. Until B is in the build there is no rotate_hint marker at all, and
-// the test is marked fixme instead of failing.
+// The RotateHint autoload prints the marker in web builds.
 test("a portrait screen shows the rotate hint", async ({ page }, testInfo) => {
   const game = new Game(page, testInfo);
   await page.setViewportSize({ width: 390, height: 844 });
   await game.open();
-  const hasHint = await game.seen(/^\[ballen\] rotate_hint=/, 0, 5_000);
-  test.fixme(!hasHint, "needs ticket B's RotateHint marker in the build");
   await game.waitFor("[ballen] rotate_hint=shown");
 });
 
