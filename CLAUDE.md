@@ -15,6 +15,9 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   adding or changing a rule.
 - `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
   colour picks, guessing, difficulty levels).
+- `docs/release-audit.md`: what the web build reaches (network, files, autoloads) and ships, licences, known
+  gaps; update it when adding network, file or OS access, an autoload or an asset, and re-run its checklist
+  before each public release.
 
 ## Conventions
 
