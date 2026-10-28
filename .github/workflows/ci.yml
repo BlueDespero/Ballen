@@ -1,11 +1,12 @@
-# Tests every push and pull request; on master, also exports the web build,
-# runs the Playwright tests on it and pushes it to itch.io.
-# Deploy needs the repository secret BUTLER_API_KEY and variable ITCH_GAME
-# (e.g. "user/ballen"); see CLAUDE.md, "CI".
+# Tests every pull request and every push to master: GUT and the harness, then
+# a Web export run through the Playwright tests. On master, the tested build is
+# also pushed to itch.io. Deploy needs the repository secret BUTLER_API_KEY and
+# variable ITCH_GAME (e.g. "user/ballen"); see CLAUDE.md, "CI".
 name: CI
 
 on:
   push:
+    branches: [master]
   pull_request:
 
 permissions:
@@ -56,31 +57,15 @@ jobs:
       - name: AI-vs-AI harness
         run: godot --headless --path . -s harness/run_harness.gd -- --matches 20 --seed 1
 
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  # Exports the web build and runs the Playwright tests on it, so a PR shows
+  # web breakage before it merges. On master, the tested build goes to deploy.
+  web:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    concurrency:
-      group: deploy-itch
-      cancel-in-progress: false
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Check itch.io settings
-        env:
-          ITCH_GAME: ${{ vars.ITCH_GAME }}
-          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-        run: |
-          missing=0
-          if [ -z "$ITCH_GAME" ]; then
-            echo "::error::Repository variable ITCH_GAME is not set. Add it (e.g. user/ballen) under Settings > Secrets and variables > Actions > Variables."
-            missing=1
-          fi
-          if [ -z "$BUTLER_API_KEY" ]; then
-            echo "::error::Repository secret BUTLER_API_KEY is not set. Create an itch.io API key and add it under Settings > Secrets and variables > Actions > Secrets."
-            missing=1
-          fi
-          exit "$missing"
-
       - uses: actions/checkout@v4
 
       - name: Cache Godot
@@ -134,11 +119,14 @@ jobs:
       # 0.2.0 becomes 0.2.0+<short sha>, shown in the main menu and on itch.io.
       - name: Stamp version
         id: version
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          sed -i -E "s/^config\/version=\"([^\"+]+)\"/config\/version=\"\1+${GITHUB_SHA::7}\"/" project.godot
+          short="${SHA::7}"
+          sed -i -E "s/^config\/version=\"([^\"+]+)\"/config\/version=\"\1+${short}\"/" project.godot
           version="$(sed -n -E 's/^config\/version="([^"]+)"/\1/p' project.godot)"
           case "$version" in
-            *+"${GITHUB_SHA::7}") ;;
+            *+"${short}") ;;
             *) echo "::error::Could not stamp config/version in project.godot (got '$version')."; exit 1 ;;
           esac
           echo "Version: $version"
@@ -161,7 +149,10 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium webkit firefox
-          npx playwright test
+          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+          # Firefox runs headed (no WebGL2 headless without a GPU), so give it
+          # a virtual display; Mesa draws WebGL in software.
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" npx playwright test
 
       - name: Upload Playwright report
         if: failure()
@@ -172,6 +163,45 @@ jobs:
             web-test/playwright-report/
             web-test/test-results/
           retention-days: 14
+
+      - name: Upload web build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web/
+          retention-days: 7
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-itch
+      cancel-in-progress: false
+    steps:
+      - name: Check itch.io settings
+        env:
+          ITCH_GAME: ${{ vars.ITCH_GAME }}
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          missing=0
+          if [ -z "$ITCH_GAME" ]; then
+            echo "::error::Repository variable ITCH_GAME is not set. Add it (e.g. user/ballen) under Settings > Secrets and variables > Actions > Variables."
+            missing=1
+          fi
+          if [ -z "$BUTLER_API_KEY" ]; then
+            echo "::error::Repository secret BUTLER_API_KEY is not set. Create an itch.io API key and add it under Settings > Secrets and variables > Actions > Secrets."
+            missing=1
+          fi
+          exit "$missing"
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: build/web
 
       - name: Install butler
         run: |
@@ -186,5 +216,5 @@ jobs:
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
           ITCH_GAME: ${{ vars.ITCH_GAME }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.web.outputs.version }}
         run: butler push build/web "$ITCH_GAME:html5" --userversion "$VERSION"

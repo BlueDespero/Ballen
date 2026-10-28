@@ -7,9 +7,11 @@ import { expect, type Page, type TestInfo } from "@playwright/test";
 export const BASE = { width: 1280, height: 720 };
 
 // Known spots at 1280×720 (see .claude/skills/run-ballen/SKILL.md, "Layout").
+// The web build hides Quit, so its main menu buttons sit 24 px lower than on
+// desktop.
 export const SPOT = {
-  singlePlayer: { x: 640, y: 345 },
-  decks: { x: 640, y: 393 },
+  singlePlayer: { x: 640, y: 369 },
+  decks: { x: 640, y: 417 },
   setupRuleR08: { x: 368, y: 528 },
   start: { x: 461, y: 648 },
   pickRed: { x: 624, y: 660 },

@@ -41,7 +41,17 @@ export default defineConfig({
     },
     {
       name: "desktop-firefox",
-      use: { ...devices["Desktop Firefox"], viewport: { width: 1280, height: 720 } },
+      use: {
+        ...devices["Desktop Firefox"],
+        viewport: { width: 1280, height: 720 },
+        // CI machines have no GPU, and headless Firefox then has no WebGL2,
+        // which Godot needs. On CI it runs headed in a virtual display
+        // (xvfb-run, see ci.yml) with Mesa's software renderer forced on.
+        headless: !process.env.CI,
+        launchOptions: {
+          firefoxUserPrefs: { "webgl.force-enabled": true, "webgl.disabled": false },
+        },
+      },
     },
   ],
 });
