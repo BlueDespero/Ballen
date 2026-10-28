@@ -26,6 +26,7 @@ EventBus="*res://event_bus.gd"
 Constants="*res://constants.gd"
 Settings="*res://game_settings.gd"
 WebMarkers="*res://gui/web_markers.gd"
+RotateHint="*res://gui/rotate_hint.gd"
 
 [display]
 
