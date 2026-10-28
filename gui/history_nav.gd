@@ -10,8 +10,8 @@ signal back_pressed
 signal live_pressed
 signal forward_pressed
 
-const BUTTON_HEIGHT: float = 36.0
-const ARROW_WIDTH: float = 36.0
+const BUTTON_HEIGHT: float = 44.0
+const ARROW_WIDTH: float = 44.0
 const LIVE_WIDTH: float = 52.0
 ## Half the height of a drawn ◀ or ▶.
 const ARROW_HALF: float = 7.0
