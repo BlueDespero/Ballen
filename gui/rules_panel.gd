@@ -88,6 +88,8 @@ var marks: Dictionary[String, int]:
 	get = _get_marks
 
 var _match_over: bool = false
+## Whether the decks are only a preview, before the match starts.
+var _preview: bool = false
 var _marks: Dictionary[String, int] = {}
 ## The AI's true rule once the match is over; "" before.
 var _ai_true_rule_id: String = ""
@@ -131,7 +133,10 @@ func _apply_spacing() -> void:
 
 
 ## Shows both decks for a new match (also a rematch: the match-over marks go).
+## Without the player's true rule (the setup screen, before Start) they are a
+## preview: the AI's rules take no note marks and no selection.
 func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> void:
+	_preview = player_true_rule == null
 	_match_over = false
 	_ai_true_rule_id = ""
 	_fill(_ai_rules, ai_deck, null)
@@ -139,7 +144,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 	_marks.clear()
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
-		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW if _preview else Control.CURSOR_POINTING_HAND
 		panel.gui_input.connect(_on_ai_row_input.bind(String(panel.name)))
 		_marks[String(panel.name)] = NoteMark.Mark.NONE
 		_add_mark_buttons(panel)
@@ -186,6 +191,9 @@ func _add_mark_buttons(row: PanelContainer) -> void:
 	for mark: NoteMark.Mark in [NoteMark.Mark.CROSS, NoteMark.Mark.QUESTION]:
 		var button: NoteMarkButton = NoteMarkButton.new(mark)
 		button.name = "Cross" if mark == NoteMark.Mark.CROSS else "Question"
+		button.disabled = _preview
+		if _preview:
+			button.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		button.pressed.connect(_on_mark_pressed.bind(String(row.name), mark))
 		buttons.add_child(button)
 	var text_label: Label = row.get_node("Line/Text") as Label
@@ -274,9 +282,10 @@ func show_match_over(ai_true_rule: Rule) -> void:
 	_fit_rule_text(_ai_rules.get_node(ai_true_rule.id) as PanelContainer)
 
 
-## Clicking an AI rule selects it; clicking it again clears the selection.
+## Clicking an AI rule selects it; clicking it again clears the selection. Not
+## in the preview or once the match is over.
 func _on_ai_row_input(event: InputEvent, rule_id: String) -> void:
-	if _match_over:
+	if _match_over or _preview:
 		return
 	var button: InputEventMouseButton = event as InputEventMouseButton
 	if button != null and button.button_index == MOUSE_BUTTON_LEFT and button.pressed:
