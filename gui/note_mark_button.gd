@@ -3,7 +3,8 @@ extends Button
 
 ## One of the two note mark buttons at the right end of one of the AI's rule
 ## rows: ✗ (rule out) or ? (suspect). A rounded square, dim when off, brighter
-## under the pointer, filled red (✗) or yellow (?) while the row has its mark.
+## under the pointer, filled red (✗) or yellow (?) while the row has its mark,
+## fainter while disabled.
 ## It draws its own glyph, so it shows whatever the font. The rules panel
 ## decides the row's mark on a press (`NoteMark.toggled`) and sets `lit`.
 ## Works with mouse and touch: it takes taps in a 44 px square (TOUCH_SIZE)
@@ -20,6 +21,8 @@ const CORNER_RADIUS: int = 6
 const LINE_WIDTH: float = 2.0
 const CROSS_HALF: float = 5.0
 const OFF_COLOUR: Color = Color(0.6, 0.64, 0.7, 0.6)
+## Disabled (before the match starts): fainter, and no hover.
+const DISABLED_COLOUR: Color = Color(0.6, 0.64, 0.7, 0.25)
 const HOVER_COLOUR: Color = Color(0.85, 0.88, 0.92)
 const HOVER_FILL: Color = Color(1.0, 1.0, 1.0, 0.08)
 const CROSS_COLOUR: Color = Palette.RED_COLOUR
@@ -71,8 +74,9 @@ func _draw() -> void:
 		box.border_color = _mark_colour()
 		glyph_colour = LIT_GLYPH_COLOUR
 	else:
-		var colour: Color = HOVER_COLOUR if is_hovered() else OFF_COLOUR
-		box.bg_color = HOVER_FILL if is_hovered() else Color.TRANSPARENT
+		var hovered: bool = is_hovered() and not disabled
+		var colour: Color = DISABLED_COLOUR if disabled else (HOVER_COLOUR if hovered else OFF_COLOUR)
+		box.bg_color = HOVER_FILL if hovered else Color.TRANSPARENT
 		box.border_color = colour
 		glyph_colour = colour
 	draw_style_box(box, Rect2(centre - Vector2(BOX_SIZE, BOX_SIZE) / 2.0, Vector2(BOX_SIZE, BOX_SIZE)))
