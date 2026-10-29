@@ -11,10 +11,16 @@ signal changed
 const DEFAULT_PATH: String = "user://settings.cfg"
 const DEFAULT_VOLUME: float = 0.8
 const LARGER_TEXT_SCALE: float = 1.25
+## The languages the game is in, as locale codes. English is the default,
+## whatever the system's language.
+const ENGLISH: String = "en"
+const POLISH: String = "pl"
+const LANGUAGES: Array[String] = [ENGLISH, POLISH]
 ## Sections of the config file.
 const AUDIO: String = "audio"
 const ACCESSIBILITY: String = "accessibility"
 const HINTS: String = "hints"
+const GENERAL: String = "general"
 
 ## The config file the settings load from and save to.
 var path: String = DEFAULT_PATH
@@ -44,6 +50,14 @@ var larger_text: bool = false:
 	set(value):
 		larger_text = value
 		_notify()
+## The game's language, one of LANGUAGES; anything else keeps the one it has.
+var language: String = ENGLISH:
+	set(value):
+		if not LANGUAGES.has(value):
+			return
+		language = value
+		_apply_language()
+		_notify()
 ## The player has used a note mark, so the rules panel no longer explains
 ## them. Not shown on the Settings screen.
 var note_marks_seen: bool = false:
@@ -58,6 +72,7 @@ var _loading: bool = false
 func _ready() -> void:
 	load_settings()
 	_apply_volume()
+	_apply_language()
 
 
 ## Reads the settings from `path`; anything missing or unreadable keeps its
@@ -73,6 +88,7 @@ func load_settings() -> void:
 	guess_without_holding = _read(file, ACCESSIBILITY, "guess_without_holding", false)
 	larger_text = _read(file, ACCESSIBILITY, "larger_text", false)
 	note_marks_seen = _read(file, HINTS, "note_marks_seen", false)
+	language = _read(file, GENERAL, "language", ENGLISH)
 	_loading = false
 	changed.emit()
 
@@ -100,6 +116,7 @@ func save_settings() -> Error:
 	file.set_value(ACCESSIBILITY, "guess_without_holding", guess_without_holding)
 	file.set_value(ACCESSIBILITY, "larger_text", larger_text)
 	file.set_value(HINTS, "note_marks_seen", note_marks_seen)
+	file.set_value(GENERAL, "language", language)
 	return file.save(path)
 
 
@@ -111,6 +128,13 @@ func _apply_volume() -> void:
 	var master: int = AudioServer.get_bus_index("Master")
 	AudioServer.set_bus_volume_db(master, linear_to_db(maxf(volume, 0.0001)))
 	AudioServer.set_bus_mute(master, volume <= 0.0)
+
+
+## The running settings (in the tree) set the locale, so every translated
+## text follows the language.
+func _apply_language() -> void:
+	if is_inside_tree():
+		TranslationServer.set_locale(language)
 
 
 func _notify() -> void:
