@@ -51,10 +51,24 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="Centre/Card/Content"]
+[node name="TitleRow" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Centre/Card/Content/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "Settings"
+
+[node name="LanguageLabel" type="Label" parent="Centre/Card/Content/TitleRow"]
+layout_mode = 2
+text = "Language"
+
+[node name="Languages" type="HBoxContainer" parent="Centre/Card/Content/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="VolumeRow" type="HBoxContainer" parent="Centre/Card/Content"]
 layout_mode = 2

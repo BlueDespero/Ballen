@@ -30,20 +30,21 @@ static func from_view(view: PublicView) -> MatchEndSummary:
 	summary.opponent_true_rule = view.revealed_true_rules[view.opponent()]
 	if view.result.is_draw():
 		summary.outcome = Outcome.DRAW
-		summary.headline = "Draw"
+		summary.headline = _tr("Draw")
 	elif view.result.winner == view.viewer:
 		summary.outcome = Outcome.WIN
-		summary.headline = "You win"
+		summary.headline = _tr("You win")
 	else:
 		summary.outcome = Outcome.LOSS
-		summary.headline = "You lose"
+		summary.headline = _tr("You lose")
 	var sentences: PackedStringArray = []
 	match view.result.reason:
 		MatchResult.Reason.THIRD_SKIP:
 			var skipper_is_viewer: bool = view.result.winner != view.viewer
-			sentences.append("%s skipped for the third time." % ("You" if skipper_is_viewer else "The AI"))
+			sentences.append(_tr("You skipped for the third time.") if skipper_is_viewer
+				else _tr("The AI skipped for the third time."))
 		MatchResult.Reason.FORCED_GUESSES:
-			sentences.append("The board is full.")
+			sentences.append(_tr("The board is full."))
 	for guess: HistoryEntry in _closing_guesses(view):
 		sentences.append(_guess_sentence(view, guess))
 	summary.reason = " ".join(sentences)
@@ -69,6 +70,16 @@ static func _closing_guesses(view: PublicView) -> Array[HistoryEntry]:
 static func _guess_sentence(view: PublicView, guess: HistoryEntry) -> String:
 	var by_viewer: bool = guess.player == view.viewer
 	var rule: Rule = view.decks[Players.opponent(guess.player)].rule(guess.rule_id)
-	return "%s named %s \"%s\", %s%s true rule." % [
-		"You" if by_viewer else "The AI", rule.id, rule.text,
-		"" if guess.right else "but it isn't ", "the AI's" if by_viewer else "your"]
+	var sentence: String
+	if by_viewer:
+		sentence = _tr("You named %s \"%s\", the AI's true rule.") if guess.right \
+			else _tr("You named %s \"%s\", but it isn't the AI's true rule.")
+	else:
+		sentence = _tr("The AI named %s \"%s\", your true rule.") if guess.right \
+			else _tr("The AI named %s \"%s\", but it isn't your true rule.")
+	return sentence % [rule.id, _tr(rule.text)]
+
+
+## The text in the game's language (tr() is not there in a static function).
+static func _tr(text: String) -> String:
+	return TranslationServer.translate(text)

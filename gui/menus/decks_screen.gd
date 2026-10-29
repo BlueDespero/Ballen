@@ -110,6 +110,7 @@ func _deck_row(deck_name: String) -> PanelContainer:
 	row.add_child(line)
 	var name_label: Label = Palette.label(deck_name, Color.WHITE, 20)
 	name_label.name = "DeckName"
+	name_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	name_label.custom_minimum_size.x = NAME_WIDTH
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -166,7 +167,7 @@ func _ask_rename(deck_name: String) -> void:
 
 
 func _ask_delete(deck_name: String) -> void:
-	_open_dialog(deck_name, false, "Delete deck?", "Delete \"%s\"? This can't be undone." % deck_name)
+	_open_dialog(deck_name, false, "Delete deck?", tr("Delete \"%s\"? This can't be undone.") % deck_name)
 
 
 func _open_dialog(deck_name: String, renames: bool, title: String, message: String) -> void:

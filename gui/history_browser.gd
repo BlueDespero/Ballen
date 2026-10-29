@@ -97,8 +97,10 @@ func past_position() -> MatchPosition:
 ## Which turn is on show, who made it and what happened, for the viewer.
 func past_turn_text() -> String:
 	var event: HistoryEntry = past_position().history[-1]
-	var who: String = "you" if event.player == live_view.viewer else "the AI"
-	var what: String = "%s placed %s" % [who, event.colour]
+	var by_viewer: bool = event.player == live_view.viewer
+	var what: String = tr("you placed %s") if by_viewer else tr("the AI placed %s")
 	if event.type == HistoryEntry.Type.SKIP:
-		what = "%s had no legal cell for %s, so the ball was skipped" % [who, event.colour]
-	return "Turn %d of %d: %s.\n\nA past board. Press Live, or play on, to return." % [viewed_turn, latest_turn(), what]
+		what = tr("you had no legal cell for %s, so the ball was skipped") if by_viewer \
+			else tr("the AI had no legal cell for %s, so the ball was skipped")
+	return tr("Turn %d of %d: %s.\n\nA past board. Press Live, or play on, to return.") % [
+		viewed_turn, latest_turn(), what % BallColour.word(event.colour)]

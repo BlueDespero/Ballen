@@ -92,6 +92,8 @@ func show_setup(store: DeckStore) -> void:
 	_store = store
 	_title.text = "Match setup"
 	_deck_picker.clear()
+	# Deck names are the player's own, never translated.
+	_deck_picker.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	for deck_name: String in store.names():
 		_deck_picker.add_item(deck_name)
 	_deck_picker.select(0)
@@ -116,12 +118,12 @@ func show_rematch() -> void:
 func show_coin_toss(player_goes_first: bool, is_rematch: bool = false) -> void:
 	_backdrop.visible = false
 	_coin_toss.visible = true
-	var prefix: String = "Rematch" if is_rematch else "Coin toss"
+	var prefix: String = tr("Rematch") if is_rematch else tr("Coin toss")
 	if player_goes_first:
-		_coin_title.text = "%s: you go first" % prefix
+		_coin_title.text = tr("%s: you go first") % prefix
 		_coin_detail.text = "The AI picks the colour of your first ball."
 	else:
-		_coin_title.text = "%s: the AI goes first" % prefix
+		_coin_title.text = tr("%s: the AI goes first") % prefix
 		_coin_detail.text = "You pick the colour of its first ball."
 	_timer.start(COIN_TOSS_SECONDS)
 	await _timer.timeout
@@ -188,7 +190,7 @@ func _set_level_choice(can_change: bool) -> void:
 func _level_button(level: AILevel.Level) -> Button:
 	var button: Button = Button.new()
 	button.name = AILevel.title(level)
-	button.text = AILevel.title(level) if AILevel.is_built(level) else "%s (coming soon)" % AILevel.title(level)
+	button.text = AILevel.title(level) if AILevel.is_built(level) else tr("%s (coming soon)") % tr(AILevel.title(level))
 	button.toggle_mode = true
 	button.button_group = _level_group
 	button.custom_minimum_size.y = LEVEL_BUTTON_HEIGHT
@@ -203,7 +205,7 @@ func _level_button(level: AILevel.Level) -> Button:
 func _rule_button(rule: Rule) -> Button:
 	var button: Button = Button.new()
 	button.name = rule.id
-	button.text = "%s    %s" % [rule.id, rule.text]
+	button.text = "%s    %s" % [rule.id, tr(rule.text)]
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	# A long rule takes two lines rather than widening the card.
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

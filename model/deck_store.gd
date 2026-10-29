@@ -53,9 +53,9 @@ func is_read_only(deck_name: String) -> bool:
 func name_problem(deck_name: String, own_name: String = "") -> String:
 	var trimmed: String = deck_name.strip_edges()
 	if trimmed == "":
-		return "Name the deck"
+		return tr("Name the deck")
 	if trimmed != own_name and names().has(trimmed):
-		return "A deck named %s already exists" % trimmed
+		return tr("A deck named %s already exists") % trimmed
 	return ""
 
 

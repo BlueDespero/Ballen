@@ -33,6 +33,7 @@ func test_without_a_saved_file_the_defaults_apply() -> void:
 	assert_false(settings.reduced_motion)
 	assert_false(settings.guess_without_holding)
 	assert_false(settings.larger_text)
+	assert_eq(settings.language, "en", "English, whatever the system's language")
 
 
 func test_saved_settings_come_back_in_a_new_session() -> void:
@@ -42,6 +43,7 @@ func test_saved_settings_come_back_in_a_new_session() -> void:
 	settings.reduced_motion = true
 	settings.guess_without_holding = true
 	settings.larger_text = true
+	settings.language = "pl"
 	assert_eq(settings.save_settings(), OK)
 	var next_session: GameSettings = _settings()
 	next_session.load_settings()
@@ -50,6 +52,7 @@ func test_saved_settings_come_back_in_a_new_session() -> void:
 	assert_true(next_session.reduced_motion)
 	assert_true(next_session.guess_without_holding)
 	assert_true(next_session.larger_text)
+	assert_eq(next_session.language, "pl")
 
 
 func test_a_hand_edited_file_with_bad_values_falls_back_to_safe_ones() -> void:
@@ -57,12 +60,14 @@ func test_a_hand_edited_file_with_bad_values_falls_back_to_safe_ones() -> void:
 	file.set_value("audio", "volume", 3.0)
 	file.set_value("accessibility", "reduced_motion", "yes")
 	file.set_value("accessibility", "larger_text", true)
+	file.set_value("general", "language", "xx")
 	file.save(PATH)
 	var settings: GameSettings = _settings()
 	settings.load_settings()
 	assert_eq(settings.volume, 1.0, "volume is clamped to 0-1")
 	assert_false(settings.reduced_motion, "a value of the wrong type keeps the default")
 	assert_true(settings.larger_text, "good values still load")
+	assert_eq(settings.language, "en", "a language the game isn't in keeps English")
 
 
 func test_an_unreadable_file_keeps_the_defaults() -> void:
@@ -105,6 +110,17 @@ func test_the_running_settings_set_the_master_volume() -> void:
 	assert_true(AudioServer.is_bus_mute(master), "volume 0 mutes")
 	AudioServer.set_bus_mute(master, was_muted)
 	AudioServer.set_bus_volume_db(master, before)
+
+
+func test_the_running_settings_set_the_locale() -> void:
+	var before: String = TranslationServer.get_locale()
+	var settings: GameSettings = _settings()
+	add_child(settings)
+	settings.language = "pl"
+	assert_eq(TranslationServer.get_locale(), "pl")
+	settings.language = "en"
+	assert_eq(TranslationServer.get_locale(), "en")
+	TranslationServer.set_locale(before)
 
 
 func test_the_note_marks_hint_shows_until_the_player_has_seen_it() -> void:

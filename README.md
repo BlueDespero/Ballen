@@ -12,7 +12,7 @@ opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser fir
 
 ## Playing in the browser
 
-Version 0.2.0 plays in the browser on itch.io: link coming soon. It runs in desktop browsers and on phones held
+Version 0.3.0 plays in the browser on itch.io: link coming soon. It runs in desktop browsers and on phones held
 sideways, with mouse or touch; settings and saved decks stay in the browser's storage. The version is in the main
 menu's bottom-right corner.
 
