@@ -16,6 +16,8 @@ const LARGER_TEXT_SCALE: float = 1.25
 const ENGLISH: String = "en"
 const POLISH: String = "pl"
 const LANGUAGES: Array[String] = [ENGLISH, POLISH]
+## Each language's name in that language, as its button shows it.
+const LANGUAGE_NAMES: Dictionary[String, String] = {ENGLISH: "English", POLISH: "Polski"}
 ## Sections of the config file.
 const AUDIO: String = "audio"
 const ACCESSIBILITY: String = "accessibility"

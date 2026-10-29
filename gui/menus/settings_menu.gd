@@ -34,6 +34,7 @@ func _ready() -> void:
 	_bind(%ReducedMotion, "reduced_motion")
 	_bind(%GuessWithoutHolding, "guess_without_holding")
 	_bind(%LargerText, "larger_text")
+	_add_language_buttons()
 	_symbol_preview.custom_minimum_size = Vector2(
 		(PREVIEW_BALL_SIZE + PREVIEW_GAP) * BallColour.ALL.size() - PREVIEW_GAP, PREVIEW_BALL_SIZE)
 	_symbol_preview.draw.connect(_draw_symbol_preview)
@@ -62,6 +63,28 @@ func _unhandled_input(event: InputEvent) -> void:
 func _bind(check: CheckButton, setting: String) -> void:
 	check.button_pressed = Settings.get(setting)
 	check.toggled.connect(_on_toggled.bind(setting))
+
+
+## One button per language, each named in its own language; the screen's
+## text switches as soon as one is pressed.
+func _add_language_buttons() -> void:
+	var group: ButtonGroup = ButtonGroup.new()
+	for language: String in GameSettings.LANGUAGES:
+		var button: Button = Button.new()
+		button.name = language
+		button.text = GameSettings.LANGUAGE_NAMES[language]
+		button.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+		button.toggle_mode = true
+		button.button_group = group
+		button.custom_minimum_size = Vector2(100, 44)
+		button.button_pressed = Settings.language == language
+		button.pressed.connect(_on_language_chosen.bind(language))
+		%Languages.add_child(button)
+
+
+func _on_language_chosen(language: String) -> void:
+	Settings.language = language
+	Settings.save_settings()
 
 
 func _on_toggled(on: bool, setting: String) -> void:
