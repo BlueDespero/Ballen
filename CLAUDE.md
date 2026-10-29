@@ -127,6 +127,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `ai/` — `AIController`, `Deduction`, `GuessPolicy`, `ColourPickStrategy`
 - `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`;
   strictness check: `StrictnessCheck`, `run_strictness.gd`
+- `locale/` — Polish translation (`pl.po`, keyed on the English text); player-facing text only, see
+  "Languages" in `docs/technical-design.md`
 - `assets/` — Kenney art assets
 - `test/` — GUT tests, one folder per code folder, shared fixtures in `test/helpers/`;
   `addons/gut/` — vendored GUT 9.7.1

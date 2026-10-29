@@ -139,6 +139,26 @@ The editor's logic is `DeckDraft` (`model/deck_draft.gd`), so the screen only dr
   badge or dot (`TierBadge`: Simple green, Intermediate amber, Hardcore red); the editor's chips show
   one tier at a time.
 
+### Languages
+
+The game is in English and Polish. Only what the player sees is translated; code, comments, docs and
+harness output stay English.
+
+- `Settings.language` (`en` or `pl`, saved under `[general]`) sets `TranslationServer`'s locale. It is
+  English by default, whatever the system's language. The Settings screen has a Language row; the main
+  menu's corner button switches with one press.
+- `locale/pl.po` (registered in `project.godot`) is keyed on the English text, so a missing entry shows
+  in English. Scene texts, labels, buttons and tooltips translate on their own (auto-translate) and
+  follow a language switch at once. A sentence built in code is passed through `tr()` whole, one
+  string per speaker ("you placed %s", "the AI placed %s"), so Polish can order and inflect it; static
+  functions use `TranslationServer.translate()`. A colour inside a sentence goes through
+  `BallColour.word()`, context `ball` (Polish colour words agree with "kula").
+- Rule texts translate by their English text from `rules.json`. Deck names are the player's own and
+  are never translated (`auto_translate_mode` disabled), nor are language names.
+- New player-facing text needs a `pl.po` entry: `test/test_translations.gd` checks every scene text,
+  rule and built-in name has one, and that each translation keeps its `%s`/`%d` blanks in order.
+  Tests run in English (`test/pre_run_hook.gd`).
+
 ## Rules engine
 
 Every rule is plain data built from shared parts. A new rule needs no code; a new mechanic is one new
