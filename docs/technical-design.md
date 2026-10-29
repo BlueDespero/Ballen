@@ -383,8 +383,8 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
   template (thread support off), so the host needs no cross-origin isolation headers (no SharedArrayBuffer).
   Canvas resize policy adaptive, PWA off. The exclude filter keeps tests, harness, GUT, docs, `web-test/` and
   `.claude/` out of the pack; the include filter adds `assets/fonts/OFL.txt` for the Licences card.
-- **Version:** `config/version` in `project.godot` (0.2.0), shown in the main menu's corner. CI's deploy stamps it
-  `0.2.0+<short sha>` so a build on itch can be traced to its commit.
+- **Version:** `config/version` in `project.godot` (0.3.0), shown in the main menu's corner. CI's deploy stamps it
+  `0.3.0+<short sha>` so a build on itch can be traced to its commit.
 - **Storage:** `user://` (settings, saved decks) lives in the browser's IndexedDB.
 - **Web-related autoloads:**
   - `WebMarkers` prints `[ballen] …` console lines on scene changes and key events (web builds only) for the
