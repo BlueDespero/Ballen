@@ -68,7 +68,7 @@ func toggle(rule_id: String) -> bool:
 ## the rule count first, then the name.
 func problem(store: DeckStore) -> String:
 	if count() != Deck.SIZE:
-		return "Pick %d rules (%d picked)" % [Deck.SIZE, count()]
+		return tr("Pick %d rules (%d picked)") % [Deck.SIZE, count()]
 	return store.name_problem(name, _own_name)
 
 

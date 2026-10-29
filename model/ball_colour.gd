@@ -10,7 +10,16 @@ const RED: String = "red"
 const GREEN: String = "green"
 
 const ALL: Array[String] = [YELLOW, BLUE, RED, GREEN]
+## The translation context of a colour named in a sentence about a ball (Polish
+## words agree with "kula", the ball).
+const BALL_CONTEXT: StringName = &"ball"
 
 
 static func is_valid(colour: String) -> bool:
 	return colour in ALL
+
+
+## The colour as a sentence about a ball of it names it ("red"), in the game's
+## language.
+static func word(colour: String) -> String:
+	return TranslationServer.translate(colour, BALL_CONTEXT)

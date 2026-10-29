@@ -121,7 +121,7 @@ func _fill_licences() -> void:
 		for part: Dictionary in component["parts"]:
 			for holder: String in part["copyright"]:
 				lines.append("© " + holder)
-			lines.append("Licence: " + part["license"])
+			lines.append(tr("Licence: %s") % part["license"])
 		_add_licence_label("\n".join(lines))
 	_add_licence_label("Bundled font", HEADING_SIZE)
 	_add_licence_label(BUNDLED_FONT)

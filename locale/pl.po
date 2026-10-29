@@ -1,0 +1,524 @@
+# Polish translation of Ballen. Each msgid is the game's English text; a
+# missing entry shows in English.
+msgid ""
+msgstr ""
+"Project-Id-Version: Ballen\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# Main menu
+
+msgid "Single Player"
+msgstr "Gra jednoosobowa"
+
+msgid "Online Play"
+msgstr "Gra online"
+
+msgid "Decks"
+msgstr "Talie"
+
+msgid "Options"
+msgstr "Opcje"
+
+msgid "Quit"
+msgstr "Wyjdź"
+
+# Settings and Credits
+
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgid "Language"
+msgstr "Język"
+
+msgid "Volume"
+msgstr "Głośność"
+
+msgid "Sound effects and jingles."
+msgstr "Efekty dźwiękowe i dżingle."
+
+msgid "Colour-blind symbols"
+msgstr "Symbole dla daltonistów"
+
+msgid "A distinct symbol on each ball colour, on the board and the colour buttons."
+msgstr "Osobny symbol na kulach każdego koloru, na planszy i na przyciskach kolorów."
+
+msgid "Reduced motion"
+msgstr "Ograniczony ruch"
+
+msgid "Glows and rings hold still, balls jump instead of flying, skipped balls vanish without dissolving."
+msgstr "Poświaty i pierścienie stoją w miejscu, kule przeskakują zamiast lecieć, a pominięte kule znikają bez rozpływania się."
+
+msgid "Guess without holding"
+msgstr "Typowanie bez przytrzymania"
+
+msgid "Tap Guess (or Seal), then tap Confirm, instead of holding it while the ring fills."
+msgstr "Stuknij Wybierz (lub Zatwierdź), a potem Potwierdź, zamiast przytrzymywać, aż pierścień się wypełni."
+
+msgid "Larger text"
+msgstr "Większy tekst"
+
+msgid "Bigger text in the rules panel and the menus."
+msgstr "Większy tekst w panelu reguł i w menu."
+
+msgid "Credits"
+msgstr "Twórcy"
+
+msgid "Back"
+msgstr "Wstecz"
+
+msgid "Art"
+msgstr "Grafika"
+
+msgid "Kenney: UI Pack – Pixel Adventure and other game assets, released under CC0 1.0 (public domain)."
+msgstr "Kenney: UI Pack – Pixel Adventure i inne zasoby, wydane na licencji CC0 1.0 (domena publiczna)."
+
+msgid "Engine"
+msgstr "Silnik"
+
+msgid "Made with the Godot Engine, under the MIT licence."
+msgstr "Stworzone w silniku Godot, na licencji MIT."
+
+# Licences card: the headings translate; the licences themselves stay as written.
+
+msgid "Licences"
+msgstr "Licencje"
+
+msgid "Third-party components in the engine"
+msgstr "Komponenty zewnętrzne w silniku"
+
+msgid "Bundled font"
+msgstr "Dołączona czcionka"
+
+msgid "Noto Sans Symbols, by the Noto Project Authors, under the SIL Open Font License 1.1."
+msgstr "Noto Sans Symbols, autorstwa Noto Project Authors, na licencji SIL Open Font License 1.1."
+
+msgid "Licence texts"
+msgstr "Teksty licencji"
+
+msgid "Licence: %s"
+msgstr "Licencja: %s"
+
+# Decks screen and deck editor
+
+msgid "Each deck holds 5 rules. Pick one in Single Player's match setup. Starter is built in: copy it to make your own."
+msgstr "Każda talia ma 5 reguł. Wybierz jedną w przygotowaniu meczu gry jednoosobowej. Starter jest wbudowany: skopiuj go, aby stworzyć własną."
+
+msgid "Rule tiers:"
+msgstr "Poziomy reguł:"
+
+msgid "All"
+msgstr "Wszystkie"
+
+msgid "Simple"
+msgstr "Prosta"
+
+msgid "Intermediate"
+msgstr "Średnia"
+
+msgid "Hardcore"
+msgstr "Ekspercka"
+
+msgid "Built in"
+msgstr "Wbudowana"
+
+msgid "Copy"
+msgstr "Kopiuj"
+
+msgid "Edit"
+msgstr "Edytuj"
+
+msgid "Rename"
+msgstr "Zmień nazwę"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "New deck"
+msgstr "Nowa talia"
+
+msgid "Edit deck"
+msgstr "Edytuj talię"
+
+msgid "Rename deck"
+msgstr "Zmień nazwę talii"
+
+msgid "Delete deck?"
+msgstr "Usunąć talię?"
+
+msgid "Delete \"%s\"? This can't be undone."
+msgstr "Usunąć „%s”? Tego nie można cofnąć."
+
+msgid "Deck name"
+msgstr "Nazwa talii"
+
+msgid "Name the deck"
+msgstr "Nazwij talię"
+
+msgid "A deck named %s already exists"
+msgstr "Talia o nazwie %s już istnieje"
+
+msgid "Show"
+msgstr "Pokaż"
+
+msgid "Pick 5 rules (0 picked)"
+msgstr "Wybierz 5 reguł (wybrano 0)"
+
+msgid "Pick %d rules (%d picked)"
+msgstr "Wybierz %d reguł (wybrano %d)"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Save"
+msgstr "Zapisz"
+
+# Match setup
+
+msgid "Match setup"
+msgstr "Przygotowanie meczu"
+
+msgid "Your deck"
+msgstr "Twoja talia"
+
+msgid "AI level"
+msgstr "Poziom komputera"
+
+msgid "How the AI plays."
+msgstr "Jak gra komputer."
+
+msgid "Easy"
+msgstr "Łatwy"
+
+msgid "Normal"
+msgstr "Normalny"
+
+msgid "Hard"
+msgstr "Trudny"
+
+msgid "%s (coming soon)"
+msgstr "%s (wkrótce)"
+
+msgid "Learns slowly and gives a lot away."
+msgstr "Uczy się powoli i wiele zdradza."
+
+msgid "Reads your moves and keeps its own rule well hidden."
+msgstr "Czyta Twoje ruchy i dobrze ukrywa własną regułę."
+
+msgid "Gives almost nothing away, reads every move, and never hesitates."
+msgstr "Prawie nic nie zdradza, czyta każdy ruch i nigdy się nie waha."
+
+msgid "Choose your true rule"
+msgstr "Wybierz swoją prawdziwą regułę"
+
+msgid "Tap one of your rules to make it true. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is true."
+msgstr "Stuknij jedną ze swoich reguł, aby stała się prawdziwa. Każda kula, którą położysz, musi jej przestrzegać. Komputer widzi wszystkie 5 Twoich reguł, ale nie wie, która jest prawdziwa."
+
+msgid "Main menu"
+msgstr "Menu główne"
+
+msgid "Start"
+msgstr "Graj"
+
+msgid "Coin toss"
+msgstr "Rzut monetą"
+
+msgid "Rematch"
+msgstr "Rewanż"
+
+msgid "%s: you go first"
+msgstr "%s: zaczynasz"
+
+msgid "%s: the AI goes first"
+msgstr "%s: zaczyna komputer"
+
+msgid "The AI picks the colour of your first ball."
+msgstr "Komputer wybiera kolor Twojej pierwszej kuli."
+
+msgid "You pick the colour of its first ball."
+msgstr "Ty wybierasz kolor jego pierwszej kuli."
+
+# The match
+
+msgid "AI"
+msgstr "Komputer"
+
+msgid "You"
+msgstr "Ty"
+
+msgid "No legal cell, skipped"
+msgstr "Brak dozwolonego pola, pominięta"
+
+msgid "Pick the AI's next colour."
+msgstr "Wybierz następny kolor dla komputera."
+
+msgid "You go first."
+msgstr "Zaczynasz."
+
+msgid "The AI goes first."
+msgstr "Zaczyna komputer."
+
+msgid "You go first. The AI is picking your first colour…"
+msgstr "Zaczynasz. Komputer wybiera Twój pierwszy kolor…"
+
+msgid "The AI is thinking…"
+msgstr "Komputer myśli…"
+
+msgid "Your turn. Drag your ball onto a glowing cell."
+msgstr "Twoja tura. Przeciągnij kulę na świecące pole."
+
+msgid "That ends your turn."
+msgstr "To kończy Twoją turę."
+
+msgid "You had no legal cell for %s, so your ball was skipped. %s"
+msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta. %s"
+
+msgid "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…"
+msgstr "Kula komputera (%s) nie miała dozwolonego pola, więc została pominięta. Komputer myśli…"
+
+msgid "The board is full. Guess the AI's true rule now, or seal your forced guess until both are in."
+msgstr "Plansza jest pełna. Wytypuj teraz prawdziwą regułę komputera albo zatwierdź obowiązkowy typ, aż oba typy będą gotowe."
+
+msgid "The board is full. Name the AI's true rule: it stays sealed until both guesses are in."
+msgstr "Plansza jest pełna. Wytypuj prawdziwą regułę komputera: typ pozostanie ukryty, aż oba typy będą gotowe."
+
+msgid "The board is full and your forced guess is sealed. The AI is guessing…"
+msgstr "Plansza jest pełna, a Twój obowiązkowy typ jest zatwierdzony. Komputer typuje…"
+
+msgid "The board is full. The AI is making its forced guess…"
+msgstr "Plansza jest pełna. Komputer oddaje obowiązkowy typ…"
+
+msgid "Yellow"
+msgstr "Żółty"
+
+msgid "Blue"
+msgstr "Niebieski"
+
+msgid "Red"
+msgstr "Czerwony"
+
+msgid "Green"
+msgstr "Zielony"
+
+# A colour named in a sentence about a ball (kula, feminine).
+
+msgctxt "ball"
+msgid "yellow"
+msgstr "żółta"
+
+msgctxt "ball"
+msgid "blue"
+msgstr "niebieska"
+
+msgctxt "ball"
+msgid "red"
+msgstr "czerwona"
+
+msgctxt "ball"
+msgid "green"
+msgstr "zielona"
+
+# Rules panel and guessing
+
+msgid "AI's rules"
+msgstr "Reguły komputera"
+
+msgid "Your rules"
+msgstr "Twoje reguły"
+
+msgid "? = your private notes on the AI's rules"
+msgstr "? = Twoje prywatne notatki o regułach komputera"
+
+msgid "Rule out (your note)"
+msgstr "Wykluczona (Twoja notatka)"
+
+msgid "Suspect (your note)"
+msgstr "Podejrzana (Twoja notatka)"
+
+msgid "TRUE"
+msgstr "PRAWDZIWA"
+
+msgid "Guess"
+msgstr "Wybierz"
+
+msgid "Seal"
+msgstr "Zatwierdź"
+
+msgid "Confirm"
+msgstr "Potwierdź"
+
+msgid "The match is over. The AI's true rule is marked."
+msgstr "Mecz się skończył. Prawdziwa reguła komputera jest zaznaczona."
+
+msgid "The board is full. Both forced guesses are revealed together."
+msgstr "Plansza jest pełna. Oba obowiązkowe typy zostaną odkryte jednocześnie."
+
+msgid "You can guess at the start of your turn and until your colour pick."
+msgstr "Możesz typować od początku swojej tury aż do wyboru koloru."
+
+msgid "Select the rule you think is the AI's true rule."
+msgstr "Zaznacz regułę, którą uważasz za prawdziwą regułę komputera."
+
+msgid "Guess %s now, or Seal it as your forced guess."
+msgstr "Wybierz %s teraz albo Zatwierdź jako obowiązkowy typ."
+
+msgid "%s to make %s your forced guess. One right guess wins; else a draw."
+msgstr "%s, aby ustawić %s jako obowiązkowy typ. Jeden trafny typ wygrywa, inaczej remis."
+
+msgid "%s to name %s. Right wins, wrong loses."
+msgstr "%s, aby wytypować %s. Trafny typ wygrywa, chybiony przegrywa."
+
+msgid "Tap %s, then Confirm,"
+msgstr "Stuknij %s, potem Potwierdź"
+
+msgid "Hold %s"
+msgstr "Przytrzymaj %s"
+
+# Past turns
+
+msgid "Live"
+msgstr "Teraz"
+
+msgid "Previous turn (Left arrow key)"
+msgstr "Poprzednia tura (strzałka w lewo)"
+
+msgid "Next turn (Right arrow key)"
+msgstr "Następna tura (strzałka w prawo)"
+
+# Rotate hint (a phone held upright)
+
+msgid "Rotate your device"
+msgstr "Obróć urządzenie"
+
+msgid "Ballen plays in landscape."
+msgstr "W Ballen gra się w poziomie."
+
+msgid "Back to the live board"
+msgstr "Powrót do bieżącej planszy"
+
+msgid "Turn %d of %d: %s.\n\nA past board. Press Live, or play on, to return."
+msgstr "Tura %d z %d: %s.\n\nTo dawna plansza. Naciśnij Teraz albo graj dalej, aby wrócić."
+
+msgid "you placed %s"
+msgstr "kładziesz kulę (%s)"
+
+msgid "the AI placed %s"
+msgstr "komputer kładzie kulę (%s)"
+
+msgid "you had no legal cell for %s, so the ball was skipped"
+msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta"
+
+msgid "the AI had no legal cell for %s, so the ball was skipped"
+msgstr "kula komputera (%s) nie miała dozwolonego pola, więc została pominięta"
+
+# Match end
+
+msgid "You win"
+msgstr "Wygrywasz"
+
+msgid "You lose"
+msgstr "Przegrywasz"
+
+msgid "Draw"
+msgstr "Remis"
+
+msgid "How the match ended."
+msgstr "Jak skończył się mecz."
+
+msgid "The AI's true rule"
+msgstr "Prawdziwa reguła komputera"
+
+msgid "Your true rule"
+msgstr "Twoja prawdziwa reguła"
+
+msgid "You skipped for the third time."
+msgstr "Twoja kula zostaje pominięta po raz trzeci."
+
+msgid "The AI skipped for the third time."
+msgstr "Kula komputera zostaje pominięta po raz trzeci."
+
+msgid "The board is full."
+msgstr "Plansza jest pełna."
+
+msgid "You named %s \"%s\", the AI's true rule."
+msgstr "Typujesz %s „%s” – to prawdziwa reguła komputera."
+
+msgid "You named %s \"%s\", but it isn't the AI's true rule."
+msgstr "Typujesz %s „%s”, ale to nie jest prawdziwa reguła komputera."
+
+msgid "The AI named %s \"%s\", your true rule."
+msgstr "Komputer typuje %s „%s” – to Twoja prawdziwa reguła."
+
+msgid "The AI named %s \"%s\", but it isn't your true rule."
+msgstr "Komputer typuje %s „%s”, ale to nie jest Twoja prawdziwa reguła."
+
+# Rules (rules/data/rules.json)
+
+msgid "Never next to the same colour"
+msgstr "Nigdy obok kuli tego samego koloru"
+
+msgid "Red only next to blue"
+msgstr "Czerwona tylko obok niebieskiej"
+
+msgid "Only on even rows"
+msgstr "Tylko w parzystych rzędach"
+
+msgid "Never on the edge"
+msgstr "Nigdy na brzegu"
+
+msgid "At most 2 of a colour in any row"
+msgstr "Najwyżej 2 kule jednego koloru w rzędzie"
+
+msgid "Never more red than blue on the board"
+msgstr "Nigdy więcej czerwonych niż niebieskich na planszy"
+
+msgid "Never next to an opponent ball"
+msgstr "Nigdy obok kuli przeciwnika"
+
+msgid "Not next to the ball you placed last"
+msgstr "Nie obok Twojej ostatniej kuli"
+
+msgid "Never in the same row as your last ball"
+msgstr "Nigdy w tym samym rzędzie co Twoja ostatnia kula"
+
+msgid "Never complete a line of 3"
+msgstr "Nigdy nie domykaj linii z 3 kul"
+
+msgid "At least 2 cells from any red"
+msgstr "Co najmniej 2 pola od każdej czerwonej"
+
+msgid "Must touch an existing ball"
+msgstr "Musi stykać się z kulą na planszy"
+
+msgid "Must join your own group"
+msgstr "Musi dołączyć do Twojej grupy"
+
+msgid "Only in a row numbered higher than your last ball's row"
+msgstr "Tylko w rzędzie o wyższym numerze niż rząd Twojej ostatniej kuli"
+
+msgid "Only in a row numbered lower than your last ball's row"
+msgstr "Tylko w rzędzie o niższym numerze niż rząd Twojej ostatniej kuli"
+
+msgid "Must touch the next colour in yellow → blue → red → green"
+msgstr "Musi stykać się z kolejnym kolorem w cyklu żółty → niebieski → czerwony → zielony"
+
+msgid "Only cells with 2+ empty neighbours"
+msgstr "Tylko pola z 2+ pustymi sąsiadami"
+
+msgid "Never fill a row completely"
+msgstr "Nigdy nie zapełniaj całego rzędu"
+
+msgid "On your odd turns, edge only"
+msgstr "W Twoich nieparzystych turach tylko brzeg"
+
+msgid "For your first 5 turns, only rows 3 and 4"
+msgstr "Przez pierwsze 5 Twoich tur tylko rzędy 3 i 4"
+
+msgid "After any skip, must touch one of your own balls"
+msgstr "Po każdym pominięciu musi stykać się z Twoją kulą"
+
+msgid "Never next to the opponent's last ball"
+msgstr "Nigdy obok ostatniej kuli przeciwnika"

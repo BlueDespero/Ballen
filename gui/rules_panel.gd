@@ -343,17 +343,17 @@ func _update_guess() -> void:
 		_guess_hint.text = "Select the rule you think is the AI's true rule."
 	elif guess_enabled and seal_enabled:
 		# Short: it shares its line with both buttons.
-		_guess_hint.text = "Guess %s now, or Seal it as your forced guess." % selected_rule_id
+		_guess_hint.text = tr("Guess %s now, or Seal it as your forced guess.") % selected_rule_id
 	elif seal_enabled:
-		_guess_hint.text = "%s to make %s your forced guess. One right guess wins; else a draw." % [_how("Seal"), selected_rule_id]
+		_guess_hint.text = tr("%s to make %s your forced guess. One right guess wins; else a draw.") % [_how("Seal"), selected_rule_id]
 	else:
-		_guess_hint.text = "%s to name %s. Right wins, wrong loses." % [_how("Guess"), selected_rule_id]
+		_guess_hint.text = tr("%s to name %s. Right wins, wrong loses.") % [_how("Guess"), selected_rule_id]
 
 
 ## How to pull a trigger, for the hint: "Hold Guess", or "Tap Guess, then
 ## Confirm," without holding.
 func _how(trigger: String) -> String:
-	return "Tap %s, then Confirm," % trigger if guess_without_holding else "Hold %s" % trigger
+	return tr("Tap %s, then Confirm,") % tr(trigger) if guess_without_holding else tr("Hold %s") % tr(trigger)
 
 
 ## One pip per skip that loses the match, filled for each skip taken.

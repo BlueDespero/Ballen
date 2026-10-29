@@ -360,19 +360,19 @@ func _status_text(view: PublicView) -> String:
 	var skip: HistoryEntry = _skip_this_turn(view)
 	if skip != null:
 		if skip.player == HUMAN:
-			return "You had no legal cell for %s, so your ball was skipped. %s" % [skip.colour, PICK_PROMPT]
-		return "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…" % skip.colour
+			return tr("You had no legal cell for %s, so your ball was skipped. %s") % [BallColour.word(skip.colour), tr(PICK_PROMPT)]
+		return tr("The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…") % BallColour.word(skip.colour)
 	if view.current_player == AI:
 		if view.phase == Match.Phase.FIRST_COLOUR:
 			return "You go first. The AI is picking your first colour…"
 		return "The AI is thinking…"
 	match view.phase:
 		Match.Phase.FIRST_COLOUR:
-			return "The AI goes first. " + PICK_PROMPT
+			return tr("The AI goes first.") + " " + tr(PICK_PROMPT)
 		Match.Phase.PLACE:
 			return "Your turn. Drag your ball onto a glowing cell."
 		Match.Phase.PICK_COLOUR:
-			return PICK_PROMPT + " That ends your turn."
+			return tr(PICK_PROMPT) + " " + tr("That ends your turn.")
 	return ""
 
 

@@ -128,5 +128,5 @@ func _draw() -> void:
 	var font: Font = get_theme_default_font()
 	var text_left: float = centre.x + RING_RADIUS + 12.0
 	var baseline: float = (size.y + font.get_ascent(FONT_SIZE) - font.get_descent(FONT_SIZE)) / 2.0
-	var text: String = CONFIRM_LABEL if armed else label
+	var text: String = atr(CONFIRM_LABEL if armed else label)
 	draw_string(font, Vector2(text_left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, Color.WHITE)
