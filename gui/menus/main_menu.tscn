@@ -113,6 +113,21 @@ theme_override_font_sizes/font_size = 14
 horizontal_alignment = 2
 vertical_alignment = 2
 
+[node name="LanguageButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -144.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 64.0
+grow_horizontal = 0
+auto_translate_mode = 2
+text = "Polski"
+
 [connection signal="pressed" from="GameButtons/SinglePlayerButton" to="." method="_on_single_player_button_pressed"]
 [connection signal="pressed" from="GameButtons/DecksButton" to="." method="_on_decks_button_pressed"]
 [connection signal="pressed" from="GameButtons/OptionButton" to="." method="_on_option_button_pressed"]

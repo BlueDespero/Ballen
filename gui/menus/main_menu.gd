@@ -2,7 +2,9 @@ extends Control
 
 ## The main menu: the game's title over the board backdrop, and the buttons on
 ## a dark card so they stay readable over the falling balls. The game's version
-## sits in the bottom-right corner, so a build can be traced.
+## sits in the bottom-right corner, so a build can be traced. The top-right
+## button switches between English and Polish, named in the language it
+## switches to.
 
 const SETTINGS_SCENE: String = "res://gui/menus/settings_menu.tscn"
 const DECKS_SCENE: String = "res://gui/menus/decks_screen.tscn"
@@ -22,6 +24,7 @@ const CARD_MARGIN: float = 24.0
 @onready var _card: Panel = %Card
 @onready var _buttons: VBoxContainer = $GameButtons
 @onready var _version: Label = %Version
+@onready var _language_button: Button = %LanguageButton
 
 
 func _ready() -> void:
@@ -33,6 +36,23 @@ func _ready() -> void:
 	_title.resized.connect(_place_card)
 	Settings.changed.connect(_apply_text_scale)
 	_apply_text_scale()
+	_language_button.pressed.connect(_on_language_button_pressed)
+	_show_other_language()
+
+
+## The language the corner button switches to.
+func _other_language() -> String:
+	return GameSettings.POLISH if Settings.language == GameSettings.ENGLISH else GameSettings.ENGLISH
+
+
+func _on_language_button_pressed() -> void:
+	Settings.language = _other_language()
+	Settings.save_settings()
+	_show_other_language()
+
+
+func _show_other_language() -> void:
+	_language_button.text = GameSettings.LANGUAGE_NAMES[_other_language()]
 
 
 func _on_single_player_button_pressed() -> void:

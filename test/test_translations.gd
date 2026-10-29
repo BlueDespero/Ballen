@@ -34,6 +34,8 @@ func test_every_scene_text_has_a_polish_translation() -> void:
 	for path: String in scenes:
 		var state: SceneState = (load(path) as PackedScene).get_state()
 		for node: int in state.get_node_count():
+			if _never_translated(state, node):
+				continue
 			for i: int in state.get_node_property_count(node):
 				var value: Variant = state.get_node_property_value(node, i)
 				if TEXT_PROPERTIES.has(state.get_node_property_name(node, i)) and _needs_translation(value):
@@ -80,6 +82,14 @@ func test_in_polish_the_game_text_is_polish() -> void:
 	TranslationServer.set_locale(GameSettings.ENGLISH)
 	assert_eq(tr("Single Player"), "Single Player")
 	assert_eq(BallColour.word(BallColour.RED), "red")
+
+
+## A node that keeps its text in every language (a language's own name).
+func _never_translated(state: SceneState, node: int) -> bool:
+	for i: int in state.get_node_property_count(node):
+		if state.get_node_property_name(node, i) == &"auto_translate_mode":
+			return state.get_node_property_value(node, i) == Node.AUTO_TRANSLATE_MODE_DISABLED
+	return false
 
 
 ## Text worth translating: words, not a placeholder, a number or a web address.
