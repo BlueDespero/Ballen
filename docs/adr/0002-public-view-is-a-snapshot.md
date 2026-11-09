@@ -11,3 +11,5 @@ is something a test can actually prove. Building a copy every turn costs very li
 - The snapshot never includes the opponent's legal cells, because those would reveal the true rule.
 - Once the match is over the snapshot reveals both true rules, as the game does; never before.
 - The online server can later send the same snapshot to each client.
+
+_Note (November 2026): the "true rule" is now called the secret rule; this record keeps its original wording._

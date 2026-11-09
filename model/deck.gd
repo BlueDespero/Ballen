@@ -2,7 +2,7 @@ class_name Deck
 extends RefCounted
 
 ## The 5 rules a player brings to a match. Both players see each other's whole
-## deck; which rule is true is held by the match, never by the deck.
+## deck; which rule is secret is held by the match, never by the deck.
 
 const SIZE: int = 5
 
@@ -31,7 +31,7 @@ static func draw(book: RuleBook, rng: RandomNumberGenerator) -> Deck:
 	return Deck.new(drawn)
 
 
-## One of the deck's rules at random, using only rng: a true rule for a
+## One of the deck's rules at random, using only rng: a secret rule for a
 ## player who doesn't choose one (the AI, the harness).
 func random_rule(rng: RandomNumberGenerator) -> Rule:
 	return rules[rng.randi_range(0, rules.size() - 1)]

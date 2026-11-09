@@ -4,10 +4,10 @@ extends RefCounted
 ## The colours the rules panel, the setup screen and the deck screens share,
 ## and the plain label they all build their rows from.
 
-## A rule or deck row, and the true (or picked) one.
+## A rule or deck row, and the secret (or picked) one.
 const ROW_COLOUR: Color = Color(0.17, 0.19, 0.23)
-const TRUE_ROW_COLOUR: Color = Color(0.33, 0.27, 0.1)
-## The true rule's border and TRUE label, and the ? note mark.
+const SECRET_ROW_COLOUR: Color = Color(0.33, 0.27, 0.1)
+## The secret rule's border and TRUE label, and the ? note mark.
 const GOLD_COLOUR: Color = Color(1.0, 0.82, 0.3)
 const SELECTED_ROW_COLOUR: Color = Color(0.16, 0.24, 0.34)
 const SELECTED_BORDER_COLOUR: Color = Color(0.45, 0.72, 1.0)

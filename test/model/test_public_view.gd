@@ -12,15 +12,15 @@ func before_each() -> void:
 	_book = Fixtures.book()
 
 
-## Player 0 holds R04 as true rule. Player 1's deck is [R04, B1..B4] and their
-## true rule is the given one. Same seed, so the same coin toss.
-func _match(opponent_true_rule_id: String) -> Match:
+## Player 0 holds R04 as secret rule. Player 1's deck is [R04, B1..B4] and their
+## secret rule is the given one. Same seed, so the same coin toss.
+func _match(opponent_secret_rule_id: String) -> Match:
 	var r04: Rule = _book.rule("R04")
 	var deck_1: Deck = Fixtures.deck_with(_book, r04, "B")
-	var opponent_true: Rule = deck_1.rules[0] if opponent_true_rule_id == "R04" else deck_1.rules[1]
+	var opponent_true: Rule = deck_1.rules[0] if opponent_secret_rule_id == "R04" else deck_1.rules[1]
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), deck_1]
-	var true_rules: Array[Rule] = [r04, opponent_true]
-	return Match.create(decks, true_rules, Fixtures.rng(3))
+	var secret_rules: Array[Rule] = [r04, opponent_true]
+	return Match.create(decks, secret_rules, Fixtures.rng(3))
 
 
 ## Plays the same inner-cell placements in any match; legal under R04 and B1.
@@ -33,12 +33,12 @@ func _play_some_turns(current_match: Match) -> void:
 		assert_true(current_match.submit(player, Command.pick_colour(BallColour.BLUE)))
 
 
-func test_the_view_shows_the_viewers_own_true_rule_and_the_public_state() -> void:
+func test_the_view_shows_the_viewers_own_secret_rule_and_the_public_state() -> void:
 	var current_match: Match = _match("R04")
 	_play_some_turns(current_match)
 	var view: PublicView = current_match.public_view(0)
 	assert_eq(view.viewer, 0)
-	assert_eq(view.own_true_rule.id, "R04")
+	assert_eq(view.own_secret_rule.id, "R04")
 	assert_eq(view.phase, current_match.phase())
 	assert_eq(view.current_player, current_match.current_player())
 	assert_eq(view.position.turn, current_match.turn())
@@ -66,15 +66,15 @@ func test_the_view_is_the_same_whichever_opponent_rule_is_true() -> void:
 		_assert_player_0_sees_the_same(with_r04, with_b1)
 
 
-## Player 0's view never shows player 1's true rule or legal cells, so it is
-## identical in two matches that differ only in player 1's true rule.
+## Player 0's view never shows player 1's secret rule or legal cells, so it is
+## identical in two matches that differ only in player 1's secret rule.
 func _assert_player_0_sees_the_same(a: Match, b: Match) -> void:
 	assert_eq_deep(ObjectWalker.dump(a.public_view(0)), ObjectWalker.dump(b.public_view(0)))
 	var a_1: Dictionary = ObjectWalker.dump(a.public_view(1))
 	var b_1: Dictionary = ObjectWalker.dump(b.public_view(1))
-	assert_ne(a_1.own_true_rule, b_1.own_true_rule, "player 1 sees their own true rule")
-	a_1.erase("own_true_rule")
-	b_1.erase("own_true_rule")
+	assert_ne(a_1.own_secret_rule, b_1.own_secret_rule, "player 1 sees their own secret rule")
+	a_1.erase("own_secret_rule")
+	b_1.erase("own_secret_rule")
 	assert_eq_deep(a_1, b_1)
 
 
@@ -100,14 +100,14 @@ func test_changing_the_view_does_not_change_the_match() -> void:
 	assert_eq(current_match.public_view(0).decks[0].rules.size(), Deck.SIZE)
 
 
-func test_both_true_rules_are_revealed_once_the_match_is_over() -> void:
+func test_both_secret_rules_are_revealed_once_the_match_is_over() -> void:
 	var current_match: Match = _match("B1")
 	current_match.submit(current_match.current_player(), Command.pick_colour(BallColour.RED))
-	assert_eq(current_match.public_view(0).revealed_true_rules.size(), 0, "nothing revealed while the match runs")
+	assert_eq(current_match.public_view(0).revealed_secret_rules.size(), 0, "nothing revealed while the match runs")
 	var guesser: int = current_match.current_player()
 	current_match.submit(guesser, Command.guess("B3" if guesser == 0 else "A3"))
 	for viewer: int in Players.COUNT:
-		var revealed: Array[Rule] = current_match.public_view(viewer).revealed_true_rules
+		var revealed: Array[Rule] = current_match.public_view(viewer).revealed_secret_rules
 		assert_eq(revealed.size(), Players.COUNT)
 		assert_eq(revealed[0].id, "R04")
 		assert_eq(revealed[1].id, "B1")

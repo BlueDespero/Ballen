@@ -9,7 +9,7 @@ wins and this file is updated.
 - Godot 4.7, statically typed GDScript, GL Compatibility renderer.
 - Browser (web export) first, then Android and iOS. Mouse and touch input.
 - Landscape, 1280 × 720 base resolution that scales (stretch mode `canvas_items`, aspect `expand`). Portrait layout for phones comes later.
-- Game screen layout: the board in the main area, the player's side at the bottom and the AI's at the top, row labels on the board edge; balls wait below and above the board; one rules panel on the right with the AI's rules on top (with Guess) and the player's below (true rule highlighted); skip pips by each player's rules; the colour picker beside the player's ball.
+- Game screen layout: the board in the main area, the player's side at the bottom and the AI's at the top, row labels on the board edge; balls wait below and above the board; one rules panel on the right with the AI's rules on top (with Guess) and the player's below (secret rule highlighted); skip pips by each player's rules; the colour picker beside the player's ball.
 
 ## Architecture
 
@@ -21,14 +21,26 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
-| Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), tap to place (`BoardView.cell_pressed`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table), `Settings` (player settings, `user://settings.cfg`) | Turn state lives in `Match`, not in an autoload |
-| Online (later) | Both true rules; checks every move | Server-authoritative; clients never receive the opponent's true rule |
+| Online (later) | Both secret rules; checks every move | Server-authoritative; clients never receive the opponent's secret rule |
 
 ### Key decisions
 
 - The dragged ball (`gui/ball_view.gd`) asks the match whether the cell under it is legal
-  (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`.
+  (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`. A tap on a
+  cell (`BoardView.cell_pressed`, press and release on the same cell) places there too, if the match
+  says it is legal: the ball flies to it. Dragging was unreliable on some touch screens, and tap-tap
+  moves are what chess apps default to.
+- One colour means "act here": `BoardView.GLOW_COLOUR` (gold). The shared cue `Attention`
+  (`gui/attention.gd`) outlines the one control to use now; one per screen, so only one control wears
+  it. Every "act here" cue (the outline, the legal cells, the colour picker's rings, the lit Live
+  button) pulses twice when it lights up (`Attention.pulse`), then holds still: the start of motion
+  catches the eye, endless pulsing becomes noise. Reduced motion holds them still from the start.
+  Red stays for errors, losses and skips.
+- One-time hints (`CoachMark`, `gui/coach_mark.gd`) teach what a player only learns by doing. `hint_for(view,
+  settings)` picks at most one for the view; the scene places it beside what it explains. Each goes for good
+  once the player acts (`Settings.mark_hint_seen`, saved under `[hints]`), never by a Next button.
 - The custom-script fallback gets a fresh base script when it is first needed (the old
   half-written `rules/baserule.gd` stub was deleted).
 - The match never acts on its own. A driver (the scene, the AI-vs-AI harness, a test) asks
@@ -43,24 +55,29 @@ all run the same code.
   and the `PICK_COLOUR` phase (after placing or skipping, until the colour pick); `PublicView.can_guess()`
   tells a controller when its window is open. A right guess wins and a wrong one loses at once, and
   history records the guesser, the named rule and whether it was right. In the scene the player
-  selects one of the AI's rules and holds Guess (`gui/guess_button.gd`) for about a second.
+  selects one of the AI's rules and taps Guess (`gui/guess_button.gd`); a `StakesCard`
+  (`gui/stakes_card.gd`) over the AI's half of the rules panel names the rule, says "Right: you win.
+  Wrong: you lose." and what the player's own ✗ marks leave (never the match, so it leaks nothing), and
+  only its Guess button guesses. Its safe button (Keep playing) sits where Guess was, so a reflexive
+  second tap keeps playing. With the Hold to guess setting, Guess is held for about a second instead
+  (no card), and a hold that ends early says to keep holding.
 - The placement that fills the board starts the `FORCED_GUESS` phase instead of a colour pick. The
   match awaits the placer first: they may still pull the trigger with `Command.guess`, or make their
   forced guess (`Command.forced_guess(rule_id)`); then it awaits the opponent's. A forced guess is
   sealed: the match keeps it privately, so no `PublicView` and no history shows it until both are in
   (`PublicView.awaiting_players` and `forced_guess_due()` show only whose guess is due). Then history
   records both as guesses, the placer's first, and the match ends with `FORCED_GUESSES`: exactly one
-  right wins, otherwise a draw. In the scene the player selects a rule and holds Seal, a second hold
-  button beside Guess on a full board; while the player who filled it may still pull the trigger,
+  right wins, otherwise a draw. In the scene the player selects a rule and taps Seal (the stakes
+  card confirms it; with Hold to guess, holds it), a second button beside Guess on a full board; while the player who filled it may still pull the trigger,
   Guess stays beside Seal, and the placer's opponent gets only Seal.
-- The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's true rule or
+- The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's secret rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
-  A test compares views from matches that differ only in the opponent's true rule. Once the match is
-  over, the view reveals both true rules (`revealed_true_rules`, empty while the match runs).
+  A test compares views from matches that differ only in the opponent's secret rule. Once the match is
+  over, the view reveals both secret rules (`revealed_secret_rules`, empty while the match runs).
 - The match-end screen (`gui/match_end_overlay.tscn`) shows what `MatchEndSummary.from_view()` makes
   of the player's finished view: win, lose or draw, how the match ended (a guess, a third skip or both
-  forced guesses, read from the result and the guesses at the end of the history) and both true
-  rules. The rules panel marks the AI's true rule. Rematch goes back to the match setup screen on the
+  forced guesses, read from the result and the guesses at the end of the history) and both secret
+  rules. The rules panel marks the AI's secret rule. Rematch goes back to the match setup screen on the
   same decks at the same level; Main menu returns to `main.tscn`.
 - A match can start from a `MatchPosition` (board, turn, colour, skip counts, history), and every
   random choice goes through an injected, seedable `RandomNumberGenerator`.
@@ -72,7 +89,7 @@ all run the same code.
   shows: the glow and dragging pause. Only the player's own actions return to the live board (pressing
   their ball, a colour pick, Guess or Seal, Live, or stepping past the latest turn); the colour picker,
   Guess and Seal keep following the live match meanwhile. When the AI plays on while a past board is on
-  show, nothing animates: the board stays and Live lights up and pulses until the player returns (the
+  show, nothing animates: the board stays and Live lights up (with a short pulse) until the player returns (the
   match ending returns at once, for the match-end screen). New history events are shown by one run of
   the scene's event loop at a time, so the history view never opens mid-animation. Which turn is on
   show, the stepping and the past turn's status text live in `HistoryBrowser` (`gui/history_browser.gd`,
@@ -80,15 +97,19 @@ all run the same code.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
   a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
   (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
-  of the deck to make it true, and presses Start. The AI's deck is drawn when the screen opens, and
-  the rules panel beside the screen shows it and the picked deck while the player chooses (the AI's
-  true rule stays hidden); the coin toss is then shown over the board.
+  of the deck to make it secret (or Pick for me taps a random Simple one), and presses Start, which
+  names the pick. The card opens with the goal and the stakes, and numbers its three steps. Beside the
+  rules, `RulePreview` (`gui/rule_preview.gd`) shows a fixed mid-match position with the tapped rule's
+  legal cells glowing (`RuleChecker.legal_cells`) and the rest darkened, so the pick is not blind. The
+  act-here cue sits on the rules until one is picked, then on Start. The AI's deck is drawn when the
+  screen opens, and the rules panel beside the screen shows it and the picked deck while the player
+  chooses (the AI's secret rule stays hidden); the coin toss is then shown over the board.
 - `MatchSetup.against_ai(deck, ai_deck, level, rng)` is what comes before a single-player match: the
   picked deck, the AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`) and the level
-  (a level not built yet is refused). `MatchSetup.start(true_rule)` then draws the AI's true rule
+  (a level not built yet is refused). `MatchSetup.start(secret_rule)` then draws the AI's secret rule
   from its deck and creates the match, whose coin toss picks the first player. The setup keeps both
-  decks and the level: `MatchSetup.rematch(true_rule)` starts the next match on them, with the
-  player's new true rule, a new random true rule drawn from the AI's deck and no coin toss: whoever
+  decks and the level: `MatchSetup.rematch(secret_rule)` starts the next match on them, with the
+  player's new secret rule, a new random secret rule drawn from the AI's deck and no coin toss: whoever
   went second last time goes first (`Match.create` takes an optional first player), so rows are
   numbered from that player's side. A rematch shows the setup screen with the deck and level locked.
 
@@ -264,7 +285,7 @@ built rule (command in `CLAUDE.md`):
 
 ### Rule tiers
 
-AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal cells per turn, win rate as the true rule). The results rank each rule Simple, Intermediate or Hardcore, stored in the rules library's Tier column.
+AI-vs-AI runs measure how much each rule restricts its holder (skip rate, legal cells per turn, win rate as the secret rule). The results rank each rule Simple, Intermediate or Hardcore, stored in the rules library's Tier column.
 
 **Method (provisional, #17).** Run the harness on at least 1000 matches (2000 at seed 1 gives each rule
 about 180 holdings, so a win rate is good to about ±4 points) and the strictness check on 2000 boards.
@@ -272,13 +293,13 @@ The tier comes from the harness; strictness is a cross-check.
 
 | Tier | Provisional threshold |
 | --- | --- |
-| Simple | win rate as the true rule ≥ 55% and skip rate < 5% |
-| Hardcore | win rate as the true rule < 33% or skip rate ≥ 10% |
+| Simple | win rate as the secret rule ≥ 55% and skip rate < 5% |
+| Hardcore | win rate as the secret rule < 33% or skip rate ≥ 10% |
 | Intermediate | everything else |
 
 Why these numbers:
 
-- Win rate as the true rule is the headline: it folds in both ways a rule hurts its holder, by
+- Win rate as the secret rule is the headline: it folds in both ways a rule hurts its holder, by
   skipping (R06, R15, R16) and by being easy to read (R17 skips on under 8% of turns, but every placement
   touches the next colour in the cycle, so the opponent rules the other rules out fast). In the 2000-match run the rules fall into
   three clusters with clear gaps: 61–74% (10 rules), 38–52% (6) and 4–28% (6). The thresholds sit in the
@@ -308,7 +329,7 @@ Each `decide()` works out the candidates once and hands them to the pieces below
 | `Deduction` (`ai/deduction.gd`) | The opponent's rules not yet ruled out (`candidates(view)`), in deck order | Hard elimination: a placement rules out the rules it breaks, a skip the rules that would have allowed a cell in that colour. Each event is judged on the position just before it (`MatchPosition.before`), so rules that read rows, the last ball or the board see what the match saw. Stateless: recomputed from the view's history on every call, so nothing to reset on a rematch |
 | `GuessPolicy` (`ai/guess_policy.gd`) | When to guess, and which rule | Names the top candidate once its `confidence()` reaches the threshold. Confidence is 1 / candidates and the threshold 1, so it guesses when one candidate is left. Asked whenever `view.can_guess()`: at the start of its turn, after placing or skipping, and as the placer on a full board |
 | `ColourPickStrategy` (`ai/colour_pick_strategy.gd`) | The colour the opponent places next | Highest `score()`, ties at random. The score is the expected number of candidates ruled out by the opponent's next turn in that colour, if each candidate is equally likely and the opponent places at random among its legal cells (or skips). On the empty board every colour scores the same, so the first pick is random |
-| Placement (`AIController`) | Where to place its own ball | Among its legal cells, those that satisfy the most of its own 5 rules, so any of them could be its true rule; ties at random |
+| Placement (`AIController`) | Where to place its own ball | Among its legal cells, those that satisfy the most of its own 5 rules, so any of them could be its secret rule; ties at random |
 | Forced guess (`AIController`) | Its sealed guess on a full board | A random remaining candidate (all are equally likely) |
 
 The thinking pause is the scene's: `MatchDriver` waits a random 0.5–1.5 s before each AI command. Tests
@@ -345,15 +366,15 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 
 | Class (`harness/`) | Does |
 | --- | --- |
-| `Harness` | `play(book, seed)`: one match between two default `AIController`s, each with a deck drawn at random from the built rules (`Deck.draw`) and a random true rule; the coin toss picks the first player. `run(book, n, seed)` plays n matches, match i seeded `match_seed(seed, i)`, so any match can be replayed alone |
-| `MatchRecord` | What a match leaves: each player's true rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
+| `Harness` | `play(book, seed)`: one match between two default `AIController`s, each with a deck drawn at random from the built rules (`Deck.draw`) and a random secret rule; the coin toss picks the first player. `run(book, n, seed)` plays n matches, match i seeded `match_seed(seed, i)`, so any match can be replayed alone |
+| `MatchRecord` | What a match leaves: each player's secret rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
 | `HarnessStats` | The numbers over finished matches, and `summary()`, the text the script prints |
 | `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1) |
 | `StrictnessCheck`, `run_strictness.gd` | The strictness check and its command-line entry (`--boards`, `--seed`; defaults 2000 and 1); see "Strictness check" |
 
 - The summary: matches finished out of matches played; first player's wins, losses and draws; how
   matches ended (right guess, wrong guess, third skip, forced guesses); average turns per match; and per
-  true rule, how often it was held, its holders' skip rate, win rate and wins / losses / draws.
+  secret rule, how often it was held, its holders' skip rate, win rate and wins / losses / draws.
 - `Harness.play_out` is its own synchronous loop, not `MatchDriver`: no pauses, no signals, no awaits.
 - Unfinished-match guard: the loop gives up on a match if an AI returns no command, the match rejects
   a command, or the match runs past `Harness.MAX_COMMANDS` (500) commands. A given-up match counts as
@@ -388,7 +409,10 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
 - **Storage:** `user://` (settings, saved decks) lives in the browser's IndexedDB.
 - **Web-related autoloads:**
   - `WebMarkers` prints `[ballen] …` console lines on scene changes and key events (web builds only) for the
-    tests, as the canvas has no DOM to inspect.
+    tests, as the canvas has no DOM to inspect. Some measure whether players understand the game, for
+    playtests to compare before and after a change: `secret_rule rule=R08 seconds=12.3 picked_for_me=false`
+    (Start on the setup screen), `guess by=player turn=5 right=false` and `guess_blocked` (Guess pressed
+    before selecting a rule). They stay in the browser console; nothing is sent anywhere.
   - `RotateHint` covers the screen with "Rotate your device" and takes input while the screen is taller than
     wide (`RotateHint.should_show(size)`), in every build, until the portrait layout exists. The phone and tablet
     apps lock to landscape either way round (`display/window/handheld/orientation`), so there it only shows in a
@@ -398,12 +422,13 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
 - **Touch:** every tap target is at least 44 px at 1280×720; small glyphs (✗, ◀ ▶) are drawn, not typed.
 - **Web tests:** Playwright in `web-test/` plays the export in Desktop Chrome, Pixel 7 and iPhone 15 (WebKit) in
   landscape with touch, and Desktop Firefox: it loads with WebGL2 and no console errors, a match starts, a ball
-  can be dragged (mouse; touch through CDP on Chromium, script-made touch events on WebKit), portrait shows the
+  can be dragged (mouse; touch through CDP on Chromium, script-made touch events on WebKit) or placed by a tap
+  on a glowing cell, portrait shows the
   rotate hint, and a saved deck survives a reload. Clicks use the run-ballen skill's layout coordinates.
 
 ## Daily duel
 
-- Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its true rule, its colour choices and who starts, so every player faces the same opponent.
+- Seed a deterministic RNG from the UTC date (e.g. `hash("ballen-daily-" + date)`) for the AI's deck, its secret rule, its colour choices and who starts, so every player faces the same opponent.
 - The AI's own choices during the duel draw from that seeded RNG; the player's moves do not change the seed.
 - One attempt per day and the streak are stored locally for the first release.
 

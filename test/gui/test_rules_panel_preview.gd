@@ -1,7 +1,7 @@
 extends GutTest
 
 # While the match setup screen is up, the rules panel shows the decks as a
-# preview (no true rule chosen yet): the AI's rules take no note marks and no
+# preview (no secret rule chosen yet): the AI's rules take no note marks and no
 # selection until the match starts.
 
 const PANEL_SCENE: PackedScene = preload("res://gui/rules_panel.tscn")

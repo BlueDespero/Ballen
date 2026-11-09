@@ -12,7 +12,7 @@ func before_each() -> void:
 	_book = Fixtures.book()
 
 
-## A match whose true rules are "AT" (player 0) and "BT" (player 1), each the
+## A match whose secret rules are "AT" (player 0) and "BT" (player 1), each the
 ## first rule of a deck filled with A1..A4 / B1..B4; every rule allows every
 ## empty cell. Past the first colour pick: the first player is to place red.
 func _started(seed_value: int) -> Match:
@@ -21,7 +21,7 @@ func _started(seed_value: int) -> Match:
 	return current_match
 
 
-## The id of the true rule in this player's deck.
+## The id of the secret rule in this player's deck.
 func _true_id(player: int) -> String:
 	return "AT" if player == 0 else "BT"
 

@@ -22,7 +22,7 @@ A dash means not measured yet.
 
 **Strictness and Tier are provisional** (#17): strictness from the strictness check on 2000 random
 boards (seed 1), tiers from 2000 AI-vs-AI matches (seed 1) with the thresholds in
-[technical-design.md](technical-design.md#rule-tiers) (Simple: win rate as the true rule ≥ 55% and skip
+[technical-design.md](technical-design.md#rule-tiers) (Simple: win rate as the secret rule ≥ 55% and skip
 rate < 5%; Hardcore: win rate < 33% or skip rate ≥ 10%; Intermediate: the rest). Re-measure when the AI
 or a rule changes; playtests confirm them before a rule is Tuned.
 Outside the 20–60% strictness band: below it R02, R05, R06, R08, R09, R10, R13, R19, R21, R22 and R23
@@ -59,7 +59,7 @@ ball); above it R07 and R11.
 
 - [ ] How many rules does the first release need?
 - [ ] Can a deck hold two near-identical rules (e.g. R01 and R07)?
-- [ ] Are some rules too strong as the true rule (too loose to deduce, or too strict to survive)?
+- [ ] Are some rules too strong as the secret rule (too loose to deduce, or too strict to survive)?
 - [ ] Tier thresholds: which strictness or AI-vs-AI win-rate ranges make a rule Simple, Intermediate or Hardcore?
   Provisional answer above (#17); confirm in playtests.
 - [ ] Is the 20–60% strictness band right for built rules? 11 of 22 fall below it, yet R06 is the harshest

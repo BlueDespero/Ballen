@@ -17,17 +17,17 @@ func before_each() -> void:
 
 
 ## A match on an empty board waiting for the first colour pick. The opponent
-## holds a permissive true rule "OT" plus the given rules; the AI's deck is
+## holds a permissive secret rule "OT" plus the given rules; the AI's deck is
 ## permissive.
 func _match(opponent_rules: Array[String], first_player: int) -> Match:
 	var opponent_deck: Array[Rule] = [Fixtures.anywhere(_book, "OT")]
 	for rule_id: String in opponent_rules:
 		opponent_deck.append(_book.rule(rule_id))
-	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
-	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
-	var true_rules: Array[Rule] = [opponent_deck[0], ai_true_rule]
+	var ai_secret_rule: Rule = Fixtures.anywhere(_book, "AT")
+	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_secret_rule, "A")]
+	var secret_rules: Array[Rule] = [opponent_deck[0], ai_secret_rule]
 	var position: MatchPosition = MatchPosition.new(Board.new(), first_player)
-	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	return Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 
 
 ## Submits each command for the player the match awaits.
@@ -98,7 +98,7 @@ func test_rows_are_counted_from_the_first_players_side() -> void:
 
 
 ## The AI (player 1) is to place yellow in the last inner cell, (3, 3). The
-## opponent's true rule is R04, so once the inner cells are full they skip.
+## opponent's secret rule is R04, so once the inner cells are full they skip.
 ## Every edge cell touches a red ball.
 func _skip_match() -> Match:
 	var position: MatchPosition = MatchPosition.new(Board.parse([
@@ -113,10 +113,10 @@ func _skip_match() -> Match:
 	position.colour = BallColour.YELLOW
 	var r04: Rule = _book.rule("R04")
 	var opponent_deck: Array[Rule] = [r04, _book.rule("R01"), _book.rule("R03"), _book.rule("R18"), Fixtures.anywhere(_book, "O1")]
-	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
-	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
-	var true_rules: Array[Rule] = [r04, ai_true_rule]
-	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var ai_secret_rule: Rule = Fixtures.anywhere(_book, "AT")
+	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_secret_rule, "A")]
+	var secret_rules: Array[Rule] = [r04, ai_secret_rule]
+	return Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 
 
 func test_a_skip_rules_out_the_rules_that_would_have_allowed_a_cell_for_that_colour() -> void:
@@ -136,22 +136,22 @@ func test_a_skip_stays_judged_for_the_skipped_colour() -> void:
 
 # Candidates only shrink as history grows, so checking each match's final
 # view covers every view before it.
-func test_over_many_seeded_matches_the_true_rule_is_never_ruled_out() -> void:
+func test_over_many_seeded_matches_the_secret_rule_is_never_ruled_out() -> void:
 	var ruled_out: int = 0
 	for seed_value: int in 60:
 		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
 		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
-		var true_rules: Array[Rule] = []
+		var secret_rules: Array[Rule] = []
 		for deck: Deck in decks:
-			true_rules.append(deck.random_rule(rng))
-		var current_match: Match = Match.create(decks, true_rules, rng)
+			secret_rules.append(deck.random_rule(rng))
+		var current_match: Match = Match.create(decks, secret_rules, rng)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
 		while current_match.phase() != Match.Phase.OVER:
 			var player: int = current_match.awaiting_players()[0]
 			assert_true(current_match.submit(player, await controllers[player].decide(current_match.public_view(player))))
 		for viewer: int in Players.COUNT:
-			var opponent_true_rule: Rule = true_rules[Players.opponent(viewer)]
+			var opponent_secret_rule: Rule = secret_rules[Players.opponent(viewer)]
 			var candidates: Array[Rule] = Deduction.candidates(current_match.public_view(viewer))
-			assert_has(candidates, opponent_true_rule, "seed %d, player %d" % [seed_value, viewer])
+			assert_has(candidates, opponent_secret_rule, "seed %d, player %d" % [seed_value, viewer])
 			ruled_out += Deck.SIZE - candidates.size()
 	assert_gt(ruled_out, 100, "the matches rule some rules out")

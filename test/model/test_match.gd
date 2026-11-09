@@ -33,11 +33,11 @@ func test_the_coin_toss_follows_the_seeded_rng() -> void:
 	assert_eq(firsts, [0, 1] as Array[int], "both players win the toss over 20 seeds")
 
 
-func test_a_true_rule_outside_its_deck_is_rejected() -> void:
+func test_a_secret_rule_outside_its_deck_is_rejected() -> void:
 	var r04: Rule = _book.rule("R04")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
-	var true_rules: Array[Rule] = [r04, Fixtures.anywhere(_book, "Z")]
-	assert_null(Match.create(decks, true_rules, Fixtures.rng(1)))
+	var secret_rules: Array[Rule] = [r04, Fixtures.anywhere(_book, "Z")]
+	assert_null(Match.create(decks, secret_rules, Fixtures.rng(1)))
 	assert_push_error("not in their deck")
 
 
@@ -45,8 +45,8 @@ func test_a_deck_of_other_than_five_rules_is_rejected() -> void:
 	var r04: Rule = _book.rule("R04")
 	var short: Array[Rule] = [r04, Fixtures.anywhere(_book, "A1")]
 	var decks: Array[Deck] = [Deck.new(short), Fixtures.deck_with(_book, r04, "B")]
-	var true_rules: Array[Rule] = [r04, r04]
-	assert_null(Match.create(decks, true_rules, Fixtures.rng(1)))
+	var secret_rules: Array[Rule] = [r04, r04]
+	assert_null(Match.create(decks, secret_rules, Fixtures.rng(1)))
 	assert_push_error("has 2 rules")
 
 
@@ -110,7 +110,7 @@ func test_the_current_player_places_on_a_legal_cell() -> void:
 	assert_eq(last.colour, BallColour.RED)
 
 
-func test_a_placement_on_a_cell_the_true_rule_forbids_is_rejected() -> void:
+func test_a_placement_on_a_cell_the_secret_rule_forbids_is_rejected() -> void:
 	var current_match: Match = _started(_r04_match(1))
 	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(0, 3))))
 	assert_false(current_match.submit(current_match.first_player(), Command.place(Vector2i(9, 9))))
@@ -193,8 +193,8 @@ func test_turns_alternate_and_history_keeps_every_event_in_order() -> void:
 func _from_position(position: MatchPosition) -> Match:
 	var r04: Rule = _book.rule("R04")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
-	var true_rules: Array[Rule] = [r04, r04]
-	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var secret_rules: Array[Rule] = [r04, r04]
+	return Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 
 
 func _late_position() -> MatchPosition:

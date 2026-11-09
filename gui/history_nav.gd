@@ -3,8 +3,8 @@ extends HBoxContainer
 
 ## The history view's buttons under the board: back a turn, back to the live
 ## board, forward a turn. It only reports presses; the scene decides which past
-## board to show. While the match has moved on behind a past board, Live lights
-## up and pulses.
+## board to show. When the match moves on behind a past board, Live lights up,
+## pulses (Attention's rhythm) and stays lit.
 
 signal back_pressed
 signal live_pressed
@@ -15,8 +15,7 @@ const ARROW_WIDTH: float = 44.0
 const LIVE_WIDTH: float = 52.0
 ## Half the height of a drawn ◀ or ▶.
 const ARROW_HALF: float = 7.0
-## One fade of the lit Live button from bright to dim (or back).
-const PULSE_SECONDS: float = 0.6
+## How far the lit Live button fades at the peak of a pulse.
 const PULSE_DIM_ALPHA: float = 0.45
 const LIT_BORDER_WIDTH: int = 2
 const LIT_STYLES: Array[String] = ["normal", "hover", "pressed"]
@@ -24,7 +23,7 @@ const LIT_FONT_COLOURS: Array[String] = ["font_color", "font_hover_color", "font
 
 ## Whether Live is lit: a past board is on show and the match has moved on.
 var live_lit: bool = false
-## Reduced motion: a lit Live button stays bright instead of pulsing.
+## Reduced motion: a lit Live button holds still instead of pulsing.
 var reduced_motion: bool = false:
 	set(value):
 		reduced_motion = value
@@ -92,8 +91,8 @@ func _light_live(lit: bool) -> void:
 		_live.add_theme_color_override(font_colour, BoardView.GLOW_COLOUR)
 
 
-## Pulses a lit Live button unless motion is reduced; otherwise it shows at
-## full brightness.
+## Pulses Live as it lights up, unless motion is reduced; then it holds still
+## at full brightness.
 func _update_pulse() -> void:
 	if _live_pulse != null:
 		_live_pulse.kill()
@@ -103,10 +102,7 @@ func _update_pulse() -> void:
 	_live.self_modulate = Color.WHITE
 	if not live_lit or reduced_motion:
 		return
-	_live_pulse = create_tween().set_loops()
-	_live_pulse.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_live_pulse.tween_property(_live, "self_modulate:a", PULSE_DIM_ALPHA, PULSE_SECONDS)
-	_live_pulse.tween_property(_live, "self_modulate:a", 1.0, PULSE_SECONDS)
+	_live_pulse = Attention.pulse(self, _live, "self_modulate:a", PULSE_DIM_ALPHA, 1.0)
 
 
 func _button(node_name: String, text: String, width: float, tooltip: String, pressed_signal: Signal) -> Button:

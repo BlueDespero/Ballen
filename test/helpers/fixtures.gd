@@ -38,7 +38,7 @@ const LAST_EMPTY_CELL: Vector2i = Vector2i(5, 5)
 
 
 ## A match one placement from a full board: 35 balls, LAST_EMPTY_CELL empty,
-## player 0 went first and is to place red. Permissive true rules "AT"
+## player 0 went first and is to place red. Permissive secret rules "AT"
 ## (player 0) and "BT" (player 1) head decks filled with A1..A4 / B1..B4.
 static func nearly_full_match(rule_book: RuleBook) -> Match:
 	var position: MatchPosition = MatchPosition.new(Board.parse([
@@ -51,13 +51,13 @@ static func nearly_full_match(rule_book: RuleBook) -> Match:
 	]), 0)
 	position.turn = 35
 	position.colour = BallColour.RED
-	var true_rules: Array[Rule] = [anywhere(rule_book, "AT"), anywhere(rule_book, "BT")]
-	var decks: Array[Deck] = [deck_with(rule_book, true_rules[0], "A"), deck_with(rule_book, true_rules[1], "B")]
-	return Match.from_position(position, decks, true_rules, rng(1))
+	var secret_rules: Array[Rule] = [anywhere(rule_book, "AT"), anywhere(rule_book, "BT")]
+	var decks: Array[Deck] = [deck_with(rule_book, secret_rules[0], "A"), deck_with(rule_book, secret_rules[1], "B")]
+	return Match.from_position(position, decks, secret_rules, rng(1))
 
 
-## A new match whose true rules are the first rule of each deck.
-static func new_match(rule_book: RuleBook, true_rule_0: Rule, true_rule_1: Rule, seed_value: int) -> Match:
-	var decks: Array[Deck] = [deck_with(rule_book, true_rule_0, "A"), deck_with(rule_book, true_rule_1, "B")]
-	var true_rules: Array[Rule] = [true_rule_0, true_rule_1]
-	return Match.create(decks, true_rules, rng(seed_value))
+## A new match whose secret rules are the first rule of each deck.
+static func new_match(rule_book: RuleBook, secret_rule_0: Rule, secret_rule_1: Rule, seed_value: int) -> Match:
+	var decks: Array[Deck] = [deck_with(rule_book, secret_rule_0, "A"), deck_with(rule_book, secret_rule_1, "B")]
+	var secret_rules: Array[Rule] = [secret_rule_0, secret_rule_1]
+	return Match.create(decks, secret_rules, rng(seed_value))

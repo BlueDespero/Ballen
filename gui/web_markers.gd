@@ -4,6 +4,11 @@ extends Node
 ## no DOM to inspect, so in web builds only the game prints a line such as
 ## `[ballen] scene=Main` on scene changes and key events, and the tests wait
 ## for them. Other builds print nothing. The `WebMarkers` autoload.
+##
+## Some markers measure whether players understand the game, for playtests to
+## compare before and after a change: how long the secret-rule pick took and
+## whether Pick for me made it, the turn and result of each guess, and Guess
+## presses made before selecting a rule.
 
 const PREFIX: String = "[ballen]"
 
@@ -36,6 +41,18 @@ static func decks_line(deck_names: Array[String]) -> String:
 	return line("decks=" + ",".join(deck_names))
 
 
+static func secret_rule_line(rule_id: String, seconds: float, picked_for_me: bool) -> String:
+	return line("secret_rule", {"rule": rule_id, "seconds": "%.1f" % seconds, "picked_for_me": picked_for_me})
+
+
+static func guess_line(by_player: bool, turn: int, right: bool) -> String:
+	return line("guess", {"by": "player" if by_player else "ai", "turn": turn, "right": right})
+
+
+static func guess_blocked_line() -> String:
+	return line("guess_blocked")
+
+
 func _ready() -> void:
 	if not OS.has_feature("web"):
 		return
@@ -44,6 +61,10 @@ func _ready() -> void:
 	EventBus.ball_placed.connect(func(by_player: bool, cell: Vector2i) -> void: print(ball_placed_line(by_player, cell)))
 	EventBus.deck_saved.connect(func(deck_name: String) -> void: print(deck_saved_line(deck_name)))
 	EventBus.decks_listed.connect(func(deck_names: Array[String]) -> void: print(decks_line(deck_names)))
+	EventBus.secret_rule_picked.connect(
+		func(rule_id: String, seconds: float, mine: bool) -> void: print(secret_rule_line(rule_id, seconds, mine)))
+	EventBus.guessed.connect(func(by_player: bool, turn: int, right: bool) -> void: print(guess_line(by_player, turn, right)))
+	EventBus.guess_blocked.connect(func() -> void: print(guess_blocked_line()))
 	# The first scene is set after the autoloads are ready.
 	await get_tree().process_frame
 	_print_scene()

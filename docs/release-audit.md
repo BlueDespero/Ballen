@@ -44,7 +44,7 @@ holds none of it.
 | `EventBus` | `event_bus.gd` | Global signals (match started, ball placed, deck saved, decks listed, drag). |
 | `Constants` | `constants.gd` | The ball colours. |
 | `Settings` | `game_settings.gd` | Player settings, loaded from and saved to `user://settings.cfg`; `changed` signal. |
-| `WebMarkers` | `gui/web_markers.gd` | Web builds only: prints `[ballen] …` console lines on scene changes and key events for the web tests. Does nothing elsewhere. |
+| `WebMarkers` | `gui/web_markers.gd` | Web builds only: prints `[ballen] …` console lines on scene changes and key events for the web tests, and playtest measures (secret-rule pick time, guess turns, early Guess presses) to the browser console only. Does nothing elsewhere. |
 | `RotateHint` | `gui/rotate_hint.gd` | A top `CanvasLayer` that covers the screen and takes input while the screen is taller than wide. |
 | `SymbolFont` | `gui/symbol_font.gd` | Adds the bundled Noto Sans Symbols as a fallback of the default font (the web has no system fonts for ← →). |
 | `BackButton` | `gui/back_button.gd` | Turns Android's go-back request into a `ui_cancel` press (Escape). Never fires on the web, where browsers send no go-back request. |

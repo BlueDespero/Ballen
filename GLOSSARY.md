@@ -1,12 +1,12 @@
 # Ballen
 
-A two-player hidden-information duel on a 6 × 6 board: each player hides one true rule among four fakes
-and wins by naming the opponent's true rule.
+A two-player hidden-information duel on a 6 × 6 board: each player hides one secret rule among four fakes
+and wins by naming the opponent's secret rule.
 
 ## Board and balls
 
 **Match**:
-One play of Ballen between two players, from choosing true rules to the result.
+One play of Ballen between two players, from choosing secret rules to the result.
 _Avoid_: Game, duel (except in the mode name "Daily duel")
 
 **Board**:
@@ -76,13 +76,13 @@ _Avoid_: Owner (that word belongs to balls)
 The 5 rules a player brings to a match; both players see each other's whole deck.
 _Avoid_: Hand, set, loadout
 
-**True rule**:
+**Secret rule**:
 The one rule in a deck that its owner secretly marks for this match; the game enforces it on every
 placement.
-_Avoid_: Real rule, secret rule, active rule
+_Avoid_: True rule (its name until November 2026), real rule, active rule
 
 **Fake rule**:
-Any of the 4 deck rules that are not the true rule; never enforced, they exist only as cover.
+Any of the 4 deck rules that are not the secret rule; never enforced, they exist only as cover.
 _Avoid_: Decoy, false rule, bluff
 
 **Template**:
@@ -100,7 +100,7 @@ The share of placements a rule forbids on random boards.
 
 **Skip rate**:
 For one rule: the share of its holders' turns that ended in a skip, counted over matches where it was
-the true rule.
+the secret rule.
 
 **Tier**:
 How much a rule restricts its holder: Simple, Intermediate or Hardcore.
@@ -114,7 +114,7 @@ Players alternate turns.
 _Avoid_: Move, round, ply
 
 **Legal cell**:
-An empty cell where the current ball may be placed under the current player's true rule.
+An empty cell where the current ball may be placed under the current player's secret rule.
 _Avoid_: Valid cell, allowed cell, glowing cell
 
 **Placement**:
@@ -131,15 +131,15 @@ The choice, at the end of a turn, of the colour the opponent must place next.
 _Avoid_: Probe (that is the AI's reason for a pick, not the act)
 
 **Guess**:
-Naming one of the opponent's deck rules as their true rule; right wins, wrong loses.
+Naming one of the opponent's deck rules as their secret rule; right wins, wrong loses.
 _Avoid_: Accusation, pulling the trigger (that is flavour text only)
 
 **Match setup**:
-The screen before a match: pick a deck and the AI level, then choose the true rule.
+The screen before a match: pick a deck and the AI level, then choose the secret rule.
 _Avoid_: Pre-match, lobby
 
 **Rematch**:
-A new match straight after one ends, with the same decks and AI level. Both players choose their true
+A new match straight after one ends, with the same decks and AI level. Both players choose their secret
 rule again, and the other player goes first.
 
 **Full board**:
@@ -150,7 +150,7 @@ The guess each player must make when the board is full. Both are sealed and reve
 one right wins, otherwise the match is a draw.
 
 **Public view**:
-Everything one player is allowed to know about a match: all of it except the opponent's true rule.
+Everything one player is allowed to know about a match: all of it except the opponent's secret rule.
 
 **Note mark**:
 A private note a player keeps on one of the opponent's deck rules: ✗ ruled out or ? suspect. It records
@@ -165,13 +165,13 @@ moves and hides its own, never what it knows or which rules it gets.
 _Avoid_: Difficulty setting, tier (that word belongs to rules)
 
 **Confidence**:
-The AI's probability that a given candidate is the opponent's true rule. The AI guesses when its top
+The AI's probability that a given candidate is the opponent's secret rule. The AI guesses when its top
 candidate's confidence reaches its threshold.
 
 **Candidate**:
-An opponent deck rule that the AI has not yet ruled out as their true rule.
+An opponent deck rule that the AI has not yet ruled out as their secret rule.
 
 **Ruled out**:
-Proven not to be the true rule, because a placement broke it or a skip happened although it would have
+Proven not to be the secret rule, because a placement broke it or a skip happened although it would have
 allowed a cell.
 _Avoid_: Eliminated, crossed off

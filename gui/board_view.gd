@@ -7,6 +7,11 @@ extends Control
 ## decides what is legal. Row y = 0 is drawn at the top (the AI's side), y = 5
 ## at the bottom (the player's side); row numbers count from the first player's
 ## side, so they run 1-6 upwards or downwards depending on who went first.
+## A tap on a cell (pressed and released on the same cell) reports
+## `cell_pressed`; the scene decides whether it places a ball.
+
+## A cell was tapped.
+signal cell_pressed(cell: Vector2i)
 
 const NO_CELL: Vector2i = Vector2i(-1, -1)
 const CELL_SIZE: float = 80.0
@@ -16,6 +21,8 @@ const BALL_INSET: float = 8.0
 ## The "act here" colour: legal cells glow in it, and the colour picker's ring
 ## and the lit Live button share it.
 const GLOW_COLOUR: Color = Color(1.0, 0.92, 0.45)
+## How bright the glow holds once its pulses are done (1 is the peak).
+const GLOW_REST: float = 0.5
 const OPPONENT_MARK_COLOUR: Color = Color(0.08, 0.09, 0.11, 0.85)
 const HIGHLIGHT_COLOUR: Color = Color(1.0, 1.0, 1.0)
 const HIGHLIGHT_WIDTH: float = 4.0
@@ -29,7 +36,7 @@ const ROW_LABEL_COLOUR: Color = Color(0.78, 0.81, 0.86, 0.75)
 var reduced_motion: bool = false:
 	set(value):
 		reduced_motion = value
-		queue_redraw()
+		_stop_glow_pulse()
 ## Colour-blind mode: each ball shows its colour's symbol.
 var symbols: bool = false:
 	set(value):
@@ -41,23 +48,47 @@ var _legal_cells: Array[Vector2i] = []
 var _viewer: int = Players.NONE
 var _first_player: int = 0
 var _highlighted: Vector2i = NO_CELL
+## The cell a press went down on, until it is released.
+var _pressed_cell: Vector2i = NO_CELL
+## The legal cells' glow: GLOW_REST while still, up to 1 at the peak of a pulse.
+var _glow: float = GLOW_REST:
+	set(value):
+		_glow = value
+		queue_redraw()
+var _glow_tween: Tween = null
 
 
 func _ready() -> void:
 	custom_minimum_size = Vector2.ONE * CELL_SIZE * Board.SIZE
 
 
-## Shows a board. Glows on legal_cells; balls not owned by viewer are marked;
-## rows are numbered from first_player's side; the ball on highlighted (if
-## any) gets a ring.
+## Shows a board. Glows on legal_cells (pulsing when they light up, in
+## Attention's rhythm); balls not owned by viewer are marked; rows are numbered
+## from first_player's side; the ball on highlighted (if any) gets a ring.
 func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int, first_player: int,
 		highlighted: Vector2i = NO_CELL) -> void:
+	if _legal_cells.is_empty() and not legal_cells.is_empty():
+		_pulse_glow()
 	_board = board
 	_legal_cells = legal_cells.duplicate()
 	_viewer = viewer
 	_first_player = first_player
 	_highlighted = highlighted
 	queue_redraw()
+
+
+func _gui_input(event: InputEvent) -> void:
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return
+	var cell: Vector2i = cell_at(button.global_position)
+	if button.pressed:
+		_pressed_cell = cell
+		return
+	# On release, so sliding off the cell before letting go cancels the tap.
+	if cell != NO_CELL and cell == _pressed_cell:
+		cell_pressed.emit(cell)
+	_pressed_cell = NO_CELL
 
 
 ## The cell under a point in canvas coordinates; NO_CELL off the board.
@@ -92,20 +123,26 @@ static func draw_ball(canvas: CanvasItem, rect: Rect2, colour: String, marked: b
 		BallSymbol.draw(canvas, centre, rect.size.x * 0.2, colour, true)
 
 
-func _process(_delta: float) -> void:
-	if not _legal_cells.is_empty() and not reduced_motion:
-		queue_redraw() # the glow pulses
+func _pulse_glow() -> void:
+	_stop_glow_pulse()
+	if not reduced_motion and is_inside_tree():
+		_glow_tween = Attention.pulse(self, self, "_glow", 1.0, GLOW_REST)
+
+
+func _stop_glow_pulse() -> void:
+	if _glow_tween != null:
+		_glow_tween.kill()
+		_glow_tween = null
+	_glow = GLOW_REST
 
 
 func _draw() -> void:
-	# With reduced motion the glow holds steady at its middle brightness.
-	var pulse: float = 0.5 if reduced_motion else 0.5 + 0.5 * sin(Time.get_ticks_msec() / 250.0)
 	for cell: Vector2i in Board.all_cells():
 		var rect: Rect2 = _cell_rect(cell)
 		draw_texture_rect(CELL_TEXTURE, rect, false)
 		if _legal_cells.has(cell):
 			var glow: Color = GLOW_COLOUR
-			glow.a = 0.3 + 0.2 * pulse
+			glow.a = 0.3 + 0.2 * _glow
 			draw_rect(rect.grow(-5.0), glow, true)
 			draw_rect(rect.grow(-5.0), GLOW_COLOUR, false, 3.0)
 		var ball: Ball = _board.ball_at(cell)

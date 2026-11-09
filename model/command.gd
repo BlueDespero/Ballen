@@ -13,7 +13,7 @@ var type: Type
 var cell: Vector2i
 ## PICK_COLOUR: the colour the opponent places next.
 var colour: String
-## GUESS, FORCED_GUESS: the id of the opponent's deck rule named as their true
+## GUESS, FORCED_GUESS: the id of the opponent's deck rule named as their secret
 ## rule.
 var rule_id: String
 
@@ -36,7 +36,7 @@ static func pick_colour(p_colour: String) -> Command:
 	return command
 
 
-## Name one of the opponent's deck rules as their true rule; right wins,
+## Name one of the opponent's deck rules as their secret rule; right wins,
 ## wrong loses.
 static func guess(p_rule_id: String) -> Command:
 	var command: Command = Command.new(Type.GUESS)
@@ -44,7 +44,7 @@ static func guess(p_rule_id: String) -> Command:
 	return command
 
 
-## On a full board: name one of the opponent's deck rules as their true rule.
+## On a full board: name one of the opponent's deck rules as their secret rule.
 ## Sealed until both forced guesses are in; exactly one right wins, otherwise
 ## the match is a draw.
 static func forced_guess(p_rule_id: String) -> Command:

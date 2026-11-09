@@ -7,7 +7,7 @@ extends RefCounted
 ## (later difficulty levels).
 ##
 ## This is milestone 1's uniform model. Each candidate is equally likely to be
-## the opponent's true rule, and the opponent places uniformly among that
+## the opponent's secret rule, and the opponent places uniformly among that
 ## rule's legal cells, or skips if there are none. A colour scores the
 ## expected number of candidates its placement or skip would rule out. With no
 ## information every colour scores the same, so the pick is random.

@@ -1,6 +1,6 @@
 # Ballen
 
-Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one true rule
+Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one secret rule
 among four fakes, places balls that give away as little as possible, and wins by naming which of the
 opponent's rules is real. Built with Godot 4.7 and GDScript, for the browser first and mobile later.
 
@@ -65,7 +65,7 @@ godot --headless --path . -s harness/run_strictness.gd -- --boards 2000 --seed 1
 The AI opponent is built on decision making under uncertainty, following Mykel Kochenderfer's
 [*Decision Making Under Uncertainty: Theory and Application*](https://web.stanford.edu/group/sisl/public/dmu.pdf)
 (MIT Press, 2015). Section numbers below refer to that book. The AI sees only what a human
-opponent would see: it never peeks at your true rule.
+opponent would see: it never peeks at your secret rule.
 
 This is the design the AI grows into. The prototype builds one level on hard evidence only: it rules
 out your rules, gives you the colour expected to rule out the most, guesses once one rule is left, and
@@ -74,7 +74,7 @@ come later ([technical design](docs/technical-design.md#ai-opponent)).
 
 ### A belief over your rules
 
-Your secret is small: one of your 5 public rules is true. The AI keeps a **belief**, five
+Your secret is small: one of your 5 public rules is secret. The AI keeps a **belief**, five
 probabilities that sum to 1, and updates it with Bayes' rule after each of your turns (§2.2.2
 Inference in Temporal Models, §6.2.1 Discrete State Filter):
 
@@ -84,7 +84,7 @@ belief(r) ∝ P(what you did | rule r is true) × previous belief(r)
 
 The evidence comes in two strengths:
 
-- **Hard evidence.** The game enforces your true rule, so a placement that breaks rule *r* proves
+- **Hard evidence.** The game enforces your secret rule, so a placement that breaks rule *r* proves
   *r* is fake, and a skip rules out every rule that would have allowed a cell. This evidence can
   never mislead.
 - **Soft evidence.** *Which* legal cell you picked hints at your rule, and this is where hiding
@@ -106,7 +106,7 @@ public.
 
 ### Staying unpredictable
 
-A predictable hider is easy to read. The AI randomises which rule it makes true and, when it must
+A predictable hider is easy to read. The AI randomises which rule it makes secret and, when it must
 break a fake rule, which one it breaks (mixed strategies, §3.3 Games).
 
 ### Difficulty levels

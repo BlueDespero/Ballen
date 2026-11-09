@@ -15,14 +15,14 @@ func before_each() -> void:
 	_browser = HistoryBrowser.new()
 
 
-## Player 0 goes first; permissive true rules "AT" and "BT", or the given one
+## Player 0 goes first; permissive secret rules "AT" and "BT", or the given one
 ## for player 1.
-func _start(true_rule_1: Rule = null) -> void:
-	if true_rule_1 == null:
-		true_rule_1 = Fixtures.anywhere(_book, "BT")
-	var true_rules: Array[Rule] = [Fixtures.anywhere(_book, "AT"), true_rule_1]
-	var decks: Array[Deck] = [Fixtures.deck_with(_book, true_rules[0], "A"), Fixtures.deck_with(_book, true_rules[1], "B")]
-	_match = Match.create(decks, true_rules, Fixtures.rng(1), 0)
+func _start(secret_rule_1: Rule = null) -> void:
+	if secret_rule_1 == null:
+		secret_rule_1 = Fixtures.anywhere(_book, "BT")
+	var secret_rules: Array[Rule] = [Fixtures.anywhere(_book, "AT"), secret_rule_1]
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, secret_rules[0], "A"), Fixtures.deck_with(_book, secret_rules[1], "B")]
+	_match = Match.create(decks, secret_rules, Fixtures.rng(1), 0)
 
 
 ## Submits each command for the player the match awaits, then shows the

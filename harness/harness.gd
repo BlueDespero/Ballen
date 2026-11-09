@@ -24,20 +24,20 @@ static func match_seed(seed_value: int, i: int) -> int:
 
 
 ## One match between two AIs: each gets a deck drawn at random from the
-## book and a random true rule from it; the coin toss picks the first player.
+## book and a random secret rule from it; the coin toss picks the first player.
 ## Every random choice comes from one RNG seeded with seed_value.
 static func play(book: RuleBook, seed_value: int) -> MatchRecord:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var decks: Array[Deck] = []
-	var true_rules: Array[Rule] = []
+	var secret_rules: Array[Rule] = []
 	var ais: Array[AIController] = []
 	for player: int in Players.COUNT:
 		var deck: Deck = Deck.draw(book, rng)
 		decks.append(deck)
-		true_rules.append(deck.random_rule(rng))
+		secret_rules.append(deck.random_rule(rng))
 		ais.append(AIController.new(rng))
-	var current_match: Match = Match.create(decks, true_rules, rng)
+	var current_match: Match = Match.create(decks, secret_rules, rng)
 	play_out(current_match, ais)
 	return MatchRecord.from_match(current_match)
 

@@ -1,13 +1,13 @@
 class_name MatchRecord
 extends RefCounted
 
-## What the AI-vs-AI harness keeps of one match: who held which true rule,
+## What the AI-vs-AI harness keeps of one match: who held which secret rule,
 ## who went first, how it ended and how many turns each player played. A
 ## played turn is one that ended in a placement or a skip. Treat it as an
 ## immutable value.
 
-## The true rule's id, by player.
-var true_rule_ids: Array[String] = []
+## The secret rule's id, by player.
+var secret_rule_ids: Array[String] = []
 var first_player: int
 ## How the match ended; null if it never finished.
 var result: MatchResult
@@ -17,8 +17,8 @@ var turns: Array[int] = []
 var skips: Array[int] = []
 
 
-func _init(p_true_rule_ids: Array[String], p_first_player: int, p_result: MatchResult, p_turns: Array[int], p_skips: Array[int]) -> void:
-	true_rule_ids = p_true_rule_ids.duplicate()
+func _init(p_secret_rule_ids: Array[String], p_first_player: int, p_result: MatchResult, p_turns: Array[int], p_skips: Array[int]) -> void:
+	secret_rule_ids = p_secret_rule_ids.duplicate()
 	first_player = p_first_player
 	result = p_result
 	turns = p_turns.duplicate()
@@ -26,14 +26,14 @@ func _init(p_true_rule_ids: Array[String], p_first_player: int, p_result: MatchR
 
 
 ## The record of a match as it stands (its result is null while it runs),
-## turns counted from its history. The true rules are read from each
+## turns counted from its history. The secret rules are read from each
 ## player's own view.
 static func from_match(current_match: Match) -> MatchRecord:
 	var ids: Array[String] = []
 	var turns_played: Array[int] = []
 	var skipped: Array[int] = []
 	for player: int in Players.COUNT:
-		ids.append(current_match.public_view(player).own_true_rule.id)
+		ids.append(current_match.public_view(player).own_secret_rule.id)
 		turns_played.append(0)
 		skipped.append(0)
 	for entry: HistoryEntry in current_match.history():

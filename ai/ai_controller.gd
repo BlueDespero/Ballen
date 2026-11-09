@@ -3,10 +3,10 @@ extends Controller
 
 ## The AI player. It sees only the PublicView it is handed (ADR 0002).
 ##
-## It works out the opponent's true rule by ruling out rules (Deduction) and
+## It works out the opponent's secret rule by ruling out rules (Deduction) and
 ## names it once its guess policy fires, which it checks at the start of its
 ## turn and after it places or skips; on a full board its forced guess names a
-## random remaining candidate. To hide its true rule it places on a legal
+## random remaining candidate. To hide its secret rule it places on a legal
 ## cell satisfying the most of its own deck rules, ties broken at random. Its
 ## colour-pick strategy chooses the colour expected to teach it the most.
 
@@ -45,7 +45,7 @@ func decide(view: PublicView) -> Command:
 			return Command.place(_pick(cells))
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
-				# The true rule always remains, so this only guards a view that
+				# The secret rule always remains, so this only guards a view that
 				# contradicts itself.
 				if candidates.is_empty():
 					push_error("AIController: no candidate left for the forced guess")
@@ -55,7 +55,7 @@ func decide(view: PublicView) -> Command:
 
 
 ## The legal cells that satisfy the most of the AI's own deck rules, so its
-## placements look like any of them could be its true rule.
+## placements look like any of them could be its secret rule.
 func _best_cells(view: PublicView) -> Array[Vector2i]:
 	var best: Array[Vector2i] = []
 	var best_count: int = -1
