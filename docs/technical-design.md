@@ -333,7 +333,7 @@ harness use it); `normal_model()` is Normal's model of the player.
 | `OpponentModel` (`ai/opponent_model.gd`), `HiderModel` (`ai/hider_model.gd`) | How the AI expects the player to choose among legal cells | Uniform (the size principle), or a hider weighting a cell e^(β·k) for k deck rules allowing it, with a lapse ε spread evenly and a temper on the evidence. Normal: β 1, ε 0.2, temper 0.4, which keeps its confidence honest in AI-vs-AI play (a rule held 70% likely is right about 70% of the time; untempered it was right about half the time) |
 | `GuessPolicy` (`ai/guess_policy.gd`), `DangerGuessPolicy` (`ai/danger_guess_policy.gd`) | When to guess, and which rule | Names the belief's top rule once its probability reaches `threshold(view, exposure)`; a ruled-out rule is never named. The base policy's threshold is fixed (1: only when one rule is left; INF: never). Normal's slides from 0.95 to 0.35 with danger: how far its exposure has risen above 1 in 5 toward 0.95, or full danger one skip from losing. Asked whenever `view.can_guess()`: at the start of its turn, after placing or skipping, and as the placer on a full board. Over 200 seeded matches against an AI that guesses only when certain, Normal wins about 65% |
 | `InformationColourPick` (`ai/information_colour_pick.gd`) | The colour the opponent places next (Normal's) | Highest expected information gain about the opponent's rule from their next turn in that colour, under the belief and its model (tempered as the belief is), plus a skip bonus of 0.5 / 1 / 20 bits at 0 / 1 / 2 opponent skips; ties at random. Its base class `ColourPickStrategy` scores the expected number of remaining rules ruled out, all equally likely |
-| Placement (`AIController`) | Where to place its own ball | Among its legal cells, those that satisfy the most of its own 5 rules, so any of them could be its secret rule; ties at random |
+| `HidingPlacement` (`ai/hiding_placement.gd`) | Where to place its own ball (Normal's) | Among its legal cells, those that satisfy the most of its own rules the opponent can still believe (its exposure), then the one leaving the most room for its next ball in the worst colour; ties at random. Its base `PlacementStrategy` counts all 5 rules |
 | Forced guess (`AIController`) | Its sealed guess on a full board | The belief's top rule, ties at random |
 
 The thinking pause is the scene's: `MatchDriver` waits a random 0.5–1.5 s before each AI command. Tests
@@ -347,7 +347,8 @@ Easy, Normal and Hard plug into the same seams; none needs the model to change:
   a joint honest/bluffing hider) and `GuessPolicy`. `Deduction` stays the hard elimination mask under it.
 - Colour picks: a `ColourPickStrategy` subclass overrides `score()` (another model of the opponent) or
   `choose()` (e.g. a softer, more random pick for Easy).
-- Placement is a private method today; split it into a strategy object when levels need different hiding.
+- Placement: a `PlacementStrategy` subclass per level (Easy places anywhere legal; Hard adds pressure and a
+  softmax over which fake to break).
 - `AIController.new(rng, guess_policy, colour_pick, model)` takes the objects and `for_level` chooses them, so
   a level is a choice of objects.
 

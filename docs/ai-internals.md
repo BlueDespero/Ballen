@@ -29,7 +29,7 @@ Keep this document in step with `ai/`: every PR that changes the AI updates the 
 | Level | Status | Built from |
 | --- | --- | --- |
 | Easy | Planned (#73): tempered belief, honest placement, loose colour picks, guesses at ~0.95 | — |
-| Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, max-k placement |
+| Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, `HidingPlacement` |
 | Hard | Planned (#22, #73): joint honest/bluffing model, value-of-information colours, hiding utility, MCTS, expected-value guessing | — |
 
 `AILevel.BUILT` lists the playable levels; the match setup screen shows the rest as "coming soon".
@@ -62,6 +62,8 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `DangerGuessPolicy` | `ai/danger_guess_policy.gd` | Normal's guessing: threshold slides with how exposed the AI's own rule is |
 | `ColourPickStrategy` | `ai/colour_pick_strategy.gd` | Base colour pick: highest expected number of the belief's remaining rules ruled out, all equally likely. `best_of(scores, rng)` picks the top score, ties at random |
 | `InformationColourPick` | `ai/information_colour_pick.gd` | Normal's colour pick: highest expected information gain about the opponent's rule, plus a skip bonus |
+| `PlacementStrategy` | `ai/placement_strategy.gd` | Base placement: the legal cells most of its 5 deck rules allow, ties at random. `most_shared(view, rules)`, `pick(cells, rng)` |
+| `HidingPlacement` | `ai/hiding_placement.gd` | Normal's placement: hide among the rules the opponent can still believe, then keep room for the next ball |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
 
 Callers: the match scene (`main_game.gd`) builds the AI with `AIController.for_level(_setup.ai_level(), _rng)` and
@@ -79,7 +81,7 @@ flowchart TD
     policy -- no --> phase
     canguess -- no --> phase{"view.phase"}
     phase -- "FIRST_COLOUR / PICK_COLOUR" --> colour["ColourPickStrategy.choose(view, belief)"]
-    phase -- PLACE --> place["legal cell satisfying most own deck rules"]
+    phase -- PLACE --> place["PlacementStrategy.choose(view, exposure)"]
     phase -- FORCED_GUESS --> forced["Command.forced_guess(belief.top)"]
 ```
 
@@ -88,14 +90,14 @@ flowchart TD
 `AIController.decide(view)` is called whenever the match awaits the AI. It returns one `Command`, or `null` only for
 a view that contradicts itself.
 
-1. **Update the belief** with any history events it hasn't read (`Belief.update`). It feeds the colour pick and
-   the guess.
+1. **Update the belief and the exposure** with any history events they haven't read (`Belief.update`). The belief
+   feeds the colour pick and the guess; the exposure feeds the guess and the placement.
 2. **Maybe guess.** If `view.can_guess()` (the AI's turn: before placing, after placing or skipping until its colour
-   pick, or as the placer on a full board), update the exposure belief and ask the guess policy. If it returns a
+   pick, or as the placer on a full board), ask the guess policy. If it returns a
    rule, the command is `guess(rule)`.
 3. **Otherwise act on the phase:**
    - `FIRST_COLOUR`, `PICK_COLOUR`: pick the opponent's next colour (`ColourPickStrategy.choose`).
-   - `PLACE`: place on a legal cell that satisfies the most of the AI's own 5 deck rules, ties at random.
+   - `PLACE`: place where the placement strategy says (`PlacementStrategy.choose`; see [Placement](#placement)).
    - `FORCED_GUESS` (full board, its sealed guess due): name the belief's top rule, ties at random. If no rule is
      left (impossible in a real match), it reports `"AIController: no candidate left for the forced guess"` and
      returns `null`.
@@ -164,7 +166,7 @@ belief kept through a match always equals one built afresh from the same view.
 
 `Belief.new(model, true)` reasons about the *viewer's* deck from the viewer's own public moves, with the same model:
 what an opponent reading the AI the way the AI reads them could believe. Its probability for the AI's secret rule is
-how exposed the AI is. Normal's guessing uses it. (Hiding, #21, will use it to choose cells.)
+how exposed the AI is. Normal's guessing and placement use it.
 
 ### Other accessors
 
@@ -232,10 +234,26 @@ as the comparison point in measurements.
 
 ## Placement
 
-`AIController._best_cells(view)`: among `view.own_legal_cells()` (its secret rule's legal cells), the cells that
-satisfy the most of its 5 deck rules, then a random one of them. A cell all 5 allow tells the opponent nothing. It
-does not yet weigh mobility (keeping legal cells to avoid skips) or pressure; #21 adds those and the softmax over
-which fake rule to break.
+Every strategy's `choose(view, exposure, rng)` returns a cell among `view.own_legal_cells()` (its secret rule's legal
+cells), or `NO_CELL` if there is none.
+
+### Normal: `HidingPlacement`
+
+1. **Hide among the believable rules.** Keep the legal cells allowed by the most of the AI's rules that its exposure
+   belief still holds possible (`most_shared(view, exposure.alive())`). A cell all of them allow tells the opponent
+   nothing. A fake the opponent has already ruled out no longer counts: breaking it again costs nothing, so it no
+   longer keeps the AI off cells.
+2. **Keep room.** Among those, keep the cells with the largest `room_after(view, cell)`: the fewest legal cells the
+   AI's secret rule leaves it after placing there, over the 4 colours it could be handed next (the opponent's move in
+   between is ignored). Fewer cells means a likelier skip.
+3. Ties at random.
+
+Cost: one legal check per own rule and legal cell, plus 4 legal-cell sweeps per cell tied after step 1.
+
+### Base: `PlacementStrategy`
+
+The legal cells most of all 5 deck rules allow, ties at random (milestone 1's behaviour). Not yet: pressure on the
+opponent's rules and a softmax over which fake to break when one must break (Hard).
 
 ## Pauses and the driver
 
@@ -253,6 +271,7 @@ which fake rule to break.
 | Normal temper | `normal_model()` | 0.4 | Calibration sweep 0.6 / 0.4 / 0.25: 0.4 was closest to honest |
 | `DangerGuessPolicy.SAFE` | `ai/danger_guess_policy.gd` | 0.95 | Research doc |
 | `DangerGuessPolicy.DESPERATE` | same | 0.35 | Head-to-head sweep 0.35 / 0.5 / 0.6: 0.35 won most |
+| `HidingPlacement` worst-colour room | `ai/hiding_placement.gd` | min over 4 colours | Tiebreak only; a skip costs a pip whatever the colour |
 | `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
 | `MatchDriver.MIN_PAUSE` / `MAX_PAUSE` | `model/match_driver.gd` | 0.5 / 1.5 s | Milestone 1 |
@@ -301,11 +320,27 @@ Colour picks (#20), 200 seeded matches, seats swapped, both sides Normal's belie
 Within noise: between two Normals the guessing race decides most matches, and a better probe rarely changes who
 guesses first. The information-gain pick stays (no weaker, principled, and the basis of Hard's blended pick).
 
+Placement (#21), 200 seeded matches, seats swapped, both sides otherwise Normal:
+
+| Normal's placement vs the base placement | Result |
+| --- | --- |
+| `HidingPlacement` (as built) | 118 – 80, 2 draws (60%) |
+
+Of its 118 wins, 71 came from the opponent guessing wrong: better hiding makes the opponent's gambles fail.
+Matches run a little longer (14.0 turns against 13.3).
+
 ### Speed
 
-Desktop, headless: 20 harness matches (`--seed 1`) take 11.3 s with the information-gain colour pick (9.1 s with the
-base pick), about 30 ms per decision including the engine. The belief costs at most 5 legal-cell checks per new
-opponent event; a colour pick 20.
+Desktop, headless, 20 harness matches (`--seed 1`):
+
+| Build | Time | Turns per match |
+| --- | --- | --- |
+| #19 belief, base colours and placement | 9.1 s | 17.8 |
+| + information-gain colours (#20) | 11.3 s | 16.2 |
+| + hiding placement (#21) | 20.3 s | 18.5 |
+
+That is about 20 ms per decision on average, including the engine; placements are the heaviest. The belief costs at
+most 5 legal-cell checks per new opponent event, a colour pick 20 sweeps, a placement up to 4 sweeps per tied cell.
 
 ### How to reproduce
 
@@ -381,7 +416,8 @@ Before merging a change to `ai/`:
 | `test/ai/test_deduction.gd` | Hard elimination by placements and skips on the position before each event |
 | `test/ai/test_ai_colour_pick.gd` | The base colour scores and the swappable strategy |
 | `test/ai/test_information_colour_pick.gd` | A colour all rules treat alike is worth 0; the telling colour is picked; the skip bonus grows with the opponent's skips; a ruled-out rule no longer counts |
-| `test/ai/test_ai_placement.gd` | Placement on max-k legal cells |
+| `test/ai/test_ai_placement.gd` | Placement on max-k legal cells (through the controller) |
+| `test/ai/test_hiding_placement.gd` | Hides off cells a believable fake forbids; once that fake is ruled out its cells are free again; `room_after` takes the worst colour; ties go to the most room |
 | `test/ai/test_ai_controller.gd` | Seeded determinism; two AIs playing a full scenario in code |
 | `test/harness/*` | Harness determinism and stats |
 
@@ -392,3 +428,4 @@ Before merging a change to `ai/`:
 | Milestone 1 | Hard elimination only; guess with one rule left; uniform colour picks; max-k placement; random forced guess |
 | #93 (#19) | `Belief` with soft evidence (`OpponentModel`, `HiderModel`, lapse, temper); exposure; `DangerGuessPolicy`; forced guess names the top rule; `AIController.for_level`; `Deduction.candidates_for` |
 | #20 | Colour strategies take the belief; Normal picks by `InformationColourPick` (expected information gain plus skip bonus) |
+| #21 | Placement is a `PlacementStrategy`; Normal places by `HidingPlacement` (believable rules only, then room); the exposure belief is updated every decision |
