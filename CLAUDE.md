@@ -57,6 +57,10 @@ any match didn't finish. From the repo root, after the import step above:
 godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 ```
 
+`--levels normal,easy` pits two built AI levels (seats swapped every other match) and adds each level's wins;
+`--gate 0.65` also fails the run unless the first level wins that share of the decided matches (the level gates in
+`docs/ai-internals.md`).
+
 ## Strictness check
 
 Measures every built rule on the same seeded random boards and prints its strictness (average share of empty cells
@@ -90,10 +94,14 @@ cd web-test; npm ci; npx playwright install; npx playwright test
 
 Every pull request and every push to `master` runs:
 
-- `test`: import step, GUT suite, harness with `--matches 20 --seed 1`.
+- `test`: import step, GUT suite, harness with `--matches 20 --seed 1`, and a 6-match smoke run of each built AI
+  level pairing (`--levels normal,easy`).
 - `web`, after `test`: stamps `config/version` with `+<short sha>`, exports Web and runs the web tests in all four
   browsers. A failure uploads the Playwright report as an artifact.
 - `deploy`, on `master` only, after `web`: `butler push build/web <ITCH_GAME>:html5` with the build `web` tested.
+
+`.github/workflows/ai-gates.yml` runs the AI level gates nightly and on demand (Actions tab, "AI gates", with a match
+count): 1000 seeded matches per pairing, Normal beating Easy in at least 65% of decided matches.
 
 Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
 API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.

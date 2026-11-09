@@ -392,7 +392,8 @@ most 5 legal-cell checks per new opponent event, a colour pick 20 sweeps, a plac
 ### How to reproduce
 
 - Mirror stats: `godot --headless --path . -s harness/run_harness.gd -- --matches 200 --seed 1`, after the import
-  step.
+  step. Level match-ups: add `--levels normal,easy` (seats swapped every other match; the summary's "Level wins"
+  line), and `--gate 0.65` to fail below a share.
 - Head-to-head and calibration: a scratch `extends SceneTree` script in the project (see [Debugging](#debugging))
   that plays seeded matches with `Harness.play_out`, building one seat with `AIController.for_level(NORMAL, rng)` and
   the other with `AIController.new(rng, GuessPolicy.new(), ColourPickStrategy.new(), OpponentModel.new())`. For
@@ -450,7 +451,9 @@ Before merging a change to `ai/`:
 5. If the soft model or a parameter changed: the calibration table re-measured.
 6. Decision time per AI move still well under 50 ms on desktop (Hard's search has its own budget).
 7. This document, the technical design's AI section and, if levels change, the GDD's level table updated.
-8. Once the level gates exist (#24): Hard beats Normal ≥ 60%, Normal beats Easy ≥ 65% over 1000+ seeded matches.
+8. The level gates hold over 1000 seeded matches (the nightly "AI gates" workflow, or locally
+   `godot --headless --path . -s harness/run_harness.gd -- --matches 1000 --seed 1 --levels normal,easy --gate 0.65`):
+   Normal beats Easy ≥ 65%; once Hard exists, Hard beats Normal ≥ 60%.
 
 ## Tests
 
@@ -481,3 +484,4 @@ Before merging a change to `ai/`:
 | #21 | Placement is a `PlacementStrategy`; Normal places by `HidingPlacement` (believable rules only, then room); the exposure belief is updated every decision |
 | #23 | The controller chooses its pause (`Controller.pause_seconds`), after its decision; the AI's grows with how close the decision was |
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
+| #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |

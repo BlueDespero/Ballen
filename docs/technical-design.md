@@ -374,16 +374,20 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 
 | Class (`harness/`) | Does |
 | --- | --- |
-| `Harness` | `play(book, seed)`: one match between two default `AIController`s, each with a deck drawn at random from the built rules (`Deck.draw`) and a random secret rule; the coin toss picks the first player. `run(book, n, seed)` plays n matches, match i seeded `match_seed(seed, i)`, so any match can be replayed alone |
-| `MatchRecord` | What a match leaves: each player's secret rule (read from their own view), first player, result, turns played (placements and skips) and skips per player |
+| `Harness` | `play(book, seed, levels)`: one match between two AIs of these levels (default Normal and Normal), each with a deck drawn at random from the built rules (`Deck.draw`) and a random secret rule; the coin toss picks the first player. `run(book, n, seed, levels)` plays n matches, match i seeded `match_seed(seed, i)`, so any match can be replayed alone, the levels' seats swapped every other match |
+| `MatchRecord` | What a match leaves: each player's secret rule (read from their own view), first player, result, turns played (placements and skips), skips and AI level per player |
 | `HarnessStats` | The numbers over finished matches, and `summary()`, the text the script prints |
-| `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1) |
+| `run_harness.gd` | Command-line entry (`extends SceneTree`): parses `--matches` and `--seed` (defaults 100 and 1), `--levels` and `--gate` |
 | `StrictnessCheck`, `run_strictness.gd` | The strictness check and its command-line entry (`--boards`, `--seed`; defaults 2000 and 1); see "Strictness check" |
 
 - The summary: matches finished out of matches played; first player's wins, losses and draws; how
   matches ended (right guess, wrong guess, third skip, forced guesses); average turns per match; and per
   secret rule, how often it was held, its holders' skip rate, win rate and wins / losses / draws.
 - `Harness.play_out` is its own synchronous loop, not `MatchDriver`: no pauses, no signals, no awaits.
+- Levels: `--levels a,b` (built levels by title) pits two AI levels, swapping their seats every other match;
+  `MatchRecord.levels` keeps which level played each seat, and `HarnessStats.level_wins` / `level_win_share`
+  (over decided matches) feed a "Level wins" summary line. `--gate s` fails the run unless the first level's share
+  reaches s. CI smoke-runs each pairing; `ai-gates.yml` runs the gates (1000 matches) nightly.
 - Unfinished-match guard: the loop gives up on a match if an AI returns no command, the match rejects
   a command, or the match runs past `Harness.MAX_COMMANDS` (500) commands. A given-up match counts as
   played but not finished, and the script exits with code 1 if any match didn't finish (or an argument
