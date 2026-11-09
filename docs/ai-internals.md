@@ -257,8 +257,26 @@ opponent's rules and a softmax over which fake to break when one must break (Har
 
 ## Pauses and the driver
 
-- **In the scene:** `MatchDriver` waits a random `MIN_PAUSE`–`MAX_PAUSE` (0.5–1.5 s) before each AI command, and holds
-  the match while a skip is shown. The pause carries no information yet; #23 makes it scale with the decision.
+- **In the scene:** after the AI decides, `MatchDriver` waits `controller.pause_seconds(rng)` before the command
+  lands (with the driver's own RNG, so the AI's choices stay independent of it), and holds the match while a skip is
+  shown. `Controller`'s default is a random 0.5–1.5 s.
+- **The AI's pause** (`AIController.pause_seconds`) honestly tells how close its last decision was (GDD "Thinking
+  time"):
+
+  ```
+  pause = lerp(0.5, 2.5, action closeness)                    colour pick or placement
+        = max(that, lerp(0.5, 5.0, guess closeness))          if it weighed a guess
+        ± 0.15 s wobble, clamped to 0.5–5 s
+  ```
+
+  - Colour closeness (`ColourPickStrategy.closeness`): runner-up score ÷ best score, 0 when the best is below 0.05
+    (nothing to weigh, e.g. the empty board).
+  - Placement closeness: a fixed 0.2 (routine), about 0.9 s.
+  - Guess closeness (`GuessPolicy.last_closeness`): 1 − |p_top − threshold| ÷ 0.3, clamped; a guess made or held back
+    right at the threshold pauses up to 5 s.
+
+  On Easy and Normal this is a tell an attentive player can read (a long pause means unsure); Hard will add jitter so
+  it carries none.
 - **In tests and the harness:** no pause. `Harness.play_out` asks the awaited players in turn and gives up (returns
   false) on a `null` command, a rejected command, or after `MAX_COMMANDS` (500).
 
@@ -274,7 +292,11 @@ opponent's rules and a softmax over which fake to break when one must break (Har
 | `HidingPlacement` worst-colour room | `ai/hiding_placement.gd` | min over 4 colours | Tiebreak only; a skip costs a pip whatever the colour |
 | `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
-| `MatchDriver.MIN_PAUSE` / `MAX_PAUSE` | `model/match_driver.gd` | 0.5 / 1.5 s | Milestone 1 |
+| `Controller.MIN_PAUSE` / `MAX_PAUSE` | `model/controller.gd` | 0.5 / 1.5 s | Default pause (milestone 1) |
+| `AIController.SHORTEST_PAUSE` / `ROUTINE_PAUSE` / `LONGEST_PAUSE` | `ai/ai_controller.gd` | 0.5 / 2.5 / 5.0 s | GDD: up to 5 s, longer on harder choices |
+| `AIController.PLACEMENT_CLOSENESS`, `PAUSE_WOBBLE` | same | 0.2, ±0.15 s | Placements are routine; a little natural variation |
+| `GuessPolicy.CLEAR_MARGIN` | `ai/guess_policy.gd` | 0.3 | A top rule 0.3 from the threshold is a clear call |
+| `ColourPickStrategy.WORTH_WEIGHING` | `ai/colour_pick_strategy.gd` | 0.05 | Below this best score there is nothing to weigh |
 
 Change a parameter only with a measurement: re-run the relevant measurement below and record the before and after
 numbers in the PR and here.
@@ -417,6 +439,8 @@ Before merging a change to `ai/`:
 | `test/ai/test_ai_colour_pick.gd` | The base colour scores and the swappable strategy |
 | `test/ai/test_information_colour_pick.gd` | A colour all rules treat alike is worth 0; the telling colour is picked; the skip bonus grows with the opponent's skips; a ruled-out rule no longer counts |
 | `test/ai/test_ai_placement.gd` | Placement on max-k legal cells (through the controller) |
+| `test/ai/test_ai_pause.gd` | A clear decision pauses briefly; a guess held back at its threshold pauses longer than any routine move; pauses stay within 0.5–5 s |
+| `test/model/test_match_driver.gd` | The driver asks each paused controller for its pause after deciding; skip displays |
 | `test/ai/test_hiding_placement.gd` | Hides off cells a believable fake forbids; once that fake is ruled out its cells are free again; `room_after` takes the worst colour; ties go to the most room |
 | `test/ai/test_ai_controller.gd` | Seeded determinism; two AIs playing a full scenario in code |
 | `test/harness/*` | Harness determinism and stats |
@@ -429,3 +453,4 @@ Before merging a change to `ai/`:
 | #93 (#19) | `Belief` with soft evidence (`OpponentModel`, `HiderModel`, lapse, temper); exposure; `DangerGuessPolicy`; forced guess names the top rule; `AIController.for_level`; `Deduction.candidates_for` |
 | #20 | Colour strategies take the belief; Normal picks by `InformationColourPick` (expected information gain plus skip bonus) |
 | #21 | Placement is a `PlacementStrategy`; Normal places by `HidingPlacement` (believable rules only, then room); the exposure belief is updated every decision |
+| #23 | The controller chooses its pause (`Controller.pause_seconds`), after its decision; the AI's grows with how close the decision was |

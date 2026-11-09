@@ -336,8 +336,10 @@ harness use it); `normal_model()` is Normal's model of the player.
 | `HidingPlacement` (`ai/hiding_placement.gd`) | Where to place its own ball (Normal's) | Among its legal cells, those that satisfy the most of its own rules the opponent can still believe (its exposure), then the one leaving the most room for its next ball in the worst colour; ties at random. Its base `PlacementStrategy` counts all 5 rules |
 | Forced guess (`AIController`) | Its sealed guess on a full board | The belief's top rule, ties at random |
 
-The thinking pause is the scene's: `MatchDriver` waits a random 0.5–1.5 s before each AI command. Tests
-and the harness play AIs with no pause.
+The thinking pause: after an AI decides, `MatchDriver` waits `controller.pause_seconds(rng)` before the command
+lands. The AI's grows with how close the decision was: 0.5–2.5 s for a colour pick (runner-up close to the best) or a
+placement (routine), up to 5 s when it weighed a guess near its threshold, ±0.15 s. Tests and the harness play AIs
+with no pause.
 
 ### Later levels
 
@@ -356,7 +358,7 @@ Planned implementation notes:
 
 - Easy and Normal use heuristics plus at most one-step lookahead (well under a frame).
 - Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
-- AI thinking pause: up to 5 s, scaled with decision difficulty; Hard adds random jitter so pauses carry no information.
+- AI thinking pause: Hard adds random jitter so its pauses carry no information.
 
 ## AI-vs-AI harness
 
