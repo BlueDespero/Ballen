@@ -314,8 +314,9 @@ Why these numbers:
 
 ## AI opponent
 
-The AI's design (belief updating, colour picks as information probes, when to guess, hiding,
-difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
+How the AI works as built, with its parameters, measurements and debugging recipes, is in
+[ai-internals.md](ai-internals.md). The AI's design (belief updating, colour picks as information probes, when to
+guess, hiding, difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
 and summarised in the README's "How the AI thinks".
 
 ### As built (Normal, #19)
