@@ -67,3 +67,27 @@ func test_an_armed_button_gives_up_waiting_for_confirm() -> void:
 	assert_true(button.armed, "still waiting halfway")
 	button._process(GuessButton.CONFIRM_SECONDS / 2.0)
 	assert_false(button.armed)
+
+
+func test_an_available_button_reports_a_press_as_blocked() -> void:
+	var button: GuessButton = _button(false)
+	button.enabled = false
+	button.available = true
+	_tap(button)
+	assert_signal_emit_count(button, "blocked", 1)
+	assert_eq(button.progress, 0.0, "no hold starts")
+
+
+func test_an_available_button_is_outlined_not_dimmed() -> void:
+	var button: GuessButton = _button(false)
+	button.enabled = false
+	assert_almost_eq(button.modulate.a, 0.35, 0.001, "dimmed while guessing is closed")
+	button.available = true
+	assert_eq(button.modulate.a, 1.0, "full strength while a guess could be made")
+
+
+func test_an_enabled_button_never_reports_blocked() -> void:
+	var button: GuessButton = _button(false)
+	button.available = true
+	_tap(button)
+	assert_signal_not_emitted(button, "blocked")

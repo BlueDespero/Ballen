@@ -8,6 +8,10 @@ extends PanelContainer
 ## without holding" setting). Two small buttons, ✗ and ?, at the right end of
 ## each AI rule keep the player's private note mark on it. On a full board,
 ## holding Seal beside Guess makes the player's sealed forced guess instead.
+## While a guess could be made, Guess stays outlined until a rule is selected,
+## so it reads as the second option beside placing; pressing it then asks for a
+## rule first. A face-down card by the AI's title stands for its secret rule,
+## and turns over to show it once the match is over.
 
 ## The player held Guess to the end with one of the AI's rules selected.
 signal guess_requested(rule_id: String)
@@ -108,11 +112,14 @@ var _ai_secret_rule_id: String = ""
 @onready var _mark_hint_cross: Control = %MarkHint/Cross
 @onready var _ai_skip_pips: HBoxContainer = %AISkipPips
 @onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
+@onready var _secret_card: Label = %SecretCard
 
 
 func _ready() -> void:
 	_guess_button.guessed.connect(_on_guessed)
 	_seal_button.guessed.connect(_on_sealed)
+	_guess_button.blocked.connect(_on_blocked)
+	_seal_button.blocked.connect(_on_blocked)
 	_guess_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
 	_mark_hint_text.add_theme_color_override("font_color", Palette.HINT_COLOUR)
 	_mark_hint_cross.draw.connect(_draw_hint_cross)
@@ -142,6 +149,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_secret_rule: Rule) -> v
 	_preview = player_secret_rule == null
 	_match_over = false
 	_ai_secret_rule_id = ""
+	_secret_card.text = "?"
 	_fill(_ai_rules, ai_deck, null)
 	_fill(_player_rules, player_deck, player_secret_rule)
 	_marks.clear()
@@ -269,6 +277,7 @@ func show_match_over(ai_secret_rule: Rule) -> void:
 		return
 	_match_over = true
 	_ai_secret_rule_id = ai_secret_rule.id
+	_secret_card.text = ai_secret_rule.id
 	guess_enabled = false
 	seal_enabled = false
 	_select("")
@@ -326,6 +335,13 @@ func _draw_suspect_edge(row: PanelContainer) -> void:
 	row.draw_style_box(edge, Rect2(Vector2.ZERO, row.size))
 
 
+## Guess or Seal pressed with no rule selected: the hint says what comes
+## first and flashes in the act-here colour.
+func _on_blocked() -> void:
+	_guess_hint.text = "Tap one of the AI's rules first."
+	Attention.pulse(self, _guess_hint, "self_modulate", BoardView.GLOW_COLOUR * 1.4, Color.WHITE)
+
+
 func _on_guessed() -> void:
 	if guess_enabled and selected_rule_id != "":
 		guess_requested.emit(selected_rule_id)
@@ -342,8 +358,10 @@ func _update_guess() -> void:
 	if not is_node_ready():
 		return
 	_guess_button.enabled = guess_enabled and selected_rule_id != ""
+	_guess_button.available = guess_enabled and selected_rule_id == ""
 	_guess_button.visible = not _match_over and (guess_enabled or not board_full)
 	_seal_button.enabled = seal_enabled and selected_rule_id != ""
+	_seal_button.available = seal_enabled and selected_rule_id == ""
 	_seal_button.visible = not _match_over and board_full and seal_enabled
 	if _match_over:
 		_guess_hint.text = "Match over. The AI's secret rule is marked."

@@ -282,23 +282,50 @@ msgstr "Zaczynasz."
 msgid "The AI goes first."
 msgstr "Zaczyna komputer."
 
-msgid "You go first. The AI is picking your first colour…"
-msgstr "Zaczynasz. Komputer wybiera Twój pierwszy kolor…"
+msgid "The AI is picking your first colour…"
+msgstr "Komputer wybiera Twój pierwszy kolor…"
+
+msgid "Pick the AI's first colour."
+msgstr "Wybierz pierwszy kolor dla komputera."
 
 msgid "The AI is thinking…"
 msgstr "Komputer myśli…"
 
-msgid "Your turn. Drag your ball onto a glowing cell."
-msgstr "Twoja tura. Przeciągnij kulę na świecące pole."
+msgid "Place your ball."
+msgstr "Połóż swoją kulę."
+
+msgid "Drag it onto a glowing cell. Or select one of the AI's rules and guess it."
+msgstr "Przeciągnij ją na świecące pole. Albo zaznacz jedną z reguł komputera i wytypuj ją."
+
+msgid "Drag it onto a glowing cell."
+msgstr "Przeciągnij ją na świecące pole."
+
+msgid "That ends your turn. You can still guess first."
+msgstr "To kończy Twoją turę. Najpierw możesz jeszcze typować."
 
 msgid "That ends your turn."
 msgstr "To kończy Twoją turę."
 
-msgid "You had no legal cell for %s, so your ball was skipped. %s"
-msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta. %s"
+msgid "You had no legal cell for %s, so your ball was skipped."
+msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta."
 
-msgid "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…"
-msgstr "Kula komputera (%s) nie miała dozwolonego pola, więc została pominięta. Komputer myśli…"
+msgid "The AI had no legal cell for %s, so its ball was skipped."
+msgstr "Kula komputera (%s) nie miała dozwolonego pola, więc została pominięta."
+
+msgid "Guess or seal."
+msgstr "Typuj albo zatwierdź."
+
+msgid "Seal your guess."
+msgstr "Zatwierdź swój typ."
+
+msgid "Guess sealed."
+msgstr "Typ zatwierdzony."
+
+msgid "The AI is guessing…"
+msgstr "Komputer typuje…"
+
+msgid "A past board."
+msgstr "Dawna plansza."
 
 msgid "The board is full. Guess the AI's secret rule now, or seal your forced guess until both are in."
 msgstr "Plansza jest pełna. Wytypuj teraz tajną regułę komputera albo zatwierdź obowiązkowy typ, aż oba typy będą gotowe."
@@ -379,6 +406,12 @@ msgstr "Plansza jest pełna. Oba obowiązkowe typy zostaną odkryte jednocześni
 
 msgid "You can guess at the start of your turn and until your colour pick."
 msgstr "Możesz typować od początku swojej tury aż do wyboru koloru."
+
+msgid "Tap one of the AI's rules first."
+msgstr "Najpierw stuknij jedną z reguł komputera."
+
+msgid "The AI's secret rule: one of these 5. Name it to win."
+msgstr "Tajna reguła komputera: jedna z tych 5. Wytypuj ją, aby wygrać."
 
 msgid "Select the rule you think is the AI's secret rule."
 msgstr "Zaznacz regułę, którą uważasz za tajną regułę komputera."

@@ -25,8 +25,6 @@ const AI_FLY_SECONDS: float = 0.3
 const SKIP_HOLD_SECONDS: float = 1.5
 const SKIP_DISSOLVE_SECONDS: float = 0.8
 const MAIN_MENU_SCENE: String = "res://main.tscn"
-## On the status line whenever the player's colour pick is due.
-const PICK_PROMPT: String = "Pick the AI's next colour."
 ## The waiting balls fade to this while a past board is on show.
 const PAUSED_BALL_ALPHA: float = 0.35
 
@@ -37,7 +35,9 @@ const PAUSED_BALL_ALPHA: float = 0.35
 @onready var _ai_skip_note: Label = %AISkipNote
 @onready var _picker: ColourPicker = %ColourPicker
 @onready var _rules_panel: RulesPanel = %RulesPanel
+## The prompt beside the board, and its detail line under it (TurnPrompt).
 @onready var _status: Label = %Status
+@onready var _status_detail: Label = %StatusDetail
 @onready var _setup_screen: MatchSetupScreen = %MatchSetup
 @onready var _match_end: MatchEndOverlay = %MatchEnd
 @onready var _history_nav: HistoryNav = %HistoryNav
@@ -56,6 +56,9 @@ var _shown_events: int = 0
 ## The history view's state; it holds the player's view as last drawn, and is
 ## busy while a run of _on_match_changed shows new events.
 var _history: HistoryBrowser = HistoryBrowser.new()
+## The act-here cue: on the player's ball while they place, on the colour
+## picker while their pick is due, nowhere otherwise.
+var _cue: Attention = Attention.new()
 
 
 func _ready() -> void:
@@ -73,6 +76,7 @@ func _ready() -> void:
 	_history_nav.back_pressed.connect(_step_back)
 	_history_nav.live_pressed.connect(_go_live)
 	_history_nav.forward_pressed.connect(_step_forward)
+	add_child(_cue)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
 	_show_setup()
@@ -95,6 +99,7 @@ func _apply_settings() -> void:
 	_player_ball.reduced_motion = Settings.reduced_motion
 	_ai_ball.reduced_motion = Settings.reduced_motion
 	_picker.reduced_motion = Settings.reduced_motion
+	_cue.reduced_motion = Settings.reduced_motion
 	_rules_panel.guess_without_holding = Settings.guess_without_holding
 	_rules_panel.text_scale = Settings.text_scale()
 	_setup_screen.text_scale = Settings.text_scale()
@@ -117,7 +122,7 @@ func _show_setup() -> void:
 		_setup_screen.show_setup(DeckStore.new(_book))
 	else:
 		_setup_screen.show_rematch()
-	_status.text = ""
+	_show_status(TurnPrompt.new())
 	_history.reset()
 	_update_history_nav()
 
@@ -139,7 +144,7 @@ func _on_start_requested(deck: Deck, level: AILevel.Level, secret_rule: Rule) ->
 	_rules_panel.show_decks(view.decks[AI], view.decks[HUMAN], view.own_secret_rule)
 	_board_view.show_board(view.position.board, [], HUMAN, view.position.first_player)
 	var player_goes_first: bool = view.position.first_player == HUMAN
-	_status.text = "You go first." if player_goes_first else "The AI goes first."
+	_show_status(TurnPrompt.new("You go first." if player_goes_first else "The AI goes first."))
 	await _setup_screen.show_coin_toss(player_goes_first, is_rematch)
 	var controllers: Array[Controller] = [_human, AIController.new(_rng)]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
@@ -226,7 +231,8 @@ func _show_skip(skip: HistoryEntry) -> void:
 	_picker.enabled = false
 	_rules_panel.guess_enabled = false
 	_rules_panel.seal_enabled = false
-	_status.text = ""
+	_show_status(TurnPrompt.new())
+	_cue.target = null
 	var ball: BallView = _waiting_ball(skip.player)
 	var note: Label = _player_skip_note if skip.player == HUMAN else _ai_skip_note
 	note.modulate.a = 1.0
@@ -329,7 +335,8 @@ func _show_past_turn() -> void:
 		owner_ball.colour = event.colour
 		owner_ball.modulate.a = 1.0
 	_rules_panel.show_skips(past.skips[AI], past.skips[HUMAN])
-	_status.text = _history.past_turn_text()
+	_show_status(TurnPrompt.new("A past board.", _history.past_turn_text()))
+	_cue.target = null
 
 
 ## The live board and everything around it, from the player's view.
@@ -344,55 +351,19 @@ func _show_live_match(view: PublicView) -> void:
 	_ai_ball.reset()
 	_ai_ball.colour = view.position.colour if ai_placement else ""
 	_rules_panel.show_skips(view.position.skips[AI], view.position.skips[HUMAN])
-	_status.text = _status_text(view)
+	_show_status(TurnPrompt.for_view(view))
+	if my_placement:
+		_cue.target = _player_ball
+	elif view.colour_pick_due():
+		_cue.target = _picker
+	else:
+		_cue.target = null
 	if view.phase == Match.Phase.OVER:
 		_rules_panel.show_match_over(view.revealed_secret_rules[AI])
 		_match_end.show_summary(MatchEndSummary.from_view(view))
 
 
-## What to do now; empty once the match is over (the match-end screen says how
-## it went).
-func _status_text(view: PublicView) -> String:
-	if view.phase == Match.Phase.OVER:
-		return ""
-	if view.phase == Match.Phase.FORCED_GUESS:
-		return _forced_guess_text(view)
-	var skip: HistoryEntry = _skip_this_turn(view)
-	if skip != null:
-		if skip.player == HUMAN:
-			return tr("You had no legal cell for %s, so your ball was skipped. %s") % [BallColour.word(skip.colour), tr(PICK_PROMPT)]
-		return tr("The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…") % BallColour.word(skip.colour)
-	if view.current_player == AI:
-		if view.phase == Match.Phase.FIRST_COLOUR:
-			return "You go first. The AI is picking your first colour…"
-		return "The AI is thinking…"
-	match view.phase:
-		Match.Phase.FIRST_COLOUR:
-			return tr("The AI goes first.") + " " + tr(PICK_PROMPT)
-		Match.Phase.PLACE:
-			return "Your turn. Drag your ball onto a glowing cell."
-		Match.Phase.PICK_COLOUR:
-			return tr(PICK_PROMPT) + " " + tr("That ends your turn.")
-	return ""
-
-
-## The current player's skip, if their turn started with one; null otherwise.
-func _skip_this_turn(view: PublicView) -> HistoryEntry:
-	var history: Array[HistoryEntry] = view.position.history
-	if view.phase != Match.Phase.PICK_COLOUR or history.is_empty():
-		return null
-	var last: HistoryEntry = history[-1]
-	if last.type == HistoryEntry.Type.SKIP and last.player == view.current_player:
-		return last
-	return null
-
-
-## The board is full: whose forced guess is due. A sealed guess is never shown.
-func _forced_guess_text(view: PublicView) -> String:
-	if view.forced_guess_due() and view.can_guess():
-		return "The board is full. Guess the AI's secret rule now, or seal your forced guess until both are in."
-	if view.forced_guess_due():
-		return "The board is full. Name the AI's secret rule: it stays sealed until both guesses are in."
-	if view.current_player == HUMAN:
-		return "The board is full and your forced guess is sealed. The AI is guessing…"
-	return "The board is full. The AI is making its forced guess…"
+## The prompt beside the board and its detail line.
+func _show_status(turn_prompt: TurnPrompt) -> void:
+	_status.text = turn_prompt.prompt
+	_status_detail.text = turn_prompt.detail

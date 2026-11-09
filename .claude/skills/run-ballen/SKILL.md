@@ -36,7 +36,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,345 wait:60 click:296,431 wait:5 click:461,651 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
-Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
+Prints `Layout/Status.text = Pick the AI's next colour.` and writes
 `.claude/skills/run-ballen/out/turn.png` (gitignored). Exit code 0; 1 on an unknown command.
 
 | command | what it does |
@@ -159,8 +159,8 @@ layout and centres it, so these coordinates no longer hold.
   board) shows the latest turn with a placement or skip, then earlier ones; ▶ past the latest returns to
   live. A past board rings that turn's ball (a skipped ball shows at its owner's waiting spot), fades
   the waiting balls, shows no glow, sets `Layout/PlayerBall:draggable` false and the skip pips as they
-  were; `Layout/Status` reads `Turn 3 of 4: you placed blue. …` / `…the AI had no legal cell for blue,
-  so the ball was skipped. …`. Only your own actions return to live: pressing your ball (the press
+  were; `Layout/Status` reads `A past board.` and `Layout/StatusDetail` `Turn 3 of 4: you placed blue. …` /
+  `…the AI had no legal cell for blue, so the ball was skipped. …`. Only your own actions return to live: pressing your ball (the press
   then drags), a colour pick, Guess or Seal (these stay enabled as in the live match), Live, or ▶ past
   the latest turn. When the AI plays meanwhile the past board stays (its `of N` count grows) and Live
   lights up yellow and pulses (`get:Layout/HistoryNav:live_lit` true) until you return; the match
@@ -172,8 +172,14 @@ layout and centres it, so these coordinates no longer hold.
   `visible` while shown), stays 1.5 s, then shrinks and fades with the note over 0.8 s; the skip pips
   fill after it. Meanwhile `Layout/Status` is empty, input is off and the match waits (no AI action):
   gate on `until:Layout/PlayerSkipNote:visible=false` before picking after your skip.
-- `Layout/Status` (left column) says whose turn it is and what to do, and names a skipped colour
-  (`You had no legal cell for red, so your ball was skipped. …`); read it with `get`.
+- `Layout/Status` (left column, large) is the prompt: what to do now or whose turn it is (`Place your ball.`,
+  `Pick the AI's next colour.`, `The AI is thinking…`); `Layout/StatusDetail` under it says why, names a
+  skipped colour (`You had no legal cell for red, so your ball was skipped.`) and names guessing as the
+  other option while it is open. Read them with `get`. The gold act-here outline (an `Attention` child of
+  the scene) sits on your ball while you place and on the colour picker while your pick is due.
+- The AI's title row has a face-down card reading `?` (`…/AIHeader/SecretCard`) for its secret rule; at
+  match end it shows the rule's id. Guess is outlined while you could guess but have no rule selected:
+  pressing it then shows `Tap one of the AI's rules first.` in the hint beside it and starts nothing.
 - Rules panel: `Layout/RulesPanel`, x 744–1264. The AI's rules on top (row centres y=94, 142, 190,
   238, 286; click x≈1000 to select one, again to clear; `get:Layout/RulesPanel:selected_rule_id`;
   two note mark buttons at the right end of each row, ✗ "Rule out" x≈1180 and ? "Suspect" x≈1218
@@ -211,8 +217,8 @@ layout and centres it, so these coordinates no longer hold.
   A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
   `The AI skipped for the third time.`
 - Full board: the placement that fills it brings no colour pick. When your forced guess is due,
-  `Layout/RulesPanel:seal_enabled` is true, the Seal button shows and `Layout/Status` starts
-  `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
+  `Layout/RulesPanel:seal_enabled` is true, the Seal button shows, `Layout/Status` reads
+  `Guess or seal.` or `Seal your guess.` and `Layout/StatusDetail` starts `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
   stays too (`guess_enabled` true; right wins, wrong loses) and Seal sits left of it, centre
   (1022,347), Guess (1173,347); otherwise Seal alone takes Guess's place, centre (1188,344). The note
   marks hint is hidden while the board is full (so the y values without it hold), which keeps the
