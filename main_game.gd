@@ -33,7 +33,11 @@ const MAIN_MENU_SCENE: String = "res://main.tscn"
 const PICK_PROMPT: String = "Pick the AI's next colour."
 ## The waiting balls fade to this while a past board is on show.
 const PAUSED_BALL_ALPHA: float = 0.35
+## The layout's built size; it shrinks to fit a smaller screen (one inset
+## for a camera cutout), centred.
+const LAYOUT_SIZE: Vector2 = Vector2(1280, 720)
 
+@onready var _layout: Control = $Layout
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
 @onready var _ai_ball: BallView = %AIBall
@@ -81,6 +85,8 @@ func _ready() -> void:
 	_leave_dialog.leave_confirmed.connect(_on_main_menu_requested)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
+	resized.connect(_fit_layout)
+	_fit_layout()
 	_show_setup()
 
 
@@ -88,6 +94,16 @@ func _exit_tree() -> void:
 	if _driver != null:
 		_driver.stop()
 	_human.choose(null)
+
+
+## How much the layout shrinks to fit a screen of this size: never grows.
+static func layout_scale(screen_size: Vector2) -> float:
+	return minf(1.0, minf(screen_size.x / LAYOUT_SIZE.x, screen_size.y / LAYOUT_SIZE.y))
+
+
+func _fit_layout() -> void:
+	_layout.pivot_offset = LAYOUT_SIZE / 2.0
+	_layout.scale = Vector2.ONE * layout_scale(size)
 
 
 ## Passes the player's settings (the Settings autoload) on to the views.

@@ -57,3 +57,22 @@ func test_every_scene_root_fills_the_screen() -> void:
 		assert_eq([scene.anchor_left, scene.anchor_top, scene.anchor_right, scene.anchor_bottom],
 			[0.0, 0.0, 1.0, 1.0], path)
 		scene.free()
+
+
+# The match layout is built for 1280 × 720; a screen inset for a cutout can be
+# narrower, and the layout shrinks to fit it rather than run under the cutout.
+func test_the_match_layout_shrinks_to_fit_but_never_grows() -> void:
+	var game: GDScript = preload("res://main_game.gd")
+	assert_eq(game.layout_scale(Vector2(1600, 720)), 1.0, "a wide phone")
+	assert_eq(game.layout_scale(Vector2(1280, 720)), 1.0, "16:9")
+	assert_almost_eq(game.layout_scale(Vector2(1200, 720)), 0.9375, 0.0001, "16:9 inset by 80")
+	assert_almost_eq(game.layout_scale(Vector2(1280, 640)), 0.8889, 0.0001, "shorter than built")
+
+
+func test_the_match_scene_fits_its_layout_to_its_size() -> void:
+	var game: Control = add_child_autofree((load("res://main_game.tscn") as PackedScene).instantiate())
+	game.offset_left = 80.0
+	await wait_process_frames(2)
+	var layout: Control = game.get_node("Layout")
+	assert_almost_eq(layout.scale.x, game.layout_scale(game.size), 0.0001)
+	assert_lt(layout.scale.x, 1.0, "narrower than built")
