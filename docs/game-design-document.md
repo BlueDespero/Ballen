@@ -171,6 +171,8 @@ New players are never forced through the tutorial: How to Play glows until first
 
 **Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board fills the main area, with your side at the bottom and the opponent's at the top; each player's ball waits on their side of the board. One rules panel on the right holds the opponent's rules on top and yours below. A portrait layout, with rules above and below the board, comes in a later release for phones; until then, a phone held upright shows a "Rotate your device" card (`RotateHint`).
 
+**Back button (Android):** back steps back a screen, as Escape does on desktop. During a match it asks "Leave this match?": yes goes to the main menu and records nothing (no result, no reward); no, or back again, returns to the match. On the match-end screen back goes to the main menu, and on the main menu it closes the app.
+
 **Feedback:**
 
 - **Placing:** the ball snaps into its cell with a soft click.
