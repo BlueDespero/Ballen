@@ -48,7 +48,7 @@ test script that fails to load into exit code 1.
 ## AI-vs-AI harness
 
 Plays N matches between two AIs with random decks, headless and with no pauses, and prints balance numbers
-(results, end reasons, average turns, skip and win rate per true rule). Same seed, same output; exit code 1 if
+(results, end reasons, average turns, skip and win rate per secret rule). Same seed, same output; exit code 1 if
 any match didn't finish. From the repo root, after the import step above:
 
 ```powershell

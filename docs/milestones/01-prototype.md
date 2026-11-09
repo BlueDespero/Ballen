@@ -25,18 +25,18 @@ silently picking a side.
 Pure `RefCounted` classes that hold the whole match, so the AI, the UI and a future server share them:
 
 - 6 × 6 board; balls with a colour (yellow, blue, red, green) and an owner.
-- Each player: 5 rules, one marked true; skip count; the colour they must place next.
+- Each player: 5 rules, one marked secret; skip count; the colour they must place next.
 - Turn flow exactly as the turn-loop diagram in GDD section 2:
   1. Turn starts in the colour the opponent picked (the match's first colour is picked by the player
      going second; who starts is a coin toss).
   2. Optional guess **before** placing.
-  3. If any cell is legal under the player's true rule, they must place on one; otherwise the ball is
+  3. If any cell is legal under the player's secret rule, they must place on one; otherwise the ball is
      removed automatically and the player gains a skip (3 skips = loss).
   4. Optional guess **after** placing or skipping. Right guess wins, wrong guess loses.
   5. If the board is full, both players must guess: exactly one right wins, otherwise a draw.
   6. Pick the colour the opponent places next.
 - Move history: every placement, skip (with its colour) and guess, so a past board can be rebuilt.
-- A `PublicView` that exposes everything except the opponent's true rule. The AI receives only this.
+- A `PublicView` that exposes everything except the opponent's secret rule. The AI receives only this.
 
 ### 3. Rules engine
 
@@ -69,7 +69,7 @@ they can be added without rewriting the model.
 - Switch the project to landscape: 1280 × 720 base, stretch mode `canvas_items`, aspect `expand`.
 - The board in the main area, your side at the bottom and the AI's at the top, with small row numbers
   1–6 on its edge. Your waiting ball sits below the board, the AI's above it.
-- One rules panel on the right: the AI's 5 rules on top (with Guess), yours below (true one
+- One rules panel on the right: the AI's 5 rules on top (with Guess), yours below (secret one
   highlighted); skip pips by each player's rules.
 - Your legal cells glow for your whole turn; drag and drop with mouse (touch must also work); a drop on
   any other cell snaps back.
@@ -77,10 +77,10 @@ they can be added without rewriting the model.
 - Guess: select one of the opponent's rules, then press and hold Guess for about 1 s (a ring fills;
   release early to cancel). Available at the start of your turn and after placing or skipping only.
 - Skips: the ball visibly disappears and the skip counter updates.
-- Pre-match: you get a fixed starter deck for the prototype and tap one of its rules to make it true;
+- Pre-match: you get a fixed starter deck for the prototype and tap one of its rules to make it secret;
   the AI gets a fresh random 5-rule deck from the implemented rules for each new match. A rematch
-  keeps the AI's deck and draws a new true rule from it.
-- Match end: result (win, lose, draw), both true rules revealed, Rematch and Main menu buttons.
+  keeps the AI's deck and draws a new secret rule from it.
+- Match end: result (win, lose, draw), both secret rules revealed, Rematch and Main menu buttons.
 - Use the existing Kenney assets; art, audio and polish come later.
 
 ### 6. AI-vs-AI harness
@@ -99,7 +99,7 @@ layout. Don't build them; leave clean seams where they will attach.
 
 1. The GUT suite passes headless (exit code 0), covering: the turn flow including skips, both guess
    windows, the third-skip loss and the full-board forced guess; every implemented rule (legal and
-   illegal examples); hard elimination in the AI; `PublicView` never exposing the opponent's true rule.
+   illegal examples); hard elimination in the AI; `PublicView` never exposing the opponent's secret rule.
 2. The AI-vs-AI harness completes 100 matches with no errors; paste its summary into the PR.
 3. A full match against the AI is playable from the main menu's Single Player button, in landscape.
 4. `CLAUDE.md` lists the test and harness commands; the rules library and technical design reflect what

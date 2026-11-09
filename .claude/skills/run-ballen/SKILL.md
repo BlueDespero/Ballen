@@ -30,7 +30,7 @@ godot --headless --path . --import
 One process per script of commands; read the `[driver]` lines on stdout, look at the PNGs.
 
 ```powershell
-# Menu -> Single Player -> tap R03 to make it your true rule -> Start -> wait out the coin toss
+# Menu -> Single Player -> tap R03 to make it your secret rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
 godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,345 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
@@ -124,7 +124,7 @@ layout and centres it, so these coordinates no longer hold.
   note).
 - The match scene's nodes sit under `Layout` (a centred 1280×720 control).
 - Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
-  the scene opens; the rules panel beside it already shows the AI's deck and yours (no true rule
+  the scene opens; the rules panel beside it already shows the AI's deck and yours (no secret rule
   marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
   (x 48–688, y 30–690; with Larger text x 16–720, y 31–688) over the board backdrop
   (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
@@ -137,7 +137,7 @@ layout and centres it, so these coordinates no longer hold.
   Start (`Buttons/StartButton`, disabled until a rule is tapped) centre (461,648), Main menu centre
   (275,648). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /
   "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s (`wait:150` covers it), then
-  `Layout/MatchSetup:visible` turns false. The rules panel marks your true rule with the toss;
+  `Layout/MatchSetup:visible` turns false. The rules panel marks your secret rule with the toss;
   `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
   another deck, save one on the Decks screen first (back up `decks.json`, see above).
 - Board: `Layout/Board`, top-left (200,120), 80 px cells, the AI's side on top (y=0), yours at the
@@ -178,12 +178,12 @@ layout and centres it, so these coordinates no longer hold.
   struck through, a ? row gets a yellow left edge. `get:Layout/RulesPanel:marks` prints
   `{ "R10": 1, … }`, 0 none, 1 ✗ (`NoteMark.Mark.CROSS`), 2 ? (`QUESTION`); marks are kept at match
   end and cleared by a rematch), then the Guess slot (hint text and the Guess button, centre
-  (1173,344)), yours below (y≈454–646) with the true one highlighted. Three skip pips at the right of
+  (1173,344)), yours below (y≈454–646) with the secret one highlighted. Three skip pips at the right of
   each title (`%AISkipPips` y≈48, `%PlayerSkipPips` y≈408), filled red per skip. Rule text wraps
   instead of being cut off: a rule too wide for one line (R15, R16, R17, R22) is one font step
   smaller and takes two lines in a row of the usual height. With Larger text the panel packs tighter
   (rows 40 px, 2 px apart; more rules wrap, so more drop the step) and a rule that wraps makes its
-  row about 47 px (51 with TRUE beside it), so the y values shift with the decks: read
+  row about 47 px (51 with SECRET beside it), so the y values shift with the decks: read
   `get:Layout/RulesPanel/Sections/AIRules/<id>:global_position` (and `:size`) instead.
 - Note marks hint: until the player first taps a mark (`[hints] note_marks_seen` not true in
   `settings.cfg`, as with no file), a line under the AI's title (`…/Sections/MarkHint`, `visible`)
@@ -196,11 +196,11 @@ layout and centres it, so these coordinates no longer hold.
   your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
   60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. A guess ends
-  the match (the AI's true rule is random, so a guess is right about one time in five).
+  the match (the AI's secret rule is random, so a guess is right about one time in five).
 - Match end: `Layout/MatchEnd` (`visible` turns true) dims the layout and shows a card over the board;
-  the rules panel stays lit, marks the AI's true rule and says the match is over. Read
+  the rules panel stays lit, marks the AI's secret rule and says the match is over. Read
   `Layout/MatchEnd/Centre/Card/Content/Headline:text` (`You win`, `You lose`, `Draw`) and
-  `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's true rule.`);
+  `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's secret rule.`);
   `Layout/Status` is empty. Buttons: Rematch centre (271,540), Main menu centre (457,540); Main menu
   returns to `Main`. To guess the AI's first rule and go back to the menu:
   `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
@@ -248,7 +248,7 @@ godot --headless --path . --import *> $null; godot --headless --path . -s addons
   the mouse during a windowed run.
 - **`ss` under `--headless` used to hang forever**: nothing draws, so `frame_post_draw` never fires.
   The driver now refuses `ss` when headless; use a windowed run for screenshots.
-- **Every match is random**: the AI's deck and true rule, the coin toss, the AI's colours, cells and
+- **Every match is random**: the AI's deck and secret rule, the coin toss, the AI's colours, cells and
   pauses are unseeded (your deck is the one you pick). If you go second, the first thing the match waits
   for is your colour pick (`Layout/Status` says so), so `until:Layout/PlayerBall:draggable=true` times
   out; click a colour first. Clicking a disabled picker does nothing, so `wait:150 click:624,660` right
