@@ -42,10 +42,14 @@ var reduced_motion: bool = false:
 	set(value):
 		reduced_motion = value
 		_notify()
-## Guess and Seal fire on a tap and a Confirm tap instead of a hold.
-var guess_without_holding: bool = false:
+## Guess and Seal fire after a hold while a ring fills, like pulling a
+## trigger, instead of a tap and a confirmation. Off by default: playtesters
+## tapped, let go at once, and thought the button was broken. Replaces
+## guess_without_holding, whose saved value is dropped: tapping is now the
+## default either way.
+var hold_to_guess: bool = false:
 	set(value):
-		guess_without_holding = value
+		hold_to_guess = value
 		_notify()
 ## Bigger text in the rules panel and the menus.
 var larger_text: bool = false:
@@ -87,7 +91,7 @@ func load_settings() -> void:
 	volume = _read(file, AUDIO, "volume", DEFAULT_VOLUME)
 	colour_blind_symbols = _read(file, ACCESSIBILITY, "colour_blind_symbols", false)
 	reduced_motion = _read(file, ACCESSIBILITY, "reduced_motion", false)
-	guess_without_holding = _read(file, ACCESSIBILITY, "guess_without_holding", false)
+	hold_to_guess = _read(file, ACCESSIBILITY, "hold_to_guess", false)
 	larger_text = _read(file, ACCESSIBILITY, "larger_text", false)
 	note_marks_seen = _read(file, HINTS, "note_marks_seen", false)
 	language = _read(file, GENERAL, "language", ENGLISH)
@@ -115,7 +119,7 @@ func save_settings() -> Error:
 	file.set_value(AUDIO, "volume", volume)
 	file.set_value(ACCESSIBILITY, "colour_blind_symbols", colour_blind_symbols)
 	file.set_value(ACCESSIBILITY, "reduced_motion", reduced_motion)
-	file.set_value(ACCESSIBILITY, "guess_without_holding", guess_without_holding)
+	file.set_value(ACCESSIBILITY, "hold_to_guess", hold_to_guess)
 	file.set_value(ACCESSIBILITY, "larger_text", larger_text)
 	file.set_value(HINTS, "note_marks_seen", note_marks_seen)
 	file.set_value(GENERAL, "language", language)

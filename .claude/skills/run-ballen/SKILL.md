@@ -101,7 +101,7 @@ layout and centres it, so these coordinates no longer hold.
   and restore it (or delete it if there was none) afterwards.
 - Settings screen (Options; scene `Settings`, `gui/menus/settings_menu.tscn`): a centred card,
   nodes under `Centre/Card/Content`: `VolumeRow/Volume` (slider, x 600–860, y 141–185), switches
-  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈346), `GuessWithoutHolding` (y≈449), `LargerText`
+  `ColourBlindSymbols` (y≈243), `ReducedMotion` (y≈346), `HoldToGuess` (y≈449), `LargerText`
   (y≈529); click x≈500 on the row. Switches, slider and the Credits links are 44 px tall, like
   every button. Credits (702,609), Back (858,609). Every change is saved to
   `user://settings.cfg` at once (`%APPDATA%\Godot\app_userdata\Ballen\settings.cfg`); Back or Escape
@@ -117,8 +117,8 @@ layout and centres it, so these coordinates no longer hold.
   `[IO.File]::WriteAllText($cfg, "[accessibility]`n`nreduced_motion=true`n")`; `Set-Content -Encoding
   utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
   the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
-  `guess_without_holding`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). With guess without holding, a click on Guess arms it
-  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses. Larger text packs the rules
+  `hold_to_guess`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). By default a click on Guess arms it
+  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses; with `hold_to_guess=true` you hold it instead. Larger text packs the rules
   panel tighter: e.g. with one wrapped AI rule and the Starter deck, AI rows y≈71–293 (40 px each,
   49 when wrapped, 2 apart), Guess ≈(1173,325), your rows y≈405–613 (hint gone; see the Rules panel
   note).
@@ -201,8 +201,9 @@ layout and centres it, so these coordinates no longer hold.
   your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
   `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
   taps a mark, and restore it afterwards.
-- Guess: select an AI rule, then hold the button about 1 s: `press:1173,344 wait:90 release:1173,344`.
-  Releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
+- Guess: select an AI rule, then click the button twice (it arms, reading Confirm, then guesses):
+  `click:1173,344 wait:5 click:1173,344`. With `hold_to_guess=true`, hold it about 1 s instead
+  (`press:1173,344 wait:90 release:1173,344`); releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
   your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
   60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. A guess ends
@@ -213,7 +214,7 @@ layout and centres it, so these coordinates no longer hold.
   `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's secret rule.`);
   `Layout/Status` is empty. Buttons: Rematch centre (271,540), Main menu centre (457,540); Main menu
   returns to `Main`. To guess the AI's first rule and go back to the menu:
-  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 press:1173,344 wait:90 release:1173,344 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
+  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 click:1173,344 wait:5 click:1173,344 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
   A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
   `The AI skipped for the third time.`
 - Full board: the placement that fills it brings no colour pick. When your forced guess is due,

@@ -52,11 +52,11 @@ msgstr "Ograniczony ruch"
 msgid "Glows and rings hold still, balls jump instead of flying, skipped balls vanish without dissolving."
 msgstr "Poświaty i pierścienie stoją w miejscu, kule przeskakują zamiast lecieć, a pominięte kule znikają bez rozpływania się."
 
-msgid "Guess without holding"
-msgstr "Typowanie bez przytrzymania"
+msgid "Hold to guess"
+msgstr "Typowanie przytrzymaniem"
 
-msgid "Tap Guess (or Seal), then tap Confirm, instead of holding it while the ring fills."
-msgstr "Stuknij Wybierz (lub Zatwierdź), a potem Potwierdź, zamiast przytrzymywać, aż pierścień się wypełni."
+msgid "Hold Guess (or Seal) while a ring fills, like pulling a trigger, instead of tapping it and confirming."
+msgstr "Przytrzymaj Wybierz (lub Zatwierdź), aż pierścień się wypełni, jak przy pociąganiu za spust, zamiast stukać i potwierdzać."
 
 msgid "Larger text"
 msgstr "Większy tekst"

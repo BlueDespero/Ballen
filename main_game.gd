@@ -100,7 +100,7 @@ func _apply_settings() -> void:
 	_ai_ball.reduced_motion = Settings.reduced_motion
 	_picker.reduced_motion = Settings.reduced_motion
 	_cue.reduced_motion = Settings.reduced_motion
-	_rules_panel.guess_without_holding = Settings.guess_without_holding
+	_rules_panel.guess_without_holding = not Settings.hold_to_guess
 	_rules_panel.text_scale = Settings.text_scale()
 	_setup_screen.text_scale = Settings.text_scale()
 	TextScale.apply(_match_end, Settings.text_scale())

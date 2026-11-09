@@ -32,7 +32,7 @@ func _ready() -> void:
 	_volume.value_changed.connect(_on_volume_changed)
 	_bind(%ColourBlindSymbols, "colour_blind_symbols")
 	_bind(%ReducedMotion, "reduced_motion")
-	_bind(%GuessWithoutHolding, "guess_without_holding")
+	_bind(%HoldToGuess, "hold_to_guess")
 	_bind(%LargerText, "larger_text")
 	_add_language_buttons()
 	_symbol_preview.custom_minimum_size = Vector2(
