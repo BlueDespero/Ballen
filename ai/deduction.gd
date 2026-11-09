@@ -13,12 +13,17 @@ extends RefCounted
 
 ## The rules of the opponent's deck not yet ruled out, in deck order.
 static func candidates(view: PublicView) -> Array[Rule]:
-	var opponent: int = view.opponent()
-	var remaining: Array[Rule] = view.decks[opponent].rules.duplicate()
+	return candidates_for(view, view.opponent())
+
+
+## The rules of this player's deck their public moves have not ruled out, in
+## deck order. For the viewer's own deck, it is what the opponent can know.
+static func candidates_for(view: PublicView, player: int) -> Array[Rule]:
+	var remaining: Array[Rule] = view.decks[player].rules.duplicate()
 	var history: Array[HistoryEntry] = view.position.history
 	for i: int in history.size():
 		var event: HistoryEntry = history[i]
-		if event.player != opponent or not event.is_placement_or_skip():
+		if event.player != player or not event.is_placement_or_skip():
 			continue
 		var before: MatchPosition = view.position.before(i)
 		var kept: Array[Rule] = []
