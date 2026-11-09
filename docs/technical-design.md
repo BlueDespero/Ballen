@@ -318,19 +318,22 @@ The AI's design (belief updating, colour picks as information probes, when to gu
 difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
 and summarised in the README's "How the AI thinks".
 
-### As built (milestone 1)
+### As built (Normal, #19)
 
-One level, using hard evidence only. `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a
-`PublicView`, returns a `Command`, and makes every random choice through an injected, seedable RNG.
-Each `decide()` works out the candidates once and hands them to the pieces below.
+One level so far, Normal. `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a `PublicView`,
+returns a `Command`, and makes every random choice through an injected, seedable RNG.
+`AIController.for_level(level, rng)` builds a level's AI from the pieces below (the match scene and the
+harness use it); `normal_model()` is Normal's model of the player.
 
 | Piece | Does | Notes |
 | --- | --- | --- |
 | `Deduction` (`ai/deduction.gd`) | The opponent's rules not yet ruled out (`candidates(view)`), in deck order | Hard elimination: a placement rules out the rules it breaks, a skip the rules that would have allowed a cell in that colour. Each event is judged on the position just before it (`MatchPosition.before`), so rules that read rows, the last ball or the board see what the match saw. Stateless: recomputed from the view's history on every call, so nothing to reset on a rematch |
-| `GuessPolicy` (`ai/guess_policy.gd`) | When to guess, and which rule | Names the top candidate once its `confidence()` reaches the threshold. Confidence is 1 / candidates and the threshold 1, so it guesses when one candidate is left. Asked whenever `view.can_guess()`: at the start of its turn, after placing or skipping, and as the placer on a full board |
+| `Belief` (`ai/belief.gd`) | A probability for each of the opponent's rules | The hard half is `Deduction`'s (a ruled-out rule never returns); the soft half adds temper × log P(cell \| rule) per placement from an `OpponentModel`. Kept through a match and updated with new history only; a history that doesn't continue the one seen (new match, rematch) starts afresh. Built `about_viewer`, the same reasoning on the AI's own rules: its exposure, what an opponent reading it the same way could believe |
+| `OpponentModel` (`ai/opponent_model.gd`), `HiderModel` (`ai/hider_model.gd`) | How the AI expects the player to choose among legal cells | Uniform (the size principle), or a hider weighting a cell e^(β·k) for k deck rules allowing it, with a lapse ε spread evenly and a temper on the evidence. Normal: β 1, ε 0.2, temper 0.4, which keeps its confidence honest in AI-vs-AI play (a rule held 70% likely is right about 70% of the time; untempered it was right about half the time) |
+| `GuessPolicy` (`ai/guess_policy.gd`), `DangerGuessPolicy` (`ai/danger_guess_policy.gd`) | When to guess, and which rule | Names the belief's top rule once its probability reaches `threshold(view, exposure)`; a ruled-out rule is never named. The base policy's threshold is fixed (1: only when one rule is left; INF: never). Normal's slides from 0.95 to 0.35 with danger: how far its exposure has risen above 1 in 5 toward 0.95, or full danger one skip from losing. Asked whenever `view.can_guess()`: at the start of its turn, after placing or skipping, and as the placer on a full board. Over 200 seeded matches against an AI that guesses only when certain, Normal wins about 65% |
 | `ColourPickStrategy` (`ai/colour_pick_strategy.gd`) | The colour the opponent places next | Highest `score()`, ties at random. The score is the expected number of candidates ruled out by the opponent's next turn in that colour, if each candidate is equally likely and the opponent places at random among its legal cells (or skips). On the empty board every colour scores the same, so the first pick is random |
 | Placement (`AIController`) | Where to place its own ball | Among its legal cells, those that satisfy the most of its own 5 rules, so any of them could be its secret rule; ties at random |
-| Forced guess (`AIController`) | Its sealed guess on a full board | A random remaining candidate (all are equally likely) |
+| Forced guess (`AIController`) | Its sealed guess on a full board | The belief's top rule, ties at random |
 
 The thinking pause is the scene's: `MatchDriver` waits a random 0.5–1.5 s before each AI command. Tests
 and the harness play AIs with no pause.
@@ -339,17 +342,16 @@ and the harness play AIs with no pause.
 
 Easy, Normal and Hard plug into the same seams; none needs the model to change:
 
-- Soft evidence: a `GuessPolicy` subclass overrides `confidence()` with a belief, and the threshold sets how
-  sure a level must be. `Deduction` stays the hard elimination mask under it.
+- Soft evidence: each level brings its own `OpponentModel` (Easy: tempered further, so it learns slowly; Hard:
+  a joint honest/bluffing hider) and `GuessPolicy`. `Deduction` stays the hard elimination mask under it.
 - Colour picks: a `ColourPickStrategy` subclass overrides `score()` (another model of the opponent) or
   `choose()` (e.g. a softer, more random pick for Easy).
 - Placement is a private method today; split it into a strategy object when levels need different hiding.
-- `AIController.new(rng, guess_policy, colour_pick)` takes both objects, so a level is a choice of objects.
+- `AIController.new(rng, guess_policy, colour_pick, model)` takes the objects and `for_level` chooses them, so
+  a level is a choice of objects.
 
 Planned implementation notes:
 
-- Exact Bayesian belief over the opponent's 5 rules, with a hard elimination mask and soft scores in
-  log space.
 - Easy and Normal use heuristics plus at most one-step lookahead (well under a frame).
 - Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
 - AI thinking pause: up to 5 s, scaled with decision difficulty; Hard adds random jitter so pauses carry no information.
