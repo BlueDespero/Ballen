@@ -2,9 +2,13 @@ class_name MatchSetupScreen
 extends Control
 
 ## The match setup screen before a match: the player picks a saved deck and
-## the AI level, taps one rule of the deck to make it secret, then presses Start.
-## A rematch comes back here with the same deck and level, so only the secret
-## rule is chosen again. The screen leaves the rules panel uncovered, so the
+## the AI level, taps one rule of the deck to make it secret (or lets Pick for
+## me choose a Simple one), then presses Start. It opens with the goal of the
+## game, numbers its three steps, and shows on a small board where the tapped
+## rule would let the player place, since players skip text and would
+## otherwise pick a rule blind. The act-here cue sits on the rules until one is
+## picked, then on Start, which names the pick. A rematch comes back here with
+## the same deck and level, so only the secret rule is chosen again. The screen leaves the rules panel uncovered, so the
 ## scene can show both decks there while the player chooses. After Start the
 ## screen gives way to the board and shows who goes first for a moment. It only
 ## reports the player's choices; the scene sets up the match.
@@ -19,6 +23,9 @@ signal main_menu_requested
 ## How long the coin-toss result stays up before the match starts.
 const COIN_TOSS_SECONDS: float = 2.0
 const RULE_BUTTON_HEIGHT: float = 44.0
+## Rule text: a size smaller than the rest, as the rules share their row with
+## the preview board.
+const RULE_FONT_SIZE: int = 17
 const LEVEL_BUTTON_HEIGHT: float = 44.0
 ## The deck picker's list items, tall enough for a finger.
 const DECK_ITEM_HEIGHT: float = 44.0
@@ -33,6 +40,8 @@ const CARD_WIDTH: float = 640.0
 const LARGER_TEXT_CARD_WIDTH: float = 704.0
 const ROW_GAP: int = 10
 const LARGER_TEXT_ROW_GAP: int = 6
+const RULE_GAP: int = 6
+const LARGER_TEXT_RULE_GAP: int = 3
 
 ## Larger text: the screen's text is this many times its built size.
 var text_scale: float = 1.0:
@@ -50,6 +59,9 @@ var text_scale: float = 1.0:
 @onready var _level_buttons: HBoxContainer = %LevelButtons
 @onready var _level_description: Label = %LevelDescription
 @onready var _rule_buttons: VBoxContainer = %RuleButtons
+@onready var _pick_for_me_button: Button = %PickForMeButton
+@onready var _preview: RulePreview = %RulePreview
+@onready var _preview_caption: Label = %PreviewCaption
 @onready var _start_button: Button = %StartButton
 @onready var _main_menu_button: Button = %MainMenuButton
 @onready var _coin_toss: PanelContainer = %CoinToss
@@ -63,11 +75,23 @@ var _level: AILevel.Level = DEFAULT_LEVEL
 var _secret_rule: Rule = null
 var _level_group: ButtonGroup = ButtonGroup.new()
 var _rule_group: ButtonGroup = ButtonGroup.new()
+var _cue: Attention = Attention.new()
+
+## Pick for me draws from this; replace it with a seeded one for repeatable picks.
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
+
+func _init() -> void:
+	rng.randomize()
 
 
 func _ready() -> void:
 	_deck_picker.item_selected.connect(_on_deck_selected)
 	_start_button.pressed.connect(_on_start_pressed)
+	_pick_for_me_button.pressed.connect(pick_for_me)
+	add_child(_cue)
+	Settings.changed.connect(_apply_settings)
+	_apply_settings()
 	_main_menu_button.pressed.connect(main_menu_requested.emit)
 	_deck_picker.add_theme_stylebox_override("normal", _style(Palette.ROW_COLOUR, 0))
 	_deck_picker.add_theme_stylebox_override("hover", _style(Palette.ROW_COLOUR.lightened(0.1), 2))
@@ -90,7 +114,7 @@ func _fit_deck_items() -> void:
 ## one picked), the AI levels, and the picked deck's rules.
 func show_setup(store: DeckStore) -> void:
 	_store = store
-	_title.text = "Match setup"
+	_title.text = "Name the AI's secret rule before it names yours."
 	_deck_picker.clear()
 	# Deck names are the player's own, never translated.
 	_deck_picker.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
@@ -106,7 +130,7 @@ func show_setup(store: DeckStore) -> void:
 ## Shows the setup for a rematch: the deck and level of the last match stay,
 ## and the player chooses a secret rule again.
 func show_rematch() -> void:
-	_title.text = "Rematch"
+	_title.text = "Rematch: name the AI's new secret rule before it names yours."
 	_deck_picker.disabled = true
 	_set_level_choice(false)
 	_show_deck(_deck)
@@ -135,12 +159,54 @@ func _fit_card() -> void:
 	var larger: bool = text_scale > 1.0
 	_card.custom_minimum_size.x = LARGER_TEXT_CARD_WIDTH if larger else CARD_WIDTH
 	_content.add_theme_constant_override("separation", LARGER_TEXT_ROW_GAP if larger else ROW_GAP)
+	_rule_buttons.add_theme_constant_override("separation", LARGER_TEXT_RULE_GAP if larger else RULE_GAP)
 
 
 func _show() -> void:
 	_backdrop.visible = true
 	_coin_toss.visible = false
 	visible = true
+	_point_cue()
+
+
+func _apply_settings() -> void:
+	_cue.reduced_motion = Settings.reduced_motion
+	_preview.symbols = Settings.colour_blind_symbols
+
+
+## Picks a Simple rule of the deck at random (any rule if it has none), as if
+## the player had tapped it: a safe first choice for a new player.
+func pick_for_me() -> void:
+	var simple: Array[Rule] = []
+	for rule: Rule in _deck.rules:
+		if rule.tier == Rule.TIER_SIMPLE:
+			simple.append(rule)
+	var options: Array[Rule] = simple if not simple.is_empty() else _deck.rules
+	var rule: Rule = options[rng.randi_range(0, options.size() - 1)]
+	(_rule_buttons.get_node(rule.id) as Button).button_pressed = true
+	_on_rule_chosen(rule)
+
+
+## The act-here cue: on the rules until one is picked, then on Start.
+func _point_cue() -> void:
+	_cue.target = _start_button if _secret_rule != null else _rule_buttons
+
+
+## Start names the pick, so pressing it says what it commits to.
+func _update_start() -> void:
+	_start_button.disabled = _secret_rule == null
+	_start_button.text = tr("Start: %s is my secret rule") % _secret_rule.id if _secret_rule != null else tr("Start")
+
+
+## The preview glows the cells the picked rule would allow on its sample board.
+func _update_preview() -> void:
+	_preview.rule = _secret_rule
+	if _secret_rule == null:
+		_preview_caption.text = "Tap a rule to see where it lets you place."
+	elif _preview.legal_cells.is_empty():
+		_preview_caption.text = "No cell glows here: you would skip this ball."
+	else:
+		_preview_caption.text = "Glowing: where your next ball could go."
 
 
 ## The deck's rules as buttons, none chosen yet. Old buttons are removed at
@@ -148,13 +214,15 @@ func _show() -> void:
 func _show_deck(deck: Deck) -> void:
 	_deck = deck
 	_secret_rule = null
-	_start_button.disabled = true
+	_update_start()
+	_update_preview()
 	for child: Node in _rule_buttons.get_children():
 		_rule_buttons.remove_child(child)
 		child.queue_free()
 	for rule: Rule in deck.rules:
 		_rule_buttons.add_child(_rule_button(rule))
 	TextScale.apply(_rule_buttons, text_scale)
+	_point_cue()
 	deck_shown.emit(deck)
 
 
@@ -169,7 +237,9 @@ func _on_level_chosen(level: AILevel.Level) -> void:
 
 func _on_rule_chosen(rule: Rule) -> void:
 	_secret_rule = rule
-	_start_button.disabled = false
+	_update_start()
+	_update_preview()
+	_point_cue()
 
 
 func _on_start_pressed() -> void:
@@ -213,7 +283,7 @@ func _rule_button(rule: Rule) -> Button:
 	button.button_group = _rule_group
 	button.custom_minimum_size.y = RULE_BUTTON_HEIGHT
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_font_size_override("font_size", 18)
+	button.add_theme_font_size_override("font_size", RULE_FONT_SIZE)
 	_style_choice(button)
 	button.pressed.connect(_on_rule_chosen.bind(rule))
 	return button

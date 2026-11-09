@@ -33,7 +33,7 @@ One process per script of commands; read the `[driver]` lines on stdout, look at
 # Menu -> Single Player -> tap R03 to make it your secret rule -> Start -> wait out the coin toss
 # -> (pick the AI's first colour if you go second) -> wait for your turn
 # -> drag your ball onto cell (2,2) -> pick red for the AI -> wait for its turn -> screenshot
-godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,345 wait:60 click:368,428 wait:5 click:461,648 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
+godot --path . -s .claude/skills/run-ballen/driver.gd -- wait:10 click:640,345 wait:60 click:296,431 wait:5 click:461,651 wait:150 click:624,660 until:Layout/PlayerBall:draggable=true drag:440,660,400,320 wait:5 get:Layout/Status:text click:624,660 until:Layout/PlayerBall:draggable=true ss:turn
 ```
 
 Prints `Layout/Status.text = Pick the AI's next colour. That ends your turn.` and writes
@@ -126,16 +126,20 @@ layout and centres it, so these coordinates no longer hold.
 - Match setup screen: `Layout/MatchSetup`, covering the layout left of the rules panel (x 0–736) when
   the scene opens; the rules panel beside it already shows the AI's deck and yours (no secret rule
   marked; it follows the deck picker). Its card is `Layout/MatchSetup/Backdrop/Centre/Card/Content`
-  (x 48–688, y 30–690; with Larger text x 16–720, y 31–688) over the board backdrop
+  (x 48–688, y 27–693) over the board backdrop
   (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
   centre (434,122); click it, then the list's items at x≈226, y≈170, 214, 258, … (step 44). AI level buttons
   (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; only
   Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
-  the level. Your deck's rules as toggle buttons (x 80–656, centre x 368; a long rule wraps onto two
-  lines, moving the rows below it down): starter deck R01 y=378,
-  R03 y=428, R05 y=478, R08 y=528, R18 y=578 (nodes `RuleButtons/R01` …); a tapped rule turns gold.
-  Start (`Buttons/StartButton`, disabled until a rule is tapped) centre (461,648), Main menu centre
-  (275,648). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /
+  the level. The card opens with the goal (`Title`) and the stakes. `RuleRow/PickForMeButton`
+  ("Pick for me", centre (596,294)) taps a random Simple rule of the deck. Your deck's rules as toggle
+  buttons (x 80–512, centre x 296; a long rule wraps onto two lines, moving the rows below it down):
+  starter deck R01 y=381, R03 y=431, R05 y=481, R08 y=531, R18 y=581 (nodes `RuleArea/RuleButtons/R01`
+  …); a tapped rule turns gold and its cells glow on the sample board beside the rules
+  (`RuleArea/Preview/RulePreview`, x 524–656, y 359–491; `legal_cells`). The gold act-here outline
+  sits on the rules until one is tapped, then on Start. Start (`Buttons/StartButton`, disabled until a
+  rule is tapped, then reading `Start: R08 is my secret rule`) centre (461,651), Main menu centre
+  (≈228,651). Start hides the card and shows the coin toss over the board ("Coin toss: you go first" /
   "…the AI goes first", `Layout/MatchSetup/CoinToss`) for 2 s (`wait:150` covers it), then
   `Layout/MatchSetup:visible` turns false. The rules panel marks your secret rule with the toss;
   `Layout/Status` reads `You go first.` / `The AI goes first.` during it. To try
@@ -221,7 +225,7 @@ layout and centres it, so these coordinates no longer hold.
   the deck picker and the other levels disabled (same decks, same level): tap a rule and Start. The
   toss then reads `Rematch: you go first` / `Rematch: the AI goes first` (no coin toss: the other
   player goes first) and the row numbers flip with it. Continue from the end screen with
-  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:368,478 wait:5 click:461,648 until:Layout/MatchSetup:visible=false`.
+  `click:271,540 wait:30 until:Layout/MatchSetup:visible=true wait:10 click:296,481 wait:5 click:461,651 until:Layout/MatchSetup:visible=false`.
 - After Single Player, the current scene is `MainGame`; before it, `Main`
   (paths like `MainMenu/GameButtons/SinglePlayerButton`).
 

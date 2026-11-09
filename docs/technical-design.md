@@ -86,9 +86,13 @@ all run the same code.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
   a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
   (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
-  of the deck to make it secret, and presses Start. The AI's deck is drawn when the screen opens, and
-  the rules panel beside the screen shows it and the picked deck while the player chooses (the AI's
-  secret rule stays hidden); the coin toss is then shown over the board.
+  of the deck to make it secret (or Pick for me taps a random Simple one), and presses Start, which
+  names the pick. The card opens with the goal and the stakes, and numbers its three steps. Beside the
+  rules, `RulePreview` (`gui/rule_preview.gd`) shows a fixed mid-match position with the tapped rule's
+  legal cells glowing (`RuleChecker.legal_cells`) and the rest darkened, so the pick is not blind. The
+  act-here cue sits on the rules until one is picked, then on Start. The AI's deck is drawn when the
+  screen opens, and the rules panel beside the screen shows it and the picked deck while the player
+  chooses (the AI's secret rule stays hidden); the coin toss is then shown over the board.
 - `MatchSetup.against_ai(deck, ai_deck, level, rng)` is what comes before a single-player match: the
   picked deck, the AI's deck of 5 distinct rules drawn from the built ones (`Deck.draw`) and the level
   (a level not built yet is refused). `MatchSetup.start(secret_rule)` then draws the AI's secret rule

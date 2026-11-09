@@ -178,14 +178,20 @@ msgstr "Zapisz"
 
 # Match setup
 
-msgid "Match setup"
-msgstr "Przygotowanie meczu"
+msgid "Name the AI's secret rule before it names yours."
+msgstr "Odgadnij tajną regułę komputera, zanim on odgadnie Twoją."
 
-msgid "Your deck"
-msgstr "Twoja talia"
+msgid "Rematch: name the AI's new secret rule before it names yours."
+msgstr "Rewanż: odgadnij nową tajną regułę komputera, zanim on odgadnie Twoją."
 
-msgid "AI level"
-msgstr "Poziom komputera"
+msgid "Right guess wins. Wrong guess loses."
+msgstr "Trafny typ wygrywa. Chybiony przegrywa."
+
+msgid "1  Your deck"
+msgstr "1  Twoja talia"
+
+msgid "2  AI level"
+msgstr "2  Poziom komputera"
 
 msgid "How the AI plays."
 msgstr "Jak gra komputer."
@@ -211,17 +217,32 @@ msgstr "Czyta Twoje ruchy i dobrze ukrywa własną regułę."
 msgid "Gives almost nothing away, reads every move, and never hesitates."
 msgstr "Prawie nic nie zdradza, czyta każdy ruch i nigdy się nie waha."
 
-msgid "Choose your secret rule"
-msgstr "Wybierz swoją tajną regułę"
+msgid "3  Choose your secret rule"
+msgstr "3  Wybierz swoją tajną regułę"
 
-msgid "Tap one of your rules to make it your secret rule. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is secret."
-msgstr "Stuknij jedną ze swoich reguł, aby stała się Twoją tajną regułą. Każda kula, którą położysz, musi jej przestrzegać. Komputer widzi wszystkie 5 Twoich reguł, ale nie wie, która jest tajna."
+msgid "Pick for me"
+msgstr "Wybierz za mnie"
+
+msgid "Every ball you place must follow it."
+msgstr "Każda kula, którą położysz, musi jej przestrzegać."
+
+msgid "Tap a rule to see where it lets you place."
+msgstr "Stuknij regułę, aby zobaczyć, gdzie pozwala Ci kłaść kule."
+
+msgid "Glowing: where your next ball could go."
+msgstr "Świecące pola: tu może trafić Twoja następna kula."
+
+msgid "No cell glows here: you would skip this ball."
+msgstr "Tu nie świeci żadne pole: ta kula zostałaby pominięta."
 
 msgid "Main menu"
 msgstr "Menu główne"
 
 msgid "Start"
 msgstr "Graj"
+
+msgid "Start: %s is my secret rule"
+msgstr "Graj: %s to moja tajna reguła"
 
 msgid "Coin toss"
 msgstr "Rzut monetą"

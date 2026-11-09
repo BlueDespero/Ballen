@@ -12,8 +12,8 @@ export const BASE = { width: 1280, height: 720 };
 export const SPOT = {
   singlePlayer: { x: 640, y: 369 },
   decks: { x: 640, y: 417 },
-  setupRuleR08: { x: 368, y: 528 },
-  start: { x: 461, y: 648 },
+  setupRuleR08: { x: 296, y: 531 },
+  start: { x: 461, y: 651 },
   pickRed: { x: 624, y: 660 },
   playerBall: { x: 440, y: 660 },
   newDeck: { x: 1035, y: 640 },
