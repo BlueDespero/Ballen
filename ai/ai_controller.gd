@@ -52,7 +52,7 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 	match level:
 		AILevel.Level.NORMAL:
 			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
-				PlacementStrategy.new())
+				HidingPlacement.new())
 	push_error("AIController: level %d is not built yet" % level)
 	return AIController.new(rng)
 
