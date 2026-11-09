@@ -36,7 +36,7 @@ static func play(book: RuleBook, seed_value: int) -> MatchRecord:
 		var deck: Deck = Deck.draw(book, rng)
 		decks.append(deck)
 		secret_rules.append(deck.random_rule(rng))
-		ais.append(AIController.new(rng))
+		ais.append(AIController.for_level(AILevel.Level.NORMAL, rng))
 	var current_match: Match = Match.create(decks, secret_rules, rng)
 	play_out(current_match, ais)
 	return MatchRecord.from_match(current_match)

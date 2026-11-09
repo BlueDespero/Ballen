@@ -53,7 +53,8 @@ func test_the_ais_choices_follow_its_seeded_rng() -> void:
 
 func test_two_ai_controllers_play_entirely_in_code_until_one_guesses() -> void:
 	var current_match: Match = _r04_match(11)
-	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1)), AIController.new(Fixtures.rng(2))]
+	# Guessing only when certain, so the hard evidence alone decides the match.
+	var controllers: Array[Controller] = [AIController.new(Fixtures.rng(1), GuessPolicy.new()), AIController.new(Fixtures.rng(2), GuessPolicy.new())]
 	# R04 leaves the 16 inner cells. Once they are full the first player skips,
 	# which rules out the permissive rest of their deck; the second player then
 	# skips too and names R04.

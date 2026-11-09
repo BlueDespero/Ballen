@@ -1,36 +1,33 @@
 class_name GuessPolicy
 extends RefCounted
 
-## When the AI names the opponent's secret rule: as soon as its top candidate's
-## confidence reaches the threshold. Swappable: hand AIController another
-## threshold, or a subclass with another confidence model (later difficulty
-## levels).
-##
-## Ruling out is all or nothing, so every candidate is equally likely:
-## confidence is 1 / candidates; the default threshold of 1 guesses only when
-## one remains.
+## When the AI names the opponent's secret rule: as soon as its Belief's most
+## likely rule reaches the threshold. This base policy has a fixed threshold:
+## the default of 1 guesses only when one rule is left, INF never guesses.
+## Subclasses move the threshold with the situation (DangerGuessPolicy).
 
-var threshold: float
+## Probabilities this close below the threshold still reach it.
+const TOLERANCE: float = 1e-9
+
+var _threshold: float
 
 
 func _init(p_threshold: float = 1.0) -> void:
-	threshold = p_threshold
+	_threshold = p_threshold
 
 
-## The candidate's chance of being the opponent's secret rule.
-func confidence(_candidate: Rule, candidates: Array[Rule]) -> float:
-	return 1.0 / candidates.size()
+## How likely the top rule must be for the AI to name it now. exposure is the
+## AI's belief about its own rules as the opponent could hold it.
+func threshold(_view: PublicView, _exposure: Belief) -> float:
+	return _threshold
 
 
-## The candidate to name now, or null to hold off.
-func choose(candidates: Array[Rule]) -> Rule:
-	var top: Rule = null
-	var top_confidence: float = 0.0
-	for candidate: Rule in candidates:
-		var candidate_confidence: float = confidence(candidate, candidates)
-		if candidate_confidence > top_confidence:
-			top = candidate
-			top_confidence = candidate_confidence
-	if top == null or top_confidence < threshold:
+## The rule to name now, or null to hold off. Only a rule the hard evidence
+## left can be named: a ruled-out rule has probability 0.
+func choose(belief: Belief, exposure: Belief, view: PublicView, rng: RandomNumberGenerator) -> Rule:
+	var top: Rule = belief.top(rng)
+	if top == null or belief.probability(top.id) <= 0.0:
+		return null
+	if belief.probability(top.id) < threshold(view, exposure) - TOLERANCE:
 		return null
 	return top

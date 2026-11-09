@@ -3,36 +3,61 @@ extends Controller
 
 ## The AI player. It sees only the PublicView it is handed (ADR 0002).
 ##
-## It works out the opponent's secret rule by ruling out rules (Deduction) and
-## names it once its guess policy fires, which it checks at the start of its
-## turn and after it places or skips; on a full board its forced guess names a
-## random remaining candidate. To hide its secret rule it places on a legal
+## It keeps a Belief about the opponent's secret rule (rules the public moves
+## rule out, and how likely its OpponentModel finds each remaining one) and
+## names the most likely rule once its guess policy fires, which it checks at
+## the start of its turn and after it places or skips; on a full board its
+## forced guess names the most likely rule. To hide its secret rule it places on a legal
 ## cell satisfying the most of its own deck rules, ties broken at random. Its
 ## colour-pick strategy chooses the colour expected to teach it the most.
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
 var _colour_pick: ColourPickStrategy
+var _belief: Belief
+## The same reasoning about the AI's own rules: how exposed its secret rule is.
+var _exposure: Belief
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
-## guess_policy decides when to guess; the default guesses when one candidate
-## remains. colour_pick chooses the opponent's colour; the default is the
-## uniform model.
+## guess_policy decides when to guess, colour_pick chooses the opponent's
+## colour, and model is how the AI expects the opponent to place. The defaults
+## are Normal's (for_level).
 func _init(
 	rng: RandomNumberGenerator,
-	guess_policy: GuessPolicy = GuessPolicy.new(),
+	guess_policy: GuessPolicy = DangerGuessPolicy.new(),
 	colour_pick: ColourPickStrategy = ColourPickStrategy.new(),
+	model: OpponentModel = normal_model(),
 ) -> void:
 	_rng = rng
 	_guess_policy = guess_policy
 	_colour_pick = colour_pick
+	_belief = Belief.new(model)
+	_exposure = Belief.new(model, true)
+
+
+## Normal's model of the player: a careless hider (β 1, lapse 0.2), its
+## evidence tempered to 0.4 so its confidence is honest: in AI-vs-AI matches a
+## rule it holds 70% likely is right about 70% of the time.
+static func normal_model() -> OpponentModel:
+	return HiderModel.new(1.0, 0.2, 0.4)
+
+
+## The AI of a level (AILevel); only built levels can be played.
+static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AIController:
+	match level:
+		AILevel.Level.NORMAL:
+			return AIController.new(rng, DangerGuessPolicy.new(), ColourPickStrategy.new(), normal_model())
+	push_error("AIController: level %d is not built yet" % level)
+	return AIController.new(rng)
 
 
 func decide(view: PublicView) -> Command:
-	var candidates: Array[Rule] = Deduction.candidates(view)
+	_belief.update(view)
+	var candidates: Array[Rule] = _belief.alive()
 	if view.can_guess():
-		var guess: Rule = _guess_policy.choose(candidates)
+		_exposure.update(view)
+		var guess: Rule = _guess_policy.choose(_belief, _exposure, view, _rng)
 		if guess != null:
 			return Command.guess(guess.id)
 	match view.phase:
@@ -50,7 +75,7 @@ func decide(view: PublicView) -> Command:
 				if candidates.is_empty():
 					push_error("AIController: no candidate left for the forced guess")
 					return null
-				return Command.forced_guess(_pick(candidates).id)
+				return Command.forced_guess(_belief.top(_rng).id)
 	return null
 
 

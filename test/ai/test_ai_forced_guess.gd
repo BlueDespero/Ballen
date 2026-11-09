@@ -1,7 +1,8 @@
 extends GutTest
 
 # The AI seam on a full board: given a view where its forced guess is due, the
-# AI names a random remaining candidate. Views come from real matches.
+# AI names its most likely remaining rule, ties at random. Views come from real
+# matches.
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
@@ -42,7 +43,7 @@ func test_the_ais_forced_guess_follows_its_seeded_rng() -> void:
 	assert_gt(named.size(), 1, "different seeds name different rules")
 
 
-func test_the_ais_forced_guess_names_a_random_remaining_candidate() -> void:
+func test_the_ais_forced_guess_breaks_ties_between_remaining_rules_at_random() -> void:
 	# Player 0's deck: a permissive secret rule "AT", permissive A1 and A2, and
 	# N3 and N4, which allow no cell. Filling the board rules N3 and N4 out.
 	_book.add_template("nowhere", {"blanks": {}, "tree": {"part": "count_at_most", "n": 0, "of": {"part": "target"}}})
