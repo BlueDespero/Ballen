@@ -7,13 +7,15 @@ extends Controller
 ## rule out, and how likely its OpponentModel finds each remaining one) and
 ## names the most likely rule once its guess policy fires, which it checks at
 ## the start of its turn and after it places or skips; on a full board its
-## forced guess names the most likely rule. To hide its secret rule it places on a legal
-## cell satisfying the most of its own deck rules, ties broken at random. Its
-## colour-pick strategy chooses the colour expected to teach it the most.
+## forced guess names the most likely rule. Its placement strategy chooses
+## where it places its own ball, so its secret rule stays hidden, and its
+## colour-pick strategy the colour expected to teach it the most. It also keeps
+## the same belief about its own rules (its exposure).
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
 var _colour_pick: ColourPickStrategy
+var _placement: PlacementStrategy
 var _belief: Belief
 ## The same reasoning about the AI's own rules: how exposed its secret rule is.
 var _exposure: Belief
@@ -21,17 +23,19 @@ var _exposure: Belief
 
 ## Every random choice goes through rng; seed it for reproducible play.
 ## guess_policy decides when to guess, colour_pick chooses the opponent's
-## colour, and model is how the AI expects the opponent to place. The defaults
-## are Normal's (for_level).
+## colour, model is how the AI expects the opponent to place, and placement
+## where it places its own ball. The defaults are Normal's (for_level).
 func _init(
 	rng: RandomNumberGenerator,
 	guess_policy: GuessPolicy = DangerGuessPolicy.new(),
 	colour_pick: ColourPickStrategy = InformationColourPick.new(normal_model()),
 	model: OpponentModel = normal_model(),
+	placement: PlacementStrategy = PlacementStrategy.new(),
 ) -> void:
 	_rng = rng
 	_guess_policy = guess_policy
 	_colour_pick = colour_pick
+	_placement = placement
 	_belief = Belief.new(model)
 	_exposure = Belief.new(model, true)
 
@@ -47,16 +51,17 @@ static func normal_model() -> OpponentModel:
 static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AIController:
 	match level:
 		AILevel.Level.NORMAL:
-			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model())
+			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
+				PlacementStrategy.new())
 	push_error("AIController: level %d is not built yet" % level)
 	return AIController.new(rng)
 
 
 func decide(view: PublicView) -> Command:
 	_belief.update(view)
+	_exposure.update(view)
 	var candidates: Array[Rule] = _belief.alive()
 	if view.can_guess():
-		_exposure.update(view)
 		var guess: Rule = _guess_policy.choose(_belief, _exposure, view, _rng)
 		if guess != null:
 			return Command.guess(guess.id)
@@ -64,10 +69,10 @@ func decide(view: PublicView) -> Command:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
 			return Command.pick_colour(_colour_pick.choose(view, _belief, _rng))
 		Match.Phase.PLACE:
-			var cells: Array[Vector2i] = _best_cells(view)
-			if cells.is_empty():
+			var cell: Vector2i = _placement.choose(view, _exposure, _rng)
+			if cell == PlacementStrategy.NO_CELL:
 				return null
-			return Command.place(_pick(cells))
+			return Command.place(cell)
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
 				# The secret rule always remains, so this only guards a view that
@@ -79,24 +84,3 @@ func decide(view: PublicView) -> Command:
 	return null
 
 
-## The legal cells that satisfy the most of the AI's own deck rules, so its
-## placements look like any of them could be its secret rule.
-func _best_cells(view: PublicView) -> Array[Vector2i]:
-	var best: Array[Vector2i] = []
-	var best_count: int = -1
-	var own_rules: Array[Rule] = view.decks[view.viewer].rules
-	for cell: Vector2i in view.own_legal_cells():
-		var count: int = 0
-		for rule: Rule in own_rules:
-			if RuleChecker.is_legal(rule, view.position, view.viewer, view.position.colour, cell):
-				count += 1
-		if count > best_count:
-			best = []
-			best_count = count
-		if count == best_count:
-			best.append(cell)
-	return best
-
-
-func _pick(options: Array) -> Variant:
-	return options[_rng.randi_range(0, options.size() - 1)]
