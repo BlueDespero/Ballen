@@ -237,6 +237,8 @@ Ballen is free, earns from opt-in ads on mobile, and never sells an advantage: e
 | Mobile, paid (one-off) | None | Always doubled |
 | Browser | None | Normal |
 
+**First mobile release:** the first Google Play release is free, with no ads and no paid version, because rewards and the Collection don't exist yet and an ad would have nothing to double. The table above stays the plan: ads and the paid version arrive together with rewards. See the [Android release plan](milestones/06-android-release.md).
+
 - **Rewards:** every duel pays. A win pays more than a draw, a draw more than a loss, and harder AI levels pay more.
 - **Cosmetics:** rewards buy ball skins, board themes and guess effects. Skins must keep colours readable and support colour-blind symbols. They are bought and equipped on the Collection screen.
 - **Never for sale:** rules, hints, extra guesses, or anything else that helps you win.
