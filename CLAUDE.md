@@ -28,7 +28,9 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
   changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
   is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
-  default font, for arrows the web build has no system font for). Turn state lives in the match.
+  default font, for arrows the web build has no system font for), `BackButton` (`gui/back_button.gd`: turns
+  Android's back gesture into a `ui_cancel` press, so each screen's Escape handler serves back). Turn state lives in
+  the match.
 
 ## Tests
 

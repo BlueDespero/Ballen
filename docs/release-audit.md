@@ -45,6 +45,7 @@ holds none of it.
 | `WebMarkers` | `gui/web_markers.gd` | Web builds only: prints `[ballen] …` console lines on scene changes and key events for the web tests. Does nothing elsewhere. |
 | `RotateHint` | `gui/rotate_hint.gd` | A top `CanvasLayer` that covers the screen and takes input while the screen is taller than wide. |
 | `SymbolFont` | `gui/symbol_font.gd` | Adds the bundled Noto Sans Symbols as a fallback of the default font (the web has no system fonts for ← →). |
+| `BackButton` | `gui/back_button.gd` | Turns Android's go-back request into a `ui_cancel` press (Escape). Never fires on the web, where browsers send no go-back request. |
 
 ## What the export contains
 
