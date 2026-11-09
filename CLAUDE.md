@@ -85,6 +85,22 @@ cd web-test; npm ci; npx playwright install; npx playwright test
 
 `serve.mjs` serves `build/web` on port 8137 (`PORT` to change it); `--project=desktop-chrome` runs one browser.
 
+## Android export
+
+The "Android" preset builds an App Bundle with Gradle for Google Play: package `io.github.bluedespero.ballen`, target
+SDK 36 (Godot's default), no permissions, landscape. It needs JDK 17+, the Android SDK (platform 36, build-tools
+36.1.0, NDK 29.0.14206865) set in Editor Settings (`export/android/android_sdk_path`), and the Android export
+templates. From the repo root, after the import step:
+
+```powershell
+New-Item -ItemType Directory -Force build/android > $null; godot --headless --path . --install-android-build-template --export-release "Android" build/android/ballen.aab
+```
+
+`--install-android-build-template` unpacks the Gradle project into `android/` (gitignored). A release build is signed
+with the upload key, given by the environment variables `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `_USER` and
+`_PASSWORD`; never commit a keystore. `--export-debug` signs with the debug keystore instead. The plan for the Play
+release is `docs/milestones/06-android-release.md`.
+
 ## CI
 
 `.github/workflows/ci.yml`, on GitHub Actions (Godot 4.7.1 on Linux):
