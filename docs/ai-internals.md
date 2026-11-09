@@ -29,7 +29,7 @@ Keep this document in step with `ai/`: every PR that changes the AI updates the 
 | Level | Status | Built from |
 | --- | --- | --- |
 | Easy | Planned (#73): tempered belief, honest placement, loose colour picks, guesses at ~0.95 | — |
-| Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `ColourPickStrategy` (uniform), max-k placement |
+| Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, max-k placement |
 | Hard | Planned (#22, #73): joint honest/bluffing model, value-of-information colours, hiding utility, MCTS, expected-value guessing | — |
 
 `AILevel.BUILT` lists the playable levels; the match setup screen shows the rest as "coming soon".
@@ -60,7 +60,8 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `Deduction` | `ai/deduction.gd` | Hard elimination: the rules a player's placements and skips have ruled out. `candidates(view)`, `candidates_for(view, player)`, `rules_out(rule, before, event)` |
 | `GuessPolicy` | `ai/guess_policy.gd` | When to name a rule: the top rule once its probability reaches `threshold(view, exposure)`; fixed threshold |
 | `DangerGuessPolicy` | `ai/danger_guess_policy.gd` | Normal's guessing: threshold slides with how exposed the AI's own rule is |
-| `ColourPickStrategy` | `ai/colour_pick_strategy.gd` | The colour handed to the opponent: highest expected number of candidates ruled out |
+| `ColourPickStrategy` | `ai/colour_pick_strategy.gd` | Base colour pick: highest expected number of the belief's remaining rules ruled out, all equally likely. `best_of(scores, rng)` picks the top score, ties at random |
+| `InformationColourPick` | `ai/information_colour_pick.gd` | Normal's colour pick: highest expected information gain about the opponent's rule, plus a skip bonus |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
 
 Callers: the match scene (`main_game.gd`) builds the AI with `AIController.for_level(_setup.ai_level(), _rng)` and
@@ -77,7 +78,7 @@ flowchart TD
     policy -- yes --> guess["Command.guess(top rule)"]
     policy -- no --> phase
     canguess -- no --> phase{"view.phase"}
-    phase -- "FIRST_COLOUR / PICK_COLOUR" --> colour["ColourPickStrategy.choose(view, alive rules)"]
+    phase -- "FIRST_COLOUR / PICK_COLOUR" --> colour["ColourPickStrategy.choose(view, belief)"]
     phase -- PLACE --> place["legal cell satisfying most own deck rules"]
     phase -- FORCED_GUESS --> forced["Command.forced_guess(belief.top)"]
 ```
@@ -87,8 +88,8 @@ flowchart TD
 `AIController.decide(view)` is called whenever the match awaits the AI. It returns one `Command`, or `null` only for
 a view that contradicts itself.
 
-1. **Update the belief** with any history events it hasn't read (`Belief.update`). The alive rules feed the colour
-   pick.
+1. **Update the belief** with any history events it hasn't read (`Belief.update`). It feeds the colour pick and
+   the guess.
 2. **Maybe guess.** If `view.can_guess()` (the AI's turn: before placing, after placing or skipping until its colour
    pick, or as the placer on a full board), update the exposure belief and ask the guess policy. If it returns a
    rule, the command is `guess(rule)`.
@@ -200,14 +201,34 @@ wrong; against an AI that waits for certainty, Normal wins about 65%.
 
 ## Colour picks
 
-`ColourPickStrategy.choose(view, candidates, rng)`: the colour with the highest `score()`, ties (within 1e-9) at
-random. `score()` is the expected number of candidates (the belief's alive rules) ruled out by the opponent's next
-turn in that colour. It assumes each candidate is equally likely and the opponent places uniformly among that
-candidate's legal cells, or skips if there are none. Each candidate's legal cells are checked once on the position
-the opponent will face (`next_turn(view, colour)`). With fewer than 2 candidates every colour scores 0, so the pick
-is random; on the empty board it is random too.
+Every strategy's `choose(view, belief, rng)` returns the colour handed to the opponent; ties (within 1e-9) are
+broken by the RNG (`ColourPickStrategy.best_of`). Each colour is judged on the position the opponent will face
+(`ColourPickStrategy.next_turn(view, colour)`: the pick added to history, the turn advanced, the colour set).
 
-Not yet using the belief's probabilities: #20 replaces it with expected information gain plus skip pressure.
+### Normal: `InformationColourPick`
+
+```
+value(c) = H(b) − Σ_o P(o | c) · H(b'_o)   +   P(skip | c) · SKIP_BITS[opponent's skips]
+```
+
+- **Outcomes o:** a placement on any cell some alive rule allows, or a skip (a rule allowing no cell for c).
+- **P(o | r)** comes from the AI's `OpponentModel` with its weights for that position (as in the belief):
+  `likelihood(cell, A_r, weights)` for a placement, 1 for a skip when A_r is empty.
+- **P(o | c) = Σ_r b(r) · P(o | r)**, with b the belief now.
+- **The posterior b'_o** is updated the way the belief updates: b(r) · P(o | r)^temper, normalised. So the expected
+  gain is measured in the same currency the belief will actually move by.
+- **H** is entropy in bits; the first term is the expected information gain (never negative).
+- **Skip bonus:** `SKIP_BITS` = [0.5, 1.0, 20.0] bits for a skip by an opponent with 0, 1 or 2 skips: a skip costs
+  them a pip, and a third ends the match in the AI's favour, so with 2 skips a colour likely to force one wins out.
+
+A colour every remaining rule treats alike is worth 0 (tested), so on the empty board picks are mostly ties broken
+at random. Cost: 5 legal-cell checks per colour (20 per pick) plus the outcome loop.
+
+### Base: `ColourPickStrategy`
+
+`score()` is the expected number of the belief's alive rules ruled out by the opponent's next turn in that colour, if
+each is equally likely and the opponent places uniformly among its legal cells or skips. Kept as the base class and
+as the comparison point in measurements.
 
 ## Placement
 
@@ -232,6 +253,7 @@ which fake rule to break.
 | Normal temper | `normal_model()` | 0.4 | Calibration sweep 0.6 / 0.4 / 0.25: 0.4 was closest to honest |
 | `DangerGuessPolicy.SAFE` | `ai/danger_guess_policy.gd` | 0.95 | Research doc |
 | `DangerGuessPolicy.DESPERATE` | same | 0.35 | Head-to-head sweep 0.35 / 0.5 / 0.6: 0.35 won most |
+| `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
 | `MatchDriver.MIN_PAUSE` / `MAX_PAUSE` | `model/match_driver.gd` | 0.5 / 1.5 s | Milestone 1 |
 
@@ -268,10 +290,22 @@ rule. 60 seeded matches, opponents playing Normal's max-k placement. Right / tim
 Normal vs Normal with seeds 2 and 3: right/wrong 97/101 and 105/94. The mirror match is a race, so about half the
 guesses are wrong; that is expected.
 
+Colour picks (#20), 200 seeded matches, seats swapped, both sides Normal's belief and guessing:
+
+| Normal's colour pick vs the base pick | Result |
+| --- | --- |
+| Information gain (as built) | 102 – 95, 3 draws |
+| Information gain, `SKIP_BITS` 1.5 / 3.0 / 20.0 | 102 – 95, 3 draws (identical) |
+| Expected rise of the top rule's probability instead of entropy | 104 – 94, 2 draws |
+
+Within noise: between two Normals the guessing race decides most matches, and a better probe rarely changes who
+guesses first. The information-gain pick stays (no weaker, principled, and the basis of Hard's blended pick).
+
 ### Speed
 
-Desktop, headless: 20 harness matches (≈ 360 AI decisions) in 9 s, about 25 ms per decision including the engine.
-The belief costs at most 5 legal-cell checks per new opponent event.
+Desktop, headless: 20 harness matches (`--seed 1`) take 11.3 s with the information-gain colour pick (9.1 s with the
+base pick), about 30 ms per decision including the engine. The belief costs at most 5 legal-cell checks per new
+opponent event; a colour pick 20.
 
 ### How to reproduce
 
@@ -345,7 +379,8 @@ Before merging a change to `ai/`:
 | `test/ai/test_ai_guess.gd` | Guess at the start of the turn and after placing with one rule left; not with two; a swapped policy; guesses only name live rules; Normal beats a certainty-only AI |
 | `test/ai/test_ai_forced_guess.gd` | The forced guess on a full board, its seeded ties, the no-candidate report |
 | `test/ai/test_deduction.gd` | Hard elimination by placements and skips on the position before each event |
-| `test/ai/test_ai_colour_pick.gd` | The colour scores and the swappable strategy |
+| `test/ai/test_ai_colour_pick.gd` | The base colour scores and the swappable strategy |
+| `test/ai/test_information_colour_pick.gd` | A colour all rules treat alike is worth 0; the telling colour is picked; the skip bonus grows with the opponent's skips; a ruled-out rule no longer counts |
 | `test/ai/test_ai_placement.gd` | Placement on max-k legal cells |
 | `test/ai/test_ai_controller.gd` | Seeded determinism; two AIs playing a full scenario in code |
 | `test/harness/*` | Harness determinism and stats |
@@ -356,3 +391,4 @@ Before merging a change to `ai/`:
 | --- | --- |
 | Milestone 1 | Hard elimination only; guess with one rule left; uniform colour picks; max-k placement; random forced guess |
 | #93 (#19) | `Belief` with soft evidence (`OpponentModel`, `HiderModel`, lapse, temper); exposure; `DangerGuessPolicy`; forced guess names the top rule; `AIController.for_level`; `Deduction.candidates_for` |
+| #20 | Colour strategies take the belief; Normal picks by `InformationColourPick` (expected information gain plus skip bonus) |
