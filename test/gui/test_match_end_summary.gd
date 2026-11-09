@@ -36,28 +36,28 @@ func test_a_right_guess_wins_for_the_guesser() -> void:
 	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "BT").public_view(0))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
 	assert_eq(summary.headline, "You win")
-	assert_eq(summary.reason, "You named BT \"Anywhere (BT)\", the AI's true rule.")
+	assert_eq(summary.reason, "You named BT \"Anywhere (BT)\", the AI's secret rule.")
 
 
 func test_the_other_viewer_loses_the_same_match() -> void:
 	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "BT").public_view(1))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
 	assert_eq(summary.headline, "You lose")
-	assert_eq(summary.reason, "The AI named BT \"Anywhere (BT)\", your true rule.")
+	assert_eq(summary.reason, "The AI named BT \"Anywhere (BT)\", your secret rule.")
 
 
 func test_a_wrong_guess_loses_for_the_guesser() -> void:
 	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(0, "B2").public_view(0))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.LOSS)
 	assert_eq(summary.headline, "You lose")
-	assert_eq(summary.reason, "You named B2 \"Anywhere (B2)\", but it isn't the AI's true rule.")
+	assert_eq(summary.reason, "You named B2 \"Anywhere (B2)\", but it isn't the AI's secret rule.")
 
 
 func test_the_ais_wrong_guess_wins_for_the_viewer() -> void:
 	var summary: MatchEndSummary = MatchEndSummary.from_view(_guessed(1, "A2").public_view(0))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
 	assert_eq(summary.headline, "You win")
-	assert_eq(summary.reason, "The AI named A2 \"Anywhere (A2)\", but it isn't your true rule.")
+	assert_eq(summary.reason, "The AI named A2 \"Anywhere (A2)\", but it isn't your secret rule.")
 
 
 func test_each_viewer_sees_both_true_rules_from_their_side() -> void:
@@ -125,8 +125,8 @@ func test_two_wrong_forced_guesses_draw_and_list_the_viewers_guess_first() -> vo
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
 	assert_eq(summary.headline, "Draw")
 	assert_eq(summary.reason, "The board is full. "
-		+ "You named A3 \"Anywhere (A3)\", but it isn't the AI's true rule. "
-		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your true rule.")
+		+ "You named A3 \"Anywhere (A3)\", but it isn't the AI's secret rule. "
+		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your secret rule.")
 
 
 func test_two_right_forced_guesses_draw() -> void:
@@ -134,13 +134,13 @@ func test_two_right_forced_guesses_draw() -> void:
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.DRAW)
 	assert_eq(summary.headline, "Draw")
 	assert_eq(summary.reason, "The board is full. "
-		+ "You named BT \"Anywhere (BT)\", the AI's true rule. "
-		+ "The AI named AT \"Anywhere (AT)\", your true rule.")
+		+ "You named BT \"Anywhere (BT)\", the AI's secret rule. "
+		+ "The AI named AT \"Anywhere (AT)\", your secret rule.")
 
 
 func test_the_only_right_forced_guess_wins() -> void:
 	var summary: MatchEndSummary = MatchEndSummary.from_view(_forced("B2", "AT").public_view(1))
 	assert_eq(summary.outcome, MatchEndSummary.Outcome.WIN)
 	assert_eq(summary.reason, "The board is full. "
-		+ "You named AT \"Anywhere (AT)\", the AI's true rule. "
-		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your true rule.")
+		+ "You named AT \"Anywhere (AT)\", the AI's secret rule. "
+		+ "The AI named B2 \"Anywhere (B2)\", but it isn't your secret rule.")

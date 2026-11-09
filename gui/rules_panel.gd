@@ -25,6 +25,9 @@ const STRIKE_HEIGHT: float = 0.55
 ## smaller (Larger text scales it from there), so its two lines fit a row's
 ## height.
 const LONG_RULE_FONT_SIZE: int = 14
+## The SECRET tag on a secret rule: small capitals, so it leaves the rule its
+## room beside the mark buttons.
+const TAG_FONT_SIZE: int = 12
 ## Larger text: more rules wrap (and so drop the step), and rows and
 ## sections sit closer, so the panel still fits 720 px with long rules in
 ## both decks.
@@ -158,7 +161,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> voi
 
 ## Drops a rule's text one font step (LONG_RULE_FONT_SIZE, scaled) when it is
 ## wider than the room its row leaves it: the panel's width less the row's
-## margins and the rule id, TRUE label and mark buttons beside it. Called once
+## margins and the rule id, SECRET tag and mark buttons beside it. Called once
 ## the row is complete and scaled; a dropped rule stays dropped.
 func _fit_rule_text(row: PanelContainer) -> void:
 	var line: HBoxContainer = row.get_node("Line")
@@ -274,7 +277,7 @@ func show_match_over(ai_true_rule: Rule) -> void:
 		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		if String(panel.name) == ai_true_rule.id:
 			# Right after the text, before the mark buttons.
-			var true_label: Label = Palette.label("TRUE", Palette.GOLD_COLOUR)
+			var true_label: Label = Palette.label("SECRET", Palette.GOLD_COLOUR, TAG_FONT_SIZE)
 			panel.get_node("Line").add_child(true_label)
 			panel.get_node("Line").move_child(true_label, panel.get_node("Line/Text").get_index() + 1)
 	_update_guess()
@@ -343,13 +346,13 @@ func _update_guess() -> void:
 	_seal_button.enabled = seal_enabled and selected_rule_id != ""
 	_seal_button.visible = not _match_over and board_full and seal_enabled
 	if _match_over:
-		_guess_hint.text = "The match is over. The AI's true rule is marked."
+		_guess_hint.text = "Match over. The AI's secret rule is marked."
 	elif board_full and not guess_enabled and not seal_enabled:
 		_guess_hint.text = "The board is full. Both forced guesses are revealed together."
 	elif not guess_enabled and not seal_enabled:
 		_guess_hint.text = "You can guess at the start of your turn and until your colour pick."
 	elif selected_rule_id == "":
-		_guess_hint.text = "Select the rule you think is the AI's true rule."
+		_guess_hint.text = "Select the rule you think is the AI's secret rule."
 	elif guess_enabled and seal_enabled:
 		# Short: it shares its line with both buttons.
 		_guess_hint.text = tr("Guess %s now, or Seal it as your forced guess.") % selected_rule_id
@@ -408,7 +411,7 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	row.add_theme_stylebox_override("panel", _style(false, is_true))
 	var line: HBoxContainer = HBoxContainer.new()
 	line.name = "Line"
-	line.add_theme_constant_override("separation", 12)
+	line.add_theme_constant_override("separation", 10)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(line)
 	var id_label: Label = Palette.label(rule.id, Palette.ID_COLOUR)
@@ -425,7 +428,7 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 		text_label.add_theme_constant_override("line_spacing", LARGER_LINE_SPACING)
 	line.add_child(text_label)
 	if is_true:
-		line.add_child(Palette.label("TRUE", Palette.GOLD_COLOUR))
+		line.add_child(Palette.label("SECRET", Palette.GOLD_COLOUR, TAG_FONT_SIZE))
 	return row
 
 

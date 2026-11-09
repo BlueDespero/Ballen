@@ -118,7 +118,7 @@ mouse_filter = 2
 
 [node name="AICaption" type="Label" parent="Centre/Card/Content"]
 layout_mode = 2
-text = "The AI's true rule"
+text = "The AI's secret rule"
 label_settings = SubResource("LabelSettings_caption")
 
 [node name="AIRule" type="PanelContainer" parent="Centre/Card/Content"]
@@ -148,7 +148,7 @@ autowrap_mode = 3
 
 [node name="PlayerCaption" type="Label" parent="Centre/Card/Content"]
 layout_mode = 2
-text = "Your true rule"
+text = "Your secret rule"
 label_settings = SubResource("LabelSettings_caption")
 
 [node name="PlayerRule" type="PanelContainer" parent="Centre/Card/Content"]

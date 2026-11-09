@@ -186,13 +186,13 @@ layout_mode = 2
 [node name="RuleCaption" type="Label" parent="Backdrop/Centre/Card/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Choose your true rule"
+text = "Choose your secret rule"
 
 [node name="Hint" type="Label" parent="Backdrop/Centre/Card/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
 theme_override_font_sizes/font_size = 16
-text = "Tap one of your rules to make it true. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is true."
+text = "Tap one of your rules to make it your secret rule. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is secret."
 autowrap_mode = 3
 
 [node name="RuleButtons" type="VBoxContainer" parent="Backdrop/Centre/Card/Content"]

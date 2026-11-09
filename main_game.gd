@@ -390,9 +390,9 @@ func _skip_this_turn(view: PublicView) -> HistoryEntry:
 ## The board is full: whose forced guess is due. A sealed guess is never shown.
 func _forced_guess_text(view: PublicView) -> String:
 	if view.forced_guess_due() and view.can_guess():
-		return "The board is full. Guess the AI's true rule now, or seal your forced guess until both are in."
+		return "The board is full. Guess the AI's secret rule now, or seal your forced guess until both are in."
 	if view.forced_guess_due():
-		return "The board is full. Name the AI's true rule: it stays sealed until both guesses are in."
+		return "The board is full. Name the AI's secret rule: it stays sealed until both guesses are in."
 	if view.current_player == HUMAN:
 		return "The board is full and your forced guess is sealed. The AI is guessing…"
 	return "The board is full. The AI is making its forced guess…"
