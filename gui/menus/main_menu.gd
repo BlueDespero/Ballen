@@ -5,6 +5,10 @@ extends Control
 ## sits in the bottom-right corner, so a build can be traced. The top-right
 ## button switches between English and Polish, named in the language it
 ## switches to.
+##
+## In the phone and tablet apps, back (Escape) here closes the app, the
+## Android convention for an app's first screen. On desktop Escape does nothing
+## here (Quit does that), nor on the web, where quitting only freezes the canvas.
 
 const SETTINGS_SCENE: String = "res://gui/menus/settings_menu.tscn"
 const DECKS_SCENE: String = "res://gui/menus/decks_screen.tscn"
@@ -38,6 +42,17 @@ func _ready() -> void:
 	_apply_text_scale()
 	_language_button.pressed.connect(_on_language_button_pressed)
 	_show_other_language()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and closes_on_back(OS.has_feature("web"), OS.has_feature("mobile")):
+		get_viewport().set_input_as_handled()
+		get_tree().quit()
+
+
+## Whether back (ui_cancel) on the main menu closes the app.
+static func closes_on_back(is_web: bool, is_mobile: bool) -> bool:
+	return is_mobile and not is_web
 
 
 ## The language the corner button switches to.
