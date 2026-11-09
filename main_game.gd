@@ -15,6 +15,10 @@ extends Control
 ## colour pick, Guess or Seal, Live, or stepping past the latest turn) return
 ## to the live board. The AI playing on meanwhile leaves the past board on show
 ## and lights up Live.
+##
+## Back (Escape, or Android's back button) during a match, from the coin toss
+## to the last move, asks "Leave this match?"; leaving goes to the main menu
+## and records nothing. The setup and match-end screens take back themselves.
 
 const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
@@ -41,6 +45,7 @@ const PAUSED_BALL_ALPHA: float = 0.35
 @onready var _setup_screen: MatchSetupScreen = %MatchSetup
 @onready var _match_end: MatchEndOverlay = %MatchEnd
 @onready var _history_nav: HistoryNav = %HistoryNav
+@onready var _leave_dialog: LeaveMatchDialog = %LeaveMatch
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _book: RuleBook = RuleBook.load_default()
@@ -73,6 +78,7 @@ func _ready() -> void:
 	_history_nav.back_pressed.connect(_step_back)
 	_history_nav.live_pressed.connect(_go_live)
 	_history_nav.forward_pressed.connect(_step_forward)
+	_leave_dialog.leave_confirmed.connect(_on_main_menu_requested)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
 	_show_setup()
@@ -99,6 +105,7 @@ func _apply_settings() -> void:
 	_rules_panel.text_scale = Settings.text_scale()
 	_setup_screen.text_scale = Settings.text_scale()
 	TextScale.apply(_match_end, Settings.text_scale())
+	TextScale.apply(_leave_dialog, Settings.text_scale())
 
 
 ## An empty board under the match setup screen: a new match draws the AI's
@@ -246,6 +253,14 @@ func _show_skip(skip: HistoryEntry) -> void:
 ## The player's waiting ball under the board, or the AI's above it.
 func _waiting_ball(player: int) -> BallView:
 	return _player_ball if player == HUMAN else _ai_ball
+
+
+## Back reaches here only during a match: the setup and match-end screens and
+## the open dialog take it first.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_leave_dialog.open()
 
 
 ## Pressing your ball while a past board is on show is an action: back to the

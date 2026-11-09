@@ -522,3 +522,17 @@ msgstr "Po każdym pominięciu musi stykać się z Twoją kulą"
 
 msgid "Never next to the opponent's last ball"
 msgstr "Nigdy obok ostatniej kuli przeciwnika"
+
+# Leaving a match
+
+msgid "Leave this match?"
+msgstr "Opuścić ten mecz?"
+
+msgid "The match ends here without a result."
+msgstr "Mecz kończy się tutaj bez wyniku."
+
+msgid "Stay"
+msgstr "Zostań"
+
+msgid "Leave"
+msgstr "Wyjdź"
