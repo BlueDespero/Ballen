@@ -175,7 +175,7 @@ New players are never forced through the tutorial: How to Play glows until first
 
 - **Placing:** the ball snaps into its cell with a soft click.
 - **Skipping:** the ball dissolves at your side of the board with a low tone.
-- **Guessing:** tap Guess and confirm (or hold it while a ring fills, releasing early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
+- **Guessing:** tap Guess and confirm on a card that states the stakes ("Right: you win. Wrong: you lose.") and what your own notes leave, with Keep playing where Guess was (or, with Hold to guess, hold it while a ring fills, releasing early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
 
 ### Accessibility
 

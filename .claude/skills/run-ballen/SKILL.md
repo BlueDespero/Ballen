@@ -117,8 +117,8 @@ layout and centres it, so these coordinates no longer hold.
   `[IO.File]::WriteAllText($cfg, "[accessibility]`n`nreduced_motion=true`n")`; `Set-Content -Encoding
   utf8` adds a BOM and the file is then ignored) and **delete it afterwards** so later runs start from
   the defaults. Keys: `[audio] volume` (0–1), `[accessibility] colour_blind_symbols`, `reduced_motion`,
-  `hold_to_guess`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). By default a click on Guess arms it
-  (`…/GuessButton:armed` true, it reads Confirm) and a second click guesses; with `hold_to_guess=true` you hold it instead. Larger text packs the rules
+  `hold_to_guess`, `larger_text`, `[hints] note_marks_seen` (see Note marks hint). By default a click on Guess opens
+  the stakes card (see Guess); with `hold_to_guess=true` you hold Guess instead and no card opens. Larger text packs the rules
   panel tighter: e.g. with one wrapped AI rule and the Starter deck, AI rows y≈71–293 (40 px each,
   49 when wrapped, 2 apart), Guess ≈(1173,325), your rows y≈405–613 (hint gone; see the Rules panel
   note).
@@ -201,9 +201,14 @@ layout and centres it, so these coordinates no longer hold.
   your rows y≈483–675. The first mark tap hides it and **saves `settings.cfg`** with
   `note_marks_seen=true` (the y values above then hold). Back up the user's file before a run that
   taps a mark, and restore it afterwards.
-- Guess: select an AI rule, then click the button twice (it arms, reading Confirm, then guesses):
-  `click:1173,344 wait:5 click:1173,344`. With `hold_to_guess=true`, hold it about 1 s instead
-  (`press:1173,344 wait:90 release:1173,344`); releasing earlier cancels. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
+- Guess: select an AI rule, then click Guess: the stakes card (`Layout/RulesPanel/StakesCard`, `visible`)
+  covers the AI's half of the panel, from its title down to the Guess row, with `Title` (`Guess R03?`),
+  `RuleText`, `Stakes` (`Right: you win. Wrong: you lose.`) and `Notes` (what your ✗ marks leave). Its
+  buttons sit level with where Guess was: `Confirm` (reads `Guess R03`, left, centre x≈861) guesses,
+  `Cancel` (reads `Keep playing`, right, centre x≈1147) closes it. With the note marks hint showing the
+  row is at y≈363 (Guess at y≈372); without it, about 28 px higher. So: `click:1173,344 wait:5 click:861,335`
+  with the hint hidden. With `hold_to_guess=true`, hold Guess about 1 s instead
+  (`press:1173,344 wait:90 release:1173,344`); releasing earlier cancels and the hint says to keep holding. `Layout/RulesPanel:guess_enabled` is true in your guess windows (start of
   your turn, after placing or skipping until your colour pick); the button also needs a selected rule. The ring's
   fill is `Layout/RulesPanel/Sections/GuessSlot/GuessButton:progress` (0–1). Frames run faster than
   60 per second in driver runs, so pick a short `wait` (≈10) to catch the ring half full. A guess ends
@@ -214,12 +219,12 @@ layout and centres it, so these coordinates no longer hold.
   `.../Content/Reason:text` (e.g. `You named R04 "Never on the edge", the AI's secret rule.`);
   `Layout/Status` is empty. Buttons: Rematch centre (271,540), Main menu centre (457,540); Main menu
   returns to `Main`. To guess the AI's first rule and go back to the menu:
-  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 click:1173,344 wait:5 click:1173,344 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
+  `until:Layout/RulesPanel:guess_enabled=true click:1000,94 click:1173,344 wait:5 click:861,335 until:Layout/MatchEnd:visible=true wait:40 ss:end click:457,540`.
   A third skip ends the match the same way; its reason reads `You skipped for the third time.` /
   `The AI skipped for the third time.`
 - Full board: the placement that fills it brings no colour pick. When your forced guess is due,
   `Layout/RulesPanel:seal_enabled` is true, the Seal button shows, `Layout/Status` reads
-  `Guess or seal.` or `Seal your guess.` and `Layout/StatusDetail` starts `The board is full.`; select an AI rule and hold Seal like Guess. If you filled the board, Guess
+  `Guess or seal.` or `Seal your guess.` and `Layout/StatusDetail` starts `The board is full.`; select an AI rule and click Seal: the same card asks `Seal R03 as your forced guess?` (`Seal R03` / `Not yet`). If you filled the board, Guess
   stays too (`guess_enabled` true; right wins, wrong loses) and Seal sits left of it, centre
   (1022,347), Guess (1173,347); otherwise Seal alone takes Guess's place, centre (1188,344). The note
   marks hint is hidden while the board is full (so the y values without it hold), which keeps the

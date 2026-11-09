@@ -395,8 +395,44 @@ msgstr "Wybierz"
 msgid "Seal"
 msgstr "Zatwierdź"
 
-msgid "Confirm"
-msgstr "Potwierdź"
+msgid "Guess %s?"
+msgstr "Typujesz %s?"
+
+msgid "Seal %s as your forced guess?"
+msgstr "Zatwierdzić %s jako obowiązkowy typ?"
+
+msgid "Right: you win. Wrong: you lose."
+msgstr "Trafisz: wygrywasz. Chybisz: przegrywasz."
+
+msgid "One right guess wins. Both right or both wrong: a draw."
+msgstr "Jeden trafny typ wygrywa. Oba trafne lub oba chybione: remis."
+
+msgid "Your notes say you ruled this one out."
+msgstr "Według Twoich notatek ta reguła jest wykluczona."
+
+msgid "Your notes don't rule out any of its rules yet."
+msgstr "Twoje notatki nie wykluczają jeszcze żadnej z jego reguł."
+
+msgid "By your notes, it is the only rule left."
+msgstr "Według Twoich notatek to jedyna pozostała reguła."
+
+msgid "By your notes, %d of 5 rules are still possible."
+msgstr "Według Twoich notatek możliwych jest jeszcze %d z 5 reguł."
+
+msgid "Guess %s"
+msgstr "Typuję %s"
+
+msgid "Seal %s"
+msgstr "Zatwierdzam %s"
+
+msgid "Keep playing"
+msgstr "Gram dalej"
+
+msgid "Not yet"
+msgstr "Jeszcze nie"
+
+msgid "Keep holding %s until its ring fills."
+msgstr "Trzymaj %s, aż pierścień się wypełni."
 
 msgid "Match over. The AI's secret rule is marked."
 msgstr "Koniec meczu. Tajna reguła komputera jest zaznaczona."
@@ -425,8 +461,8 @@ msgstr "%s, aby ustawić %s jako obowiązkowy typ. Jeden trafny typ wygrywa, ina
 msgid "%s to name %s. Right wins, wrong loses."
 msgstr "%s, aby wytypować %s. Trafny typ wygrywa, chybiony przegrywa."
 
-msgid "Tap %s, then Confirm,"
-msgstr "Stuknij %s, potem Potwierdź"
+msgid "Tap %s"
+msgstr "Stuknij %s"
 
 msgid "Hold %s"
 msgstr "Przytrzymaj %s"

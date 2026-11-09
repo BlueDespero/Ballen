@@ -4,18 +4,19 @@ extends PanelContainer
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
 ## with their secret rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
-## by holding Guess under them (or tapping it, then Confirm, with the "guess
-## without holding" setting). Two small buttons, ✗ and ?, at the right end of
+## by tapping Guess under them and confirming on the StakesCard, which says what
+## is at stake (or, with the "Hold to guess" setting, by holding Guess while its
+## ring fills). Two small buttons, ✗ and ?, at the right end of
 ## each AI rule keep the player's private note mark on it. On a full board,
-## holding Seal beside Guess makes the player's sealed forced guess instead.
+## Seal beside Guess makes the player's sealed forced guess instead, the same way.
 ## While a guess could be made, Guess stays outlined until a rule is selected,
 ## so it reads as the second option beside placing; pressing it then asks for a
 ## rule first. A face-down card by the AI's title stands for its secret rule,
 ## and turns over to show it once the match is over.
 
-## The player held Guess to the end with one of the AI's rules selected.
+## The player confirmed a guess (or held Guess to the end) on the AI's rule.
 signal guess_requested(rule_id: String)
-## The player held Seal to the end with one of the AI's rules selected.
+## The player confirmed a sealed forced guess (or held Seal to the end).
 signal seal_requested(rule_id: String)
 
 const ROW_HEIGHT: float = 44.0
@@ -69,13 +70,14 @@ var board_full: bool = false:
 		_update_guess()
 		_update_mark_hint()
 
-## Guess and Seal fire on a tap and a Confirm tap instead of a hold.
-var guess_without_holding: bool = false:
+## Guess and Seal fire after a hold while a ring fills, with no stakes card.
+var hold_to_guess: bool = false:
 	set(value):
-		guess_without_holding = value
+		hold_to_guess = value
 		if is_node_ready():
-			_guess_button.tap_to_confirm = value
-			_seal_button.tap_to_confirm = value
+			_guess_button.hold = value
+			_seal_button.hold = value
+		_stakes_card.close()
 		_update_guess()
 
 ## Larger text: the panel's text is this many times its built size. Rows are
@@ -98,6 +100,9 @@ var _match_over: bool = false
 ## Whether the decks are only a preview, before the match starts.
 var _preview: bool = false
 var _marks: Dictionary[String, int] = {}
+var _ai_deck: Deck = null
+## Confirms a tapped Guess or Seal; over the AI's half of the panel.
+var _stakes_card: StakesCard = StakesCard.new()
 ## The AI's secret rule once the match is over; "" before.
 var _ai_secret_rule_id: String = ""
 
@@ -113,6 +118,8 @@ var _ai_secret_rule_id: String = ""
 @onready var _ai_skip_pips: HBoxContainer = %AISkipPips
 @onready var _player_skip_pips: HBoxContainer = %PlayerSkipPips
 @onready var _secret_card: Label = %SecretCard
+@onready var _ai_header: Control = $Sections/AIHeader
+@onready var _guess_slot: Control = %GuessSlot
 
 
 func _ready() -> void:
@@ -120,6 +127,14 @@ func _ready() -> void:
 	_seal_button.guessed.connect(_on_sealed)
 	_guess_button.blocked.connect(_on_blocked)
 	_seal_button.blocked.connect(_on_blocked)
+	_guess_button.pressed_to_guess.connect(_open_stakes_card.bind(false))
+	_seal_button.pressed_to_guess.connect(_open_stakes_card.bind(true))
+	_guess_button.released_early.connect(_on_released_early.bind("Guess"))
+	_seal_button.released_early.connect(_on_released_early.bind("Seal"))
+	_stakes_card.top_level = true
+	_stakes_card.confirmed.connect(_on_stakes_confirmed)
+	add_child(_stakes_card)
+	hold_to_guess = hold_to_guess
 	_guess_hint.add_theme_color_override("font_color", Palette.HINT_COLOUR)
 	_mark_hint_text.add_theme_color_override("font_color", Palette.HINT_COLOUR)
 	_mark_hint_cross.draw.connect(_draw_hint_cross)
@@ -149,6 +164,7 @@ func show_decks(ai_deck: Deck, player_deck: Deck, player_secret_rule: Rule) -> v
 	_preview = player_secret_rule == null
 	_match_over = false
 	_ai_secret_rule_id = ""
+	_ai_deck = ai_deck
 	_secret_card.text = "?"
 	_fill(_ai_rules, ai_deck, null)
 	_fill(_player_rules, player_deck, player_secret_rule)
@@ -306,6 +322,7 @@ func _on_ai_row_input(event: InputEvent, rule_id: String) -> void:
 
 func _select(rule_id: String) -> void:
 	selected_rule_id = rule_id
+	_stakes_card.close()
 	# An armed Confirm was for the rule selected before.
 	_guess_button.cancel()
 	_seal_button.cancel()
@@ -342,6 +359,11 @@ func _on_blocked() -> void:
 	Attention.pulse(self, _guess_hint, "self_modulate", BoardView.GLOW_COLOUR * 1.4, Color.WHITE)
 
 
+## With Hold to guess, a hold that ends early says to keep holding.
+func _on_released_early(trigger: String) -> void:
+	_guess_hint.text = tr("Keep holding %s until its ring fills.") % tr(trigger)
+
+
 func _on_guessed() -> void:
 	if guess_enabled and selected_rule_id != "":
 		guess_requested.emit(selected_rule_id)
@@ -350,6 +372,43 @@ func _on_guessed() -> void:
 func _on_sealed() -> void:
 	if seal_enabled and selected_rule_id != "":
 		seal_requested.emit(selected_rule_id)
+
+
+## A tap on Guess or Seal: the card over the AI's half of the panel asks to
+## confirm, with the stakes and what the player's own marks say.
+func _open_stakes_card(sealing: bool) -> void:
+	if selected_rule_id == "" or _ai_deck == null:
+		return
+	var crossed: int = 0
+	for rule_id: String in _marks:
+		if _marks[rule_id] == NoteMark.Mark.CROSS:
+			crossed += 1
+	var ruled_out: bool = _marks.get(selected_rule_id, NoteMark.Mark.NONE) == NoteMark.Mark.CROSS
+	var rule: Rule = null
+	for deck_rule: Rule in _ai_deck.rules:
+		if deck_rule.id == selected_rule_id:
+			rule = deck_rule
+	_stakes_card.open(rule, sealing, Deck.SIZE - crossed, ruled_out)
+	TextScale.apply(_stakes_card, text_scale)
+	_place_stakes_card()
+	# Again once the panel has laid out, in case it hadn't yet.
+	_place_stakes_card.call_deferred()
+
+
+## The card covers the AI's half of the panel, title to Guess.
+func _place_stakes_card() -> void:
+	var top: float = _ai_header.global_position.y
+	var bottom: float = _guess_slot.get_global_rect().end.y
+	_stakes_card.global_position = Vector2(_ai_header.global_position.x, top)
+	_stakes_card.reset_size()
+	_stakes_card.size = Vector2(_ai_header.size.x, bottom - top)
+
+
+func _on_stakes_confirmed() -> void:
+	if _stakes_card.sealing:
+		_on_sealed()
+	else:
+		_on_guessed()
 
 
 ## On a full board Guess shows only while the player (the placer) may still
@@ -363,6 +422,9 @@ func _update_guess() -> void:
 	_seal_button.enabled = seal_enabled and selected_rule_id != ""
 	_seal_button.available = seal_enabled and selected_rule_id == ""
 	_seal_button.visible = not _match_over and board_full and seal_enabled
+	# The card closes once what it would confirm can no longer be done.
+	if _stakes_card.visible and not (_seal_button.enabled if _stakes_card.sealing else _guess_button.enabled):
+		_stakes_card.close()
 	if _match_over:
 		_guess_hint.text = "Match over. The AI's secret rule is marked."
 	elif board_full and not guess_enabled and not seal_enabled:
@@ -380,10 +442,10 @@ func _update_guess() -> void:
 		_guess_hint.text = tr("%s to name %s. Right wins, wrong loses.") % [_how("Guess"), selected_rule_id]
 
 
-## How to pull a trigger, for the hint: "Hold Guess", or "Tap Guess, then
-## Confirm," without holding.
+## How to use a trigger, for the hint: "Tap Guess", or "Hold Guess" with Hold
+## to guess.
 func _how(trigger: String) -> String:
-	return tr("Tap %s, then Confirm,") % tr(trigger) if guess_without_holding else tr("Hold %s") % tr(trigger)
+	return tr("Hold %s") % tr(trigger) if hold_to_guess else tr("Tap %s") % tr(trigger)
 
 
 ## One pip per skip that loses the match, filled for each skip taken.

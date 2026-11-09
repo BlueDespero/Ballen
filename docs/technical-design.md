@@ -49,15 +49,20 @@ all run the same code.
   and the `PICK_COLOUR` phase (after placing or skipping, until the colour pick); `PublicView.can_guess()`
   tells a controller when its window is open. A right guess wins and a wrong one loses at once, and
   history records the guesser, the named rule and whether it was right. In the scene the player
-  selects one of the AI's rules and holds Guess (`gui/guess_button.gd`) for about a second.
+  selects one of the AI's rules and taps Guess (`gui/guess_button.gd`); a `StakesCard`
+  (`gui/stakes_card.gd`) over the AI's half of the rules panel names the rule, says "Right: you win.
+  Wrong: you lose." and what the player's own ✗ marks leave (never the match, so it leaks nothing), and
+  only its Guess button guesses. Its safe button (Keep playing) sits where Guess was, so a reflexive
+  second tap keeps playing. With the Hold to guess setting, Guess is held for about a second instead
+  (no card), and a hold that ends early says to keep holding.
 - The placement that fills the board starts the `FORCED_GUESS` phase instead of a colour pick. The
   match awaits the placer first: they may still pull the trigger with `Command.guess`, or make their
   forced guess (`Command.forced_guess(rule_id)`); then it awaits the opponent's. A forced guess is
   sealed: the match keeps it privately, so no `PublicView` and no history shows it until both are in
   (`PublicView.awaiting_players` and `forced_guess_due()` show only whose guess is due). Then history
   records both as guesses, the placer's first, and the match ends with `FORCED_GUESSES`: exactly one
-  right wins, otherwise a draw. In the scene the player selects a rule and holds Seal, a second hold
-  button beside Guess on a full board; while the player who filled it may still pull the trigger,
+  right wins, otherwise a draw. In the scene the player selects a rule and taps Seal (the stakes
+  card confirms it; with Hold to guess, holds it), a second button beside Guess on a full board; while the player who filled it may still pull the trigger,
   Guess stays beside Seal, and the placer's opponent gets only Seal.
 - The AI gets a `PublicView`: a snapshot copied for one viewer, without the opponent's secret rule or
   legal cells and with no reference back to the match ([ADR 0002](adr/0002-public-view-is-a-snapshot.md)).
