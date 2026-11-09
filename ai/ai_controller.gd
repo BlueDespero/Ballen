@@ -20,6 +20,8 @@ const ROUTINE_PAUSE: float = 2.5
 const LONGEST_PAUSE: float = 5.0
 ## A placement is routine: this far from SHORTEST_PAUSE toward ROUTINE_PAUSE.
 const PLACEMENT_CLOSENESS: float = 0.2
+## Easy guesses only once its belief reaches this, whatever the danger.
+const EASY_THRESHOLD: float = 0.95
 ## Natural variation of a pause, either way, in seconds.
 const PAUSE_WOBBLE: float = 0.15
 
@@ -62,9 +64,20 @@ static func normal_model() -> OpponentModel:
 	return HiderModel.new(1.0, 0.2, 0.4)
 
 
+## Easy's model of the player: they place at random among their legal cells,
+## and each placement counts for little (temper 0.15), so it learns slowly.
+static func easy_model() -> OpponentModel:
+	var model: OpponentModel = OpponentModel.new()
+	model.temper = 0.15
+	return model
+
+
 ## The AI of a level (AILevel); only built levels can be played.
 static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AIController:
 	match level:
+		AILevel.Level.EASY:
+			return AIController.new(rng, GuessPolicy.new(EASY_THRESHOLD), LooseColourPick.new(), easy_model(),
+				AnyLegalPlacement.new())
 		AILevel.Level.NORMAL:
 			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
 				HidingPlacement.new())
