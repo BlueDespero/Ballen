@@ -294,11 +294,11 @@ msgstr "Komputer myśli…"
 msgid "Place your ball."
 msgstr "Połóż swoją kulę."
 
-msgid "Drag it onto a glowing cell. Or select one of the AI's rules and guess it."
-msgstr "Przeciągnij ją na świecące pole. Albo zaznacz jedną z reguł komputera i wytypuj ją."
+msgid "Tap a glowing cell, or drag your ball onto one. Or select one of the AI's rules and guess it."
+msgstr "Stuknij świecące pole albo przeciągnij na nie kulę. Możesz też zaznaczyć jedną z reguł komputera i ją wytypować."
 
-msgid "Drag it onto a glowing cell."
-msgstr "Przeciągnij ją na świecące pole."
+msgid "Tap a glowing cell, or drag your ball onto one."
+msgstr "Stuknij świecące pole albo przeciągnij na nie kulę."
 
 msgid "That ends your turn. You can still guess first."
 msgstr "To kończy Twoją turę. Najpierw możesz jeszcze typować."

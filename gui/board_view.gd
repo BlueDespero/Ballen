@@ -7,6 +7,11 @@ extends Control
 ## decides what is legal. Row y = 0 is drawn at the top (the AI's side), y = 5
 ## at the bottom (the player's side); row numbers count from the first player's
 ## side, so they run 1-6 upwards or downwards depending on who went first.
+## A tap on a cell (pressed and released on the same cell) reports
+## `cell_pressed`; the scene decides whether it places a ball.
+
+## A cell was tapped.
+signal cell_pressed(cell: Vector2i)
 
 const NO_CELL: Vector2i = Vector2i(-1, -1)
 const CELL_SIZE: float = 80.0
@@ -43,6 +48,8 @@ var _legal_cells: Array[Vector2i] = []
 var _viewer: int = Players.NONE
 var _first_player: int = 0
 var _highlighted: Vector2i = NO_CELL
+## The cell a press went down on, until it is released.
+var _pressed_cell: Vector2i = NO_CELL
 ## The legal cells' glow: GLOW_REST while still, up to 1 at the peak of a pulse.
 var _glow: float = GLOW_REST:
 	set(value):
@@ -68,6 +75,20 @@ func show_board(board: Board, legal_cells: Array[Vector2i], viewer: int, first_p
 	_first_player = first_player
 	_highlighted = highlighted
 	queue_redraw()
+
+
+func _gui_input(event: InputEvent) -> void:
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return
+	var cell: Vector2i = cell_at(button.global_position)
+	if button.pressed:
+		_pressed_cell = cell
+		return
+	# On release, so sliding off the cell before letting go cancels the tap.
+	if cell != NO_CELL and cell == _pressed_cell:
+		cell_pressed.emit(cell)
+	_pressed_cell = NO_CELL
 
 
 ## The cell under a point in canvas coordinates; NO_CELL off the board.

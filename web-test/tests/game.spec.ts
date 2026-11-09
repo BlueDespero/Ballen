@@ -40,6 +40,26 @@ test("placing a ball by dragging it onto the board", async ({ page }, testInfo) 
   expect(game.errors).toEqual([]);
 });
 
+test("placing a ball by tapping a glowing cell", async ({ page }, testInfo) => {
+  const game = new Game(page, testInfo);
+  await game.open();
+  const playerFirst = await game.startMatch();
+  if (!playerFirst) {
+    const since = game.markers.length;
+    await game.click(SPOT.pickRed);
+    await game.waitFor("[ballen] ball_placed by=ai", since);
+  }
+  await page.waitForTimeout(500);
+  // A tap (a click on desktop) on a free cell; with R08 every free cell glows.
+  for (const target of [cell(2, 2), cell(3, 3), cell(1, 4)]) {
+    const since = game.markers.length;
+    await game.click(target);
+    if (await game.seen("[ballen] ball_placed by=player", since, 3_000)) break;
+  }
+  await game.waitFor("[ballen] ball_placed by=player");
+  expect(game.errors).toEqual([]);
+});
+
 // The RotateHint autoload prints the marker in web builds.
 test("a portrait screen shows the rotate hint", async ({ page }, testInfo) => {
   const game = new Game(page, testInfo);

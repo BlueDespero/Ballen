@@ -41,8 +41,8 @@ static func for_view(view: PublicView) -> TurnPrompt:
 		Match.Phase.FIRST_COLOUR:
 			return TurnPrompt.new(_tr("Pick the AI's first colour."), _tr("The AI goes first."))
 		Match.Phase.PLACE:
-			return TurnPrompt.new(_tr("Place your ball."), _tr("Drag it onto a glowing cell. Or select one of the AI's rules and guess it.")
-				if or_guess else _tr("Drag it onto a glowing cell."))
+			return TurnPrompt.new(_tr("Place your ball."), _tr("Tap a glowing cell, or drag your ball onto one. Or select one of the AI's rules and guess it.")
+				if or_guess else _tr("Tap a glowing cell, or drag your ball onto one."))
 		Match.Phase.PICK_COLOUR:
 			return TurnPrompt.new(_tr("Pick the AI's next colour."), _tr("That ends your turn. You can still guess first.")
 				if or_guess else _tr("That ends your turn."))

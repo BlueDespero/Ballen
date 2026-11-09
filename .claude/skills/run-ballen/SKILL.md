@@ -149,6 +149,8 @@ layout and centres it, so these coordinates no longer hold.
 - Row numbers 1–6 at x≈176–196, left of the board, counted from the first player's side: 1 at the
   bottom when you go first, at the top when the AI does.
 - Your waiting ball: `Layout/PlayerBall`, centre (440,660); `draggable` is true on your placement turn.
+  Place it by dragging it onto a glowing cell, or by a click on the cell (`click:400,320` is cell (2,2); a
+  click on a cell that doesn't glow does nothing).
   A drop on a non-legal cell or off the board snaps it back to `position (408,628)`.
 - Colour picker for the AI's next ball, right of your ball at y=660: yellow x=512, blue x=568, red x=624,
   green x=680. Enabled only when you pick (your post-placement step, or the first colour if you go second):

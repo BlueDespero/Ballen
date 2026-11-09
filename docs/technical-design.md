@@ -21,14 +21,17 @@ all run the same code.
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
 | AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
-| Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
+| Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), tap to place (`BoardView.cell_pressed`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table), `Settings` (player settings, `user://settings.cfg`) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both secret rules; checks every move | Server-authoritative; clients never receive the opponent's secret rule |
 
 ### Key decisions
 
 - The dragged ball (`gui/ball_view.gd`) asks the match whether the cell under it is legal
-  (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`.
+  (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`. A tap on a
+  cell (`BoardView.cell_pressed`, press and release on the same cell) places there too, if the match
+  says it is legal: the ball flies to it. Dragging was unreliable on some touch screens, and tap-tap
+  moves are what chess apps default to.
 - One colour means "act here": `BoardView.GLOW_COLOUR` (gold). The shared cue `Attention`
   (`gui/attention.gd`) outlines the one control to use now; one per screen, so only one control wears
   it. Every "act here" cue (the outline, the legal cells, the colour picker's rings, the lit Live
@@ -411,7 +414,8 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
 - **Touch:** every tap target is at least 44 px at 1280×720; small glyphs (✗, ◀ ▶) are drawn, not typed.
 - **Web tests:** Playwright in `web-test/` plays the export in Desktop Chrome, Pixel 7 and iPhone 15 (WebKit) in
   landscape with touch, and Desktop Firefox: it loads with WebGL2 and no console errors, a match starts, a ball
-  can be dragged (mouse; touch through CDP on Chromium, script-made touch events on WebKit), portrait shows the
+  can be dragged (mouse; touch through CDP on Chromium, script-made touch events on WebKit) or placed by a tap
+  on a glowing cell, portrait shows the
   rotate hint, and a saved deck survives a reload. Clicks use the run-ballen skill's layout coordinates.
 
 ## Daily duel

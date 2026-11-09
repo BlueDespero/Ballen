@@ -65,6 +65,7 @@ func _ready() -> void:
 	_rng.randomize()
 	_player_ball.legality = _is_legal_for_player
 	_player_ball.dropped.connect(_on_player_ball_dropped)
+	_board_view.cell_pressed.connect(_on_cell_pressed)
 	_picker.picked.connect(_on_colour_picked)
 	_rules_panel.guess_requested.connect(_on_guess_requested)
 	_rules_panel.seal_requested.connect(_on_seal_requested)
@@ -165,6 +166,18 @@ func _is_legal_for_player(cell: Vector2i) -> bool:
 
 
 func _on_player_ball_dropped(cell: Vector2i) -> void:
+	_human.choose(Command.place(cell))
+
+
+## A tap on a glowing cell places the player's ball there: it flies to the
+## cell, as the AI's does. Dragging was unreliable on some touch screens.
+## Taps on other cells, or when the player can't place, do nothing.
+func _on_cell_pressed(cell: Vector2i) -> void:
+	if not _player_ball.draggable or not _is_legal_for_player(cell):
+		return
+	_player_ball.draggable = false
+	_cue.target = null
+	await _player_ball.fly_to(_board_view.cell_centre(cell), AI_FLY_SECONDS)
 	_human.choose(Command.place(cell))
 
 

@@ -82,7 +82,6 @@ offset_left = 200.0
 offset_top = 120.0
 offset_right = 680.0
 offset_bottom = 600.0
-mouse_filter = 2
 script = ExtResource("2_board")
 
 [node name="AISide" type="Label" parent="Layout"]

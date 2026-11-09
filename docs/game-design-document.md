@@ -132,7 +132,7 @@ Ballen is an abstract duel with no story: two sides of one board face off, and t
 
 ## 5. Interface & controls
 
-Ballen is played by drag and drop with mouse or touch, in landscape for the first release. On your turn the cells your secret rule allows glow for the whole turn, so nobody has to work out legality in their head; a drop anywhere else snaps the ball back.
+Ballen is played with mouse or touch, in landscape for the first release: tap a glowing cell to place your ball there, or drag the ball onto it. On your turn the cells your secret rule allows glow for the whole turn, so nobody has to work out legality in their head; a tap elsewhere does nothing, and a drop elsewhere snaps the ball back.
 
 ### Game flow
 
