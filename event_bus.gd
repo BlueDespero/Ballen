@@ -9,3 +9,10 @@ signal ball_placed(by_player: bool, cell: Vector2i)
 signal deck_saved(deck_name: String)
 ## The Decks screen listed these decks, Starter first.
 signal decks_listed(deck_names: Array[String])
+## The player pressed Start with this secret rule, seconds after the setup
+## screen opened; picked_for_me when Pick for me chose it.
+signal secret_rule_picked(rule_id: String, seconds: float, picked_for_me: bool)
+## A guess was made on this turn (forced guesses too, as the match ends).
+signal guessed(by_player: bool, turn: int, right: bool)
+## The player pressed Guess (or Seal) before selecting one of the AI's rules.
+signal guess_blocked

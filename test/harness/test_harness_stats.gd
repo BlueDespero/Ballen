@@ -5,13 +5,13 @@ extends GutTest
 
 
 ## A finished match record. turns and skips are by player; winner NONE is a draw.
-func _record(true_rule_ids: Array[String], first_player: int, winner: int, turns: Array[int], skips: Array[int]) -> MatchRecord:
+func _record(secret_rule_ids: Array[String], first_player: int, winner: int, turns: Array[int], skips: Array[int]) -> MatchRecord:
 	var result: MatchResult = MatchResult.new(winner, MatchResult.Reason.RIGHT_GUESS)
-	return MatchRecord.new(true_rule_ids, first_player, result, turns, skips)
+	return MatchRecord.new(secret_rule_ids, first_player, result, turns, skips)
 
 
-func _unfinished(true_rule_ids: Array[String], turns: Array[int], skips: Array[int]) -> MatchRecord:
-	return MatchRecord.new(true_rule_ids, 0, null, turns, skips)
+func _unfinished(secret_rule_ids: Array[String], turns: Array[int], skips: Array[int]) -> MatchRecord:
+	return MatchRecord.new(secret_rule_ids, 0, null, turns, skips)
 
 
 func test_no_matches_give_zeroes() -> void:
@@ -50,7 +50,7 @@ func test_skip_rate_of_a_rule_is_over_the_turns_of_its_holders() -> void:
 	stats.add(_record(["R18", "R10"], 0, 0, [5, 5], [1, 1]))
 	assert_almost_eq(stats.skip_rate("R04"), 0.12, 1e-9, "(2 + 1 + 0) / (10 + 8 + 7), both holders in the second match")
 	assert_eq(stats.skip_rate("R01"), 0.0, "R01's holder never skipped")
-	assert_eq(stats.true_rule_ids(), ["R01", "R04", "R10", "R18"] as Array[String])
+	assert_eq(stats.secret_rule_ids(), ["R01", "R04", "R10", "R18"] as Array[String])
 
 
 func test_a_rule_never_held_has_no_skip_rate() -> void:
@@ -60,7 +60,7 @@ func test_a_rule_never_held_has_no_skip_rate() -> void:
 	assert_eq(stats.skip_rate("R07"), 0.0)
 
 
-func test_win_rate_of_a_true_rule_is_its_holders_wins_over_its_holdings() -> void:
+func test_win_rate_of_a_secret_rule_is_its_holders_wins_over_its_holdings() -> void:
 	var stats: HarnessStats = HarnessStats.new()
 	stats.add(_record(["R04", "R01"], 0, 1, [10, 9], [0, 0]))
 	stats.add(_record(["R04", "R04"], 1, 0, [8, 7], [0, 0]))
@@ -94,9 +94,9 @@ func test_the_summary_reports_every_number() -> void:
 		"Ended by: right guess 1, wrong guess 0, third skip 0, forced guesses 1",
 		"Average turns per match (both players): 27.5",
 		"",
-		"True rule  Held  Skip rate  Win rate  W / L / D",
-		"R01           1       0.0%    100.0%  1 / 0 / 0",
-		"R04           2       7.1%      0.0%  0 / 1 / 1",
-		"R10           1       0.0%      0.0%  0 / 0 / 1",
+		"Secret rule  Held  Skip rate  Win rate  W / L / D",
+		"R01             1       0.0%    100.0%  1 / 0 / 0",
+		"R04             2       7.1%      0.0%  0 / 1 / 1",
+		"R10             1       0.0%      0.0%  0 / 0 / 1",
 	]
 	assert_eq(stats.summary(), "\n".join(expected) + "\n")

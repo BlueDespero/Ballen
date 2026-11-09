@@ -1,7 +1,8 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://gui/match_setup_screen.gd" id="1_screen"]
 [ext_resource type="Script" uid="uid://ef2d3vxkqlo5" path="res://gui/board_backdrop.gd" id="2_backdrop"]
+[ext_resource type="Script" path="res://gui/rule_preview.gd" id="3_preview"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 content_margin_left = 32.0
@@ -31,6 +32,8 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+content_margin_left = 16.0
+content_margin_right = 16.0
 bg_color = Color(0.2, 0.23, 0.28, 1)
 border_width_left = 2
 border_width_top = 2
@@ -43,6 +46,8 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+content_margin_left = 16.0
+content_margin_right = 16.0
 bg_color = Color(0.26, 0.3, 0.37, 1)
 border_width_left = 2
 border_width_top = 2
@@ -55,6 +60,8 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start"]
+content_margin_left = 16.0
+content_margin_right = 16.0
 bg_color = Color(0.33, 0.27, 0.1, 1)
 border_width_left = 2
 border_width_top = 2
@@ -67,6 +74,8 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_disabled"]
+content_margin_left = 16.0
+content_margin_right = 16.0
 bg_color = Color(0.17, 0.19, 0.23, 1)
 border_width_left = 2
 border_width_top = 2
@@ -130,8 +139,16 @@ theme_override_constants/separation = 10
 [node name="Title" type="Label" parent="Backdrop/Centre/Card/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "Match setup"
+theme_override_font_sizes/font_size = 20
+text = "Name the AI's secret rule before it names yours."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Stakes" type="Label" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Right guess wins. Wrong guess loses."
 horizontal_alignment = 1
 
 [node name="DeckRow" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
@@ -141,7 +158,7 @@ theme_override_constants/separation = 12
 [node name="DeckCaption" type="Label" parent="Backdrop/Centre/Card/Content/DeckRow"]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Your deck"
+text = "1  Your deck"
 label_settings = SubResource("LabelSettings_caption")
 vertical_alignment = 1
 
@@ -161,7 +178,7 @@ theme_override_constants/separation = 12
 [node name="LevelCaption" type="Label" parent="Backdrop/Centre/Card/Content/LevelRow"]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "AI level"
+text = "2  AI level"
 label_settings = SubResource("LabelSettings_caption")
 vertical_alignment = 1
 
@@ -183,22 +200,65 @@ horizontal_alignment = 2
 [node name="Rule" type="HSeparator" parent="Backdrop/Centre/Card/Content"]
 layout_mode = 2
 
-[node name="RuleCaption" type="Label" parent="Backdrop/Centre/Card/Content"]
+[node name="RuleRow" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RuleCaption" type="Label" parent="Backdrop/Centre/Card/Content/RuleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
-text = "Choose your true rule"
+text = "3  Choose your secret rule"
+vertical_alignment = 1
+
+[node name="PickForMeButton" type="Button" parent="Backdrop/Centre/Card/Content/RuleRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+text = "Pick for me"
 
 [node name="Hint" type="Label" parent="Backdrop/Centre/Card/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
 theme_override_font_sizes/font_size = 16
-text = "Tap one of your rules to make it true. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is true."
+text = "Every ball you place must follow it."
 autowrap_mode = 3
 
-[node name="RuleButtons" type="VBoxContainer" parent="Backdrop/Centre/Card/Content"]
+[node name="RuleArea" type="HBoxContainer" parent="Backdrop/Centre/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RuleButtons" type="VBoxContainer" parent="Backdrop/Centre/Card/Content/RuleArea"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
+
+[node name="Preview" type="VBoxContainer" parent="Backdrop/Centre/Card/Content/RuleArea"]
+custom_minimum_size = Vector2(132, 0)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RulePreview" type="Control" parent="Backdrop/Centre/Card/Content/RuleArea/Preview"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("3_preview")
+
+[node name="PreviewCaption" type="Label" parent="Backdrop/Centre/Card/Content/RuleArea/Preview"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.81, 0.86, 1)
+theme_override_font_sizes/font_size = 14
+text = "Tap a rule to see where it lets you place."
+autowrap_mode = 3
 
 [node name="ButtonsGap" type="Control" parent="Backdrop/Centre/Card/Content"]
 custom_minimum_size = Vector2(0, 4)

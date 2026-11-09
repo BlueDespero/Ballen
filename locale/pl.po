@@ -52,11 +52,11 @@ msgstr "Ograniczony ruch"
 msgid "Glows and rings hold still, balls jump instead of flying, skipped balls vanish without dissolving."
 msgstr "Poświaty i pierścienie stoją w miejscu, kule przeskakują zamiast lecieć, a pominięte kule znikają bez rozpływania się."
 
-msgid "Guess without holding"
-msgstr "Typowanie bez przytrzymania"
+msgid "Hold to guess"
+msgstr "Typowanie przytrzymaniem"
 
-msgid "Tap Guess (or Seal), then tap Confirm, instead of holding it while the ring fills."
-msgstr "Stuknij Wybierz (lub Zatwierdź), a potem Potwierdź, zamiast przytrzymywać, aż pierścień się wypełni."
+msgid "Hold Guess (or Seal) while a ring fills, like pulling a trigger, instead of tapping it and confirming."
+msgstr "Przytrzymaj Wybierz (lub Zatwierdź), aż pierścień się wypełni, jak przy pociąganiu za spust, zamiast stukać i potwierdzać."
 
 msgid "Larger text"
 msgstr "Większy tekst"
@@ -178,14 +178,20 @@ msgstr "Zapisz"
 
 # Match setup
 
-msgid "Match setup"
-msgstr "Przygotowanie meczu"
+msgid "Name the AI's secret rule before it names yours."
+msgstr "Odgadnij tajną regułę komputera, zanim on odgadnie Twoją."
 
-msgid "Your deck"
-msgstr "Twoja talia"
+msgid "Rematch: name the AI's new secret rule before it names yours."
+msgstr "Rewanż: odgadnij nową tajną regułę komputera, zanim on odgadnie Twoją."
 
-msgid "AI level"
-msgstr "Poziom komputera"
+msgid "Right guess wins. Wrong guess loses."
+msgstr "Trafny typ wygrywa. Chybiony przegrywa."
+
+msgid "1  Your deck"
+msgstr "1  Twoja talia"
+
+msgid "2  AI level"
+msgstr "2  Poziom komputera"
 
 msgid "How the AI plays."
 msgstr "Jak gra komputer."
@@ -211,17 +217,32 @@ msgstr "Czyta Twoje ruchy i dobrze ukrywa własną regułę."
 msgid "Gives almost nothing away, reads every move, and never hesitates."
 msgstr "Prawie nic nie zdradza, czyta każdy ruch i nigdy się nie waha."
 
-msgid "Choose your true rule"
-msgstr "Wybierz swoją prawdziwą regułę"
+msgid "3  Choose your secret rule"
+msgstr "3  Wybierz swoją tajną regułę"
 
-msgid "Tap one of your rules to make it true. Every ball you place must follow it. The AI sees all 5 of your rules, but not which one is true."
-msgstr "Stuknij jedną ze swoich reguł, aby stała się prawdziwa. Każda kula, którą położysz, musi jej przestrzegać. Komputer widzi wszystkie 5 Twoich reguł, ale nie wie, która jest prawdziwa."
+msgid "Pick for me"
+msgstr "Wybierz za mnie"
+
+msgid "Every ball you place must follow it."
+msgstr "Każda kula, którą położysz, musi jej przestrzegać."
+
+msgid "Tap a rule to see where it lets you place."
+msgstr "Stuknij regułę, aby zobaczyć, gdzie pozwala Ci kłaść kule."
+
+msgid "Glowing: where your next ball could go."
+msgstr "Świecące pola: tu może trafić Twoja następna kula."
+
+msgid "No cell glows here: you would skip this ball."
+msgstr "Tu nie świeci żadne pole: ta kula zostałaby pominięta."
 
 msgid "Main menu"
 msgstr "Menu główne"
 
 msgid "Start"
 msgstr "Graj"
+
+msgid "Start: %s is my secret rule"
+msgstr "Graj: %s to moja tajna reguła"
 
 msgid "Coin toss"
 msgstr "Rzut monetą"
@@ -261,29 +282,62 @@ msgstr "Zaczynasz."
 msgid "The AI goes first."
 msgstr "Zaczyna komputer."
 
-msgid "You go first. The AI is picking your first colour…"
-msgstr "Zaczynasz. Komputer wybiera Twój pierwszy kolor…"
+msgid "The AI is picking your first colour…"
+msgstr "Komputer wybiera Twój pierwszy kolor…"
+
+msgid "Pick the AI's first colour."
+msgstr "Wybierz pierwszy kolor dla komputera."
 
 msgid "The AI is thinking…"
 msgstr "Komputer myśli…"
 
-msgid "Your turn. Drag your ball onto a glowing cell."
-msgstr "Twoja tura. Przeciągnij kulę na świecące pole."
+msgid "Place your ball."
+msgstr "Połóż swoją kulę."
+
+msgid "Tap a glowing cell, or drag your ball onto one. Or select one of the AI's rules and guess it."
+msgstr "Stuknij świecące pole albo przeciągnij na nie kulę. Możesz też zaznaczyć jedną z reguł komputera i ją wytypować."
+
+msgid "Tap a glowing cell, or drag your ball onto one."
+msgstr "Stuknij świecące pole albo przeciągnij na nie kulę."
+
+msgid "That ends your turn. You can still guess first."
+msgstr "To kończy Twoją turę. Najpierw możesz jeszcze typować."
 
 msgid "That ends your turn."
 msgstr "To kończy Twoją turę."
 
-msgid "You had no legal cell for %s, so your ball was skipped. %s"
-msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta. %s"
+msgid "You had no legal cell for %s, so your ball was skipped."
+msgstr "Twoja kula (%s) nie miała dozwolonego pola, więc została pominięta."
 
-msgid "The AI had no legal cell for %s, so its ball was skipped. The AI is thinking…"
-msgstr "Kula komputera (%s) nie miała dozwolonego pola, więc została pominięta. Komputer myśli…"
+msgid "The AI had no legal cell for %s, so its ball was skipped."
+msgstr "Kula komputera (%s) nie miała dozwolonego pola, więc została pominięta."
 
-msgid "The board is full. Guess the AI's true rule now, or seal your forced guess until both are in."
-msgstr "Plansza jest pełna. Wytypuj teraz prawdziwą regułę komputera albo zatwierdź obowiązkowy typ, aż oba typy będą gotowe."
+msgid "Guess or seal."
+msgstr "Typuj albo zatwierdź."
 
-msgid "The board is full. Name the AI's true rule: it stays sealed until both guesses are in."
-msgstr "Plansza jest pełna. Wytypuj prawdziwą regułę komputera: typ pozostanie ukryty, aż oba typy będą gotowe."
+msgid "Seal your guess."
+msgstr "Zatwierdź swój typ."
+
+msgid "Guess sealed."
+msgstr "Typ zatwierdzony."
+
+msgid "The AI is guessing…"
+msgstr "Komputer typuje…"
+
+msgid "You pick the colour the AI places next. Pick one that some of its rules can't allow: where it goes, or a skip, gives its rule away."
+msgstr "To Ty wybierasz kolor następnej kuli komputera. Wybierz taki, na który część jego reguł nie pozwala: to, gdzie ją położy, albo pominięcie zdradzi jego regułę."
+
+msgid "Watch where the AI places: which of its rules allow that cell? Tap the cross beside those that don't."
+msgstr "Patrz, gdzie komputer kładzie kule: które z jego reguł pozwalają na to pole? Stuknij krzyżyk przy tych, które nie pozwalają."
+
+msgid "A past board."
+msgstr "Dawna plansza."
+
+msgid "The board is full. Guess the AI's secret rule now, or seal your forced guess until both are in."
+msgstr "Plansza jest pełna. Wytypuj teraz tajną regułę komputera albo zatwierdź obowiązkowy typ, aż oba typy będą gotowe."
+
+msgid "The board is full. Name the AI's secret rule: it stays sealed until both guesses are in."
+msgstr "Plansza jest pełna. Wytypuj tajną regułę komputera: typ pozostanie ukryty, aż oba typy będą gotowe."
 
 msgid "The board is full and your forced guess is sealed. The AI is guessing…"
 msgstr "Plansza jest pełna, a Twój obowiązkowy typ jest zatwierdzony. Komputer typuje…"
@@ -338,8 +392,8 @@ msgstr "Wykluczona (Twoja notatka)"
 msgid "Suspect (your note)"
 msgstr "Podejrzana (Twoja notatka)"
 
-msgid "TRUE"
-msgstr "PRAWDZIWA"
+msgid "SECRET"
+msgstr "TAJNA"
 
 msgid "Guess"
 msgstr "Wybierz"
@@ -347,11 +401,47 @@ msgstr "Wybierz"
 msgid "Seal"
 msgstr "Zatwierdź"
 
-msgid "Confirm"
-msgstr "Potwierdź"
+msgid "Guess %s?"
+msgstr "Typujesz %s?"
 
-msgid "The match is over. The AI's true rule is marked."
-msgstr "Mecz się skończył. Prawdziwa reguła komputera jest zaznaczona."
+msgid "Seal %s as your forced guess?"
+msgstr "Zatwierdzić %s jako obowiązkowy typ?"
+
+msgid "Right: you win. Wrong: you lose."
+msgstr "Trafisz: wygrywasz. Chybisz: przegrywasz."
+
+msgid "One right guess wins. Both right or both wrong: a draw."
+msgstr "Jeden trafny typ wygrywa. Oba trafne lub oba chybione: remis."
+
+msgid "Your notes say you ruled this one out."
+msgstr "Według Twoich notatek ta reguła jest wykluczona."
+
+msgid "Your notes don't rule out any of its rules yet."
+msgstr "Twoje notatki nie wykluczają jeszcze żadnej z jego reguł."
+
+msgid "By your notes, it is the only rule left."
+msgstr "Według Twoich notatek to jedyna pozostała reguła."
+
+msgid "By your notes, %d of 5 rules are still possible."
+msgstr "Według Twoich notatek możliwych jest jeszcze %d z 5 reguł."
+
+msgid "Guess %s"
+msgstr "Typuję %s"
+
+msgid "Seal %s"
+msgstr "Zatwierdzam %s"
+
+msgid "Keep playing"
+msgstr "Gram dalej"
+
+msgid "Not yet"
+msgstr "Jeszcze nie"
+
+msgid "Keep holding %s until its ring fills."
+msgstr "Trzymaj %s, aż pierścień się wypełni."
+
+msgid "Match over. The AI's secret rule is marked."
+msgstr "Koniec meczu. Tajna reguła komputera jest zaznaczona."
 
 msgid "The board is full. Both forced guesses are revealed together."
 msgstr "Plansza jest pełna. Oba obowiązkowe typy zostaną odkryte jednocześnie."
@@ -359,8 +449,14 @@ msgstr "Plansza jest pełna. Oba obowiązkowe typy zostaną odkryte jednocześni
 msgid "You can guess at the start of your turn and until your colour pick."
 msgstr "Możesz typować od początku swojej tury aż do wyboru koloru."
 
-msgid "Select the rule you think is the AI's true rule."
-msgstr "Zaznacz regułę, którą uważasz za prawdziwą regułę komputera."
+msgid "Tap one of the AI's rules first."
+msgstr "Najpierw stuknij jedną z reguł komputera."
+
+msgid "The AI's secret rule: one of these 5. Name it to win."
+msgstr "Tajna reguła komputera: jedna z tych 5. Wytypuj ją, aby wygrać."
+
+msgid "Select the rule you think is the AI's secret rule."
+msgstr "Zaznacz regułę, którą uważasz za tajną regułę komputera."
 
 msgid "Guess %s now, or Seal it as your forced guess."
 msgstr "Wybierz %s teraz albo Zatwierdź jako obowiązkowy typ."
@@ -371,8 +467,8 @@ msgstr "%s, aby ustawić %s jako obowiązkowy typ. Jeden trafny typ wygrywa, ina
 msgid "%s to name %s. Right wins, wrong loses."
 msgstr "%s, aby wytypować %s. Trafny typ wygrywa, chybiony przegrywa."
 
-msgid "Tap %s, then Confirm,"
-msgstr "Stuknij %s, potem Potwierdź"
+msgid "Tap %s"
+msgstr "Stuknij %s"
 
 msgid "Hold %s"
 msgstr "Przytrzymaj %s"
@@ -428,11 +524,11 @@ msgstr "Remis"
 msgid "How the match ended."
 msgstr "Jak skończył się mecz."
 
-msgid "The AI's true rule"
-msgstr "Prawdziwa reguła komputera"
+msgid "The AI's secret rule"
+msgstr "Tajna reguła komputera"
 
-msgid "Your true rule"
-msgstr "Twoja prawdziwa reguła"
+msgid "Your secret rule"
+msgstr "Twoja tajna reguła"
 
 msgid "You skipped for the third time."
 msgstr "Twoja kula zostaje pominięta po raz trzeci."
@@ -443,17 +539,17 @@ msgstr "Kula komputera zostaje pominięta po raz trzeci."
 msgid "The board is full."
 msgstr "Plansza jest pełna."
 
-msgid "You named %s \"%s\", the AI's true rule."
-msgstr "Typujesz %s „%s” – to prawdziwa reguła komputera."
+msgid "You named %s \"%s\", the AI's secret rule."
+msgstr "Typujesz %s „%s” – to tajna reguła komputera."
 
-msgid "You named %s \"%s\", but it isn't the AI's true rule."
-msgstr "Typujesz %s „%s”, ale to nie jest prawdziwa reguła komputera."
+msgid "You named %s \"%s\", but it isn't the AI's secret rule."
+msgstr "Typujesz %s „%s”, ale to nie jest tajna reguła komputera."
 
-msgid "The AI named %s \"%s\", your true rule."
-msgstr "Komputer typuje %s „%s” – to Twoja prawdziwa reguła."
+msgid "The AI named %s \"%s\", your secret rule."
+msgstr "Komputer typuje %s „%s” – to Twoja tajna reguła."
 
-msgid "The AI named %s \"%s\", but it isn't your true rule."
-msgstr "Komputer typuje %s „%s”, ale to nie jest Twoja prawdziwa reguła."
+msgid "The AI named %s \"%s\", but it isn't your secret rule."
+msgstr "Komputer typuje %s „%s”, ale to nie jest Twoja tajna reguła."
 
 # Rules (rules/data/rules.json)
 

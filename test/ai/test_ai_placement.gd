@@ -23,13 +23,13 @@ func _nowhere(rule_id: String) -> Rule:
 	return _book.make_rule({"id": rule_id, "text": "Nowhere (%s)" % rule_id, "template": "nowhere", "values": {}})
 
 
-## A new match where the AI holds this deck, its first rule true, and the
+## A new match where the AI holds this deck, its first rule secret, and the
 ## opponent has just handed it red for its first ball.
 func _ai_to_place(ai_deck: Array[Rule]) -> Match:
-	var opponent_true_rule: Rule = Fixtures.anywhere(_book, "BT")
-	var decks: Array[Deck] = [Deck.new(ai_deck), Fixtures.deck_with(_book, opponent_true_rule, "B")]
-	var true_rules: Array[Rule] = [ai_deck[0], opponent_true_rule]
-	var current_match: Match = Match.from_position(MatchPosition.new(Board.new(), AI), decks, true_rules, Fixtures.rng(1))
+	var opponent_secret_rule: Rule = Fixtures.anywhere(_book, "BT")
+	var decks: Array[Deck] = [Deck.new(ai_deck), Fixtures.deck_with(_book, opponent_secret_rule, "B")]
+	var secret_rules: Array[Rule] = [ai_deck[0], opponent_secret_rule]
+	var current_match: Match = Match.from_position(MatchPosition.new(Board.new(), AI), decks, secret_rules, Fixtures.rng(1))
 	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.RED)))
 	return current_match
 
@@ -45,7 +45,7 @@ func _placed_cells(ai_deck: Array[Rule], seeds: int) -> Array[Vector2i]:
 
 
 func test_the_ai_places_where_the_most_of_its_rules_allow() -> void:
-	# Every cell is legal under the true rule "AT"; inner cells also satisfy
+	# Every cell is legal under the secret rule "AT"; inner cells also satisfy
 	# R04, and no cell satisfies N2..N4. Inner cells satisfy 2 rules, edge
 	# cells 1.
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "AT"), _book.rule("R04"), _nowhere("N2"), _nowhere("N3"), _nowhere("N4")]

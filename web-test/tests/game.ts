@@ -12,9 +12,11 @@ export const BASE = { width: 1280, height: 720 };
 export const SPOT = {
   singlePlayer: { x: 640, y: 369 },
   decks: { x: 640, y: 417 },
-  setupRuleR08: { x: 368, y: 528 },
-  start: { x: 461, y: 648 },
+  setupRuleR08: { x: 296, y: 531 },
+  start: { x: 461, y: 651 },
   pickRed: { x: 624, y: 660 },
+  // Guess, with the note marks hint showing (a fresh profile).
+  guess: { x: 1173, y: 372 },
   playerBall: { x: 440, y: 660 },
   newDeck: { x: 1035, y: 640 },
   deckName: { x: 650, y: 58 },
@@ -171,7 +173,7 @@ export class Game {
     await send("touchend", points[points.length - 1]);
   }
 
-  // Single Player, true rule R08 (any cell is legal for a first ball), Start;
+  // Single Player, secret rule R08 (any cell is legal for a first ball), Start;
   // returns whether the player goes first.
   async startMatch(): Promise<boolean> {
     const since = this.markers.length;

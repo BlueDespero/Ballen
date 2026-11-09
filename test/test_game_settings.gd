@@ -31,7 +31,7 @@ func test_without_a_saved_file_the_defaults_apply() -> void:
 	assert_eq(settings.volume, 0.8)
 	assert_false(settings.colour_blind_symbols)
 	assert_false(settings.reduced_motion)
-	assert_false(settings.guess_without_holding)
+	assert_false(settings.hold_to_guess, "Guess is tapped, then confirmed")
 	assert_false(settings.larger_text)
 	assert_eq(settings.language, "en", "English, whatever the system's language")
 
@@ -41,7 +41,7 @@ func test_saved_settings_come_back_in_a_new_session() -> void:
 	settings.volume = 0.25
 	settings.colour_blind_symbols = true
 	settings.reduced_motion = true
-	settings.guess_without_holding = true
+	settings.hold_to_guess = true
 	settings.larger_text = true
 	settings.language = "pl"
 	assert_eq(settings.save_settings(), OK)
@@ -50,7 +50,7 @@ func test_saved_settings_come_back_in_a_new_session() -> void:
 	assert_eq(next_session.volume, 0.25)
 	assert_true(next_session.colour_blind_symbols)
 	assert_true(next_session.reduced_motion)
-	assert_true(next_session.guess_without_holding)
+	assert_true(next_session.hold_to_guess)
 	assert_true(next_session.larger_text)
 	assert_eq(next_session.language, "pl")
 
@@ -152,3 +152,15 @@ func test_larger_text_makes_text_a_quarter_bigger() -> void:
 	assert_eq(settings.text_scale(), 1.0)
 	settings.larger_text = true
 	assert_eq(settings.text_scale(), 1.25)
+
+
+func test_a_one_time_hint_shows_until_the_player_acts_and_stays_gone() -> void:
+	var settings: GameSettings = _settings()
+	settings.load_settings()
+	assert_false(settings.hint_seen(GameSettings.HINT_COLOUR_PICK))
+	settings.mark_hint_seen(GameSettings.HINT_COLOUR_PICK)
+	assert_true(settings.hint_seen(GameSettings.HINT_COLOUR_PICK))
+	assert_false(settings.hint_seen(GameSettings.HINT_WATCH_AI), "each hint on its own")
+	var next_session: GameSettings = _settings()
+	next_session.load_settings()
+	assert_true(next_session.hint_seen(GameSettings.HINT_COLOUR_PICK), "saved at once")

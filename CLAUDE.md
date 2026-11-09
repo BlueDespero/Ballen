@@ -26,7 +26,7 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 - Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Settings` (`game_settings.gd`:
   player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`), `WebMarkers`
   (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
-  changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
+  changes and `EventBus` signals, including playtest measures: secret-rule pick time, guess turns, early Guess presses), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
   is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
   default font, for arrows the web build has no system font for). Turn state lives in the match.
 
@@ -48,7 +48,7 @@ test script that fails to load into exit code 1.
 ## AI-vs-AI harness
 
 Plays N matches between two AIs with random decks, headless and with no pauses, and prints balance numbers
-(results, end reasons, average turns, skip and win rate per true rule). Same seed, same output; exit code 1 if
+(results, end reasons, average turns, skip and win rate per secret rule). Same seed, same output; exit code 1 if
 any match didn't finish. From the repo root, after the import step above:
 
 ```powershell
@@ -118,6 +118,7 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `gui/` — board, ball, colour picker, guess button, rules panel, pre-match panel, match-end screen,
   colour-blind ball symbols (`BallSymbol`), larger text (`TextScale`), rotate hint, rule tier badges (`TierBadge`),
   the menus' animated board backdrop (`BoardBackdrop`), shared colours and labels (`Palette`),
+  the gold "act here" cue (`Attention`),
   menus (`gui/menus/`: main menu, Decks screen and deck editor, Settings screen with Credits)
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,

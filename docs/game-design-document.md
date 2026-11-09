@@ -8,19 +8,19 @@ This document covers **what** Ballen is and **why**. Detail lives in companion d
 
 ## 1. Game overview
 
-Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one true rule among four fakes, places balls that give away as little as possible, and wins by naming which of the opponent's rules is real. Anything marked *Open question* still needs a decision.
+Ballen is a two-player hidden-information duel on a 6 × 6 board. Each player hides one secret rule among four fakes, places balls that give away as little as possible, and wins by naming which of the opponent's rules is real. Anything marked *Open question* still needs a decision.
 
 | Field | Current answer |
 | --- | --- |
 | Title | Ballen |
-| Elevator pitch | Hide your one true rule among four fakes, give little away with every ball you place, and win by naming your opponent's real rule first. |
+| Elevator pitch | Hide your one secret rule among four fakes, give little away with every ball you place, and win by naming your opponent's real rule first. |
 | Genre | Two-player hidden-information duel / abstract strategy |
 | Players | 1 player vs. AI (Easy, Normal, Hard) at launch; online matchmaking in a later release |
 | Platform | Browser first (web build, e.g. on itch.io), then mobile (Android, iOS). Mouse and touch. |
 | Engine | Godot 4.7, GDScript |
 | Target audience | Deduction fans, 16+, who want a tense 5–10 minute match on phone or browser |
 | Match length | 5–10 minutes against the AI |
-| Unique selling point | Rules hidden in plain sight: you see all 5 of your opponent's rules and race to work out which one is real, while your own true rule limits what you can do. |
+| Unique selling point | Rules hidden in plain sight: you see all 5 of your opponent's rules and race to work out which one is real, while your own secret rule limits what you can do. |
 
 ### Design pillars
 
@@ -33,7 +33,7 @@ Every design decision is checked against these four.
 
 ## 2. Gameplay & mechanics
 
-A match is a duel of hidden rules. Each player's one true rule decides where they may place; their four fakes are cover. You win by naming your opponent's true rule, or when they skip 3 times.
+A match is a duel of hidden rules. Each player's one secret rule decides where they may place; their four fakes are cover. You win by naming your opponent's secret rule, or when they skip 3 times.
 
 ```mermaid
 flowchart TD
@@ -55,12 +55,12 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 
 | Element | How it works |
 | --- | --- |
-| Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as true for this match. The opponent sees all 5, not which one is true. A coin toss decides who starts; rematches alternate. |
+| Setup | Each player brings a saved deck of 5 rules and secretly marks 1 as their secret rule for this match. The opponent sees all 5, not which one is secret. A coin toss decides who starts; rematches alternate. |
 | Board | 6 × 6 grid shared by both players. Rules look at the whole board, both players' balls included. Rows are numbered 1–6 from the first player's side, the same for both players. "Next to" in a rule means on any of the 8 surrounding cells, diagonals included. |
 | Balls | 4 colours: yellow, blue, red, green. Your opponent picks the colour you place next; the match's first ball is picked by the player going second. Picking your opponent's colour ends your turn. |
-| Placing | Cells legal under your true rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
+| Placing | Cells legal under your secret rule glow for your whole turn, and you must place if any is legal. Fake rules are never enforced. A drop on any other cell snaps back, unseen by the opponent. |
 | Skip | No legal cell for that colour: the ball dissolves at your side of the board, your skip counter fills one pip, and history records the colour. Your third skip loses the match at once, with no guess. |
-| Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's true rule by holding Guess for about a second, like pulling a trigger. Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
+| Guess | At the start of your turn (before placing) or after placing or skipping, you may name your opponent's secret rule: tap Guess, then confirm (or, with the Hold to guess setting, hold it for about a second, like pulling a trigger). Never during the opponent's turn. Right wins, wrong loses (may become 2 wrong guesses after playtesting). |
 | Full board | Both players must guess. The guesses are sealed and revealed together, so neither side can react to the other. Exactly one right wins; both right or both wrong is a draw. |
 | Notes | Mark opponent rules ✗ ruled out or ? suspect. Private, never checked by the game. |
 | History | Arrows under the board (as on Lichess) step through past boards, with each turn's ball or skipped colour highlighted. Past boards are view-only; your own action (or Live) returns to the live board. If the opponent plays meanwhile, the past board stays on show and Live lights up. |
@@ -68,10 +68,10 @@ Hiding is the obvious strategy: placing only where all 5 of your rules hold reve
 **Open questions**
 
 - [ ] Does going first need balancing beyond alternating who starts? (playtest)
-- [ ] Ratio of true to fake rules: keep 1 / 4, or try 2 / 6? (playtest)
+- [ ] Ratio of secret to fake rules: keep 1 / 4, or try 2 / 6? (playtest)
 - [ ] Wrong guesses before losing: 1 or 2? (playtest)
 - [ ] Does the colour pick need limits, e.g. not the same colour twice in a row? (playtest)
-- [ ] With 2 true rules, must a guess name both?
+- [ ] With 2 secret rules, must a guess name both?
 - [ ] Turn time limit for online play?
 
 ### The AI opponent
@@ -84,7 +84,7 @@ You play against an AI that plays by the same rules and sees only what you see. 
 | Normal | Reads your moves and keeps its own rule well hidden. |
 | Hard | Gives almost nothing away, reads every move, and never hesitates. |
 
-- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each new match. A rematch keeps the deck and draws a new true rule from it. Difficulty changes only how it plays, never which rules it gets.
+- **Its rules:** a fresh 5-rule deck drawn at random from the rules library each new match. A rematch keeps the deck and draws a new secret rule from it. Difficulty changes only how it plays, never which rules it gets.
 - **Silent:** no lines or reactions, so it never leaks what it knows.
 - **Thinking time:** up to 5 seconds, longer on harder choices. On Easy and Normal a longer pause honestly means it is less sure, a tell attentive players can read. Hard adds random variation so its pauses can't be read.
 - **Hard thinks on your turn too:** it keeps computing while you play, so its full search isn't limited to its own 5 seconds.
@@ -103,7 +103,7 @@ The rules library is Ballen's main content. Every rule is plain data assembled f
 
 **Decks and player-made rules**
 
-- A deck is 5 rules, saved and reused; the true rule is chosen at the start of each match.
+- A deck is 5 rules, saved and reused; the secret rule is chosen at the start of each match.
 - Every rule is available to every player from the start; there are no rule unlocks.
 - **Rule tiers:** each rule is ranked **Simple**, **Intermediate** or **Hardcore** by how much it restricts the player who holds it. Ranks come from AI-vs-AI tuning, not guesswork. The guided deck builder offers only Simple rules; players who want an extra challenge can build decks with harder rules.
 - Player-made rules come in a later release: fill-in-the-blank templates with dropdowns. A strictness check tests each new rule on many random boards, accepts it only if it forbids roughly 20–60% of placements, and assigns its tier.
@@ -115,8 +115,8 @@ The rules library is Ballen's main content. Every rule is plain data assembled f
 | Mode | Release | How it works |
 | --- | --- | --- |
 | Quick match vs AI | First | Your deck against a random AI deck at Easy, Normal or Hard. |
-| Daily duel | First | One opponent per day, the same for everyone: the AI's deck, its true rule, its colour choices and who starts are seeded by the date. You bring your own deck and pick the AI level; harder levels multiply your score. One try per day, with a spoiler-free result to share (level, turns, skips, win or lose). Pays a bonus reward plus a streak bonus for consecutive days. |
-| Online matchmaking | Later | Against other players; the server holds both true rules. |
+| Daily duel | First | One opponent per day, the same for everyone: the AI's deck, its secret rule, its colour choices and who starts are seeded by the date. You bring your own deck and pick the AI level; harder levels multiply your score. One try per day, with a spoiler-free result to share (level, turns, skips, win or lose). Pays a bonus reward plus a streak bonus for consecutive days. |
+| Online matchmaking | Later | Against other players; the server holds both secret rules. |
 | Ranked online | Later | Ratings on top of matchmaking. |
 
 A puzzle campaign and pass-and-play are not planned.
@@ -132,7 +132,7 @@ Ballen is an abstract duel with no story: two sides of one board face off, and t
 
 ## 5. Interface & controls
 
-Ballen is played by drag and drop with mouse or touch, in landscape for the first release. On your turn the cells your true rule allows glow for the whole turn, so nobody has to work out legality in their head; a drop anywhere else snaps the ball back.
+Ballen is played with mouse or touch, in landscape for the first release: tap a glowing cell to place your ball there, or drag the ball onto it. On your turn the cells your secret rule allows glow for the whole turn, so nobody has to work out legality in their head; a tap elsewhere does nothing, and a drop elsewhere snaps the ball back.
 
 ### Game flow
 
@@ -146,11 +146,11 @@ flowchart TD
     how --> tutorial["Tutorial (optional)<br/>rules intro → first deck → guided match"]
     play --> has{"Have a deck?"}
     has -- no --> guided["Guided deck builder<br/>simple rules, change later"]
-    guided --> setup["Match setup<br/>deck, level, true rule"]
+    guided --> setup["Match setup<br/>deck, level, secret rule"]
     has -- yes --> setup
     setup --> match["Match<br/>5–10 minutes"]
-    match --> endscreen["Match end<br/>true rules revealed"]
-    endscreen -- "Rematch: same deck and level, pick a true rule" --> setup
+    match --> endscreen["Match end<br/>secret rules revealed"]
+    endscreen -- "Rematch: same deck and level, pick a secret rule" --> setup
     endscreen --> back["Main menu"]
 ```
 
@@ -162,12 +162,13 @@ New players are never forced through the tutorial: How to Play glows until first
 | How to Play | Text guide with the rules; Play tutorial (rules intro, build a first deck, guided match vs Easy) | Not started |
 | Deck builder | Choose 5 rules from the library and save decks; guided mode for a first deck; later the template editor | Built: the Decks screen (main menu's Decks) lists every deck with its rule ids and tier dots; edit, rename, delete, or copy the read-only starter deck; the editor picks any 5 distinct built rules, shown with tier badges and tier filter chips (`gui/menus/decks_screen.tscn`, `gui/menus/deck_editor.tscn`). The guided Simple-only mode waits for #33's no-deck flow |
 | Collection | Browse, buy with rewards, and equip ball skins, board themes and guess effects | Not started |
-| Match setup | One screen: pick a deck and AI level, tap one rule to make it true, Start. The AI's deck is shown while you choose; its true rule stays hidden. For the daily duel the opponent is fixed and the level shows its score multiplier | Built for quick matches: the starter deck first, then the saved decks, Easy and Hard shown as coming soon, the AI's deck in the rules panel beside the screen, then the coin toss over the board; Rematch returns with the deck and level locked. The card sits over the same board backdrop as the main menu. No daily duel yet (`gui/match_setup_screen.tscn`) |
-| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess (hold) and yours below with your true rule highlighted; skip pips by each player's rules; history arrows under the board | Prototype; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`) |
-| Notes | Two small icon buttons on each opponent rule, ✗ ruled out and ? suspect: tapping one sets that mark, tapping the lit one clears it; tapping the rule itself still selects it for Guess. A one-time hint explains them until first used | Built: ✗ and ? buttons at the right end of each of the AI's rules (tooltips "Rule out" / "Suspect"); a ✗ rule fades and is struck through, a ? rule gets a yellow left edge; the hint sits under the AI's rules title until the first mark (`[hints] note_marks_seen` in `settings.cfg`); private, kept at match end and cleared by a rematch (`gui/note_mark_button.gd`, `NoteMark`) |
+| Match setup | One screen that teaches before it asks: the goal and the stakes first, then three numbered steps: pick a deck, the AI level, and tap one rule to make it secret (its cells glow on a small sample board; Pick for me offers a Simple one), then Start, which names the pick. The AI's deck is shown while you choose; its secret rule stays hidden. For the daily duel the opponent is fixed and the level shows its score multiplier | Built for quick matches: the starter deck first, then the saved decks, Easy and Hard shown as coming soon, the AI's deck in the rules panel beside the screen, then the coin toss over the board; Rematch returns with the deck and level locked. The card sits over the same board backdrop as the main menu. No daily duel yet (`gui/match_setup_screen.tscn`) |
+| Game screen | Board with your side at the bottom and the opponent's at the top, row numbers on its edge; your ball below the board with the colour picker for the opponent's next ball beside it, the opponent's ball above; one rules panel on the right, the opponent's rules on top with Guess and yours below with your secret rule highlighted; skip pips by each player's rules; history arrows under the board. Beside the board, a short prompt in large text says what to do now ("Place your ball.") and a smaller line under it names guessing as the other option while it is open; the one control to use wears a gold outline. Guess stays outlined until one of the opponent's rules is selected, and pressing it before then asks for a rule first. A face-down "?" card by the opponent's title stands for their secret rule and turns over at match end | Prototype; on a full board Seal sits beside Guess for the forced guess (`main_game.tscn`, `gui/rules_panel.tscn`, `gui/turn_prompt.gd`) |
+| Notes | Two small icon buttons on each opponent rule, ✗ ruled out and ? suspect: tapping one sets that mark, tapping the lit one clears it; tapping the rule itself still selects it for Guess. A one-time hint explains them until first used | Built: ✗ and ? buttons at the right end of each of the AI's rules (tooltips "Rule out" / "Suspect"); a ✗ rule fades and is struck through, a ? rule gets a yellow left edge; the hint sits under the AI's rules title until the first mark (`[hints] note_marks_seen` in `settings.cfg`); private, kept at match end and cleared by a rematch; once the ✗ marks leave one rule, it and Guess pulse once (`gui/note_mark_button.gd`, `NoteMark`) |
+| First-match hints | One-time hints beside what they explain, for what a player can only learn by doing: the colour they pick is a probe, and the AI's placements can be read. Each shows only while the player can act on it and goes for good once they do; no Next button, so none can be clicked past unread | Built: the colour pick hint above the picker until the first pick; the reading hint above the board while placing, after the AI has placed, until the first note mark or the end of the first match (`[hints]` in `settings.cfg`, `gui/coach_mark.gd`) |
 | History | Arrows under the board step through past boards; view-only, your own action returns to live; the opponent playing on lights up Live | Built: ◀ Live ▶ under the board and the ← → keys; the turn's ball is ringed, a skipped ball shows at its owner's side (`gui/history_nav.gd`, `MatchPosition.after_turn`) |
-| Match end | Win, lose or draw; both true rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
-| Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Built: volume (stored; sound comes later), colour-blind symbols, reduced motion, guess without holding, larger text, Credits with a Licences card (engine and font licences; `gui/menus/settings_menu.tscn`), language (English by default, or Polish; also a one-press switch on the main menu) |
+| Match end | Win, lose or draw; both secret rules revealed and the deciding moment replayed; Rematch or Main menu | Prototype built without the replay: an overlay over the board says how the match ended (`gui/match_end_overlay.tscn`) |
+| Settings | Audio, colour-blind mode, language, Credits; Quit on desktop | Built: volume (stored; sound comes later), colour-blind symbols, reduced motion, hold to guess, larger text, Credits with a Licences card (engine and font licences; `gui/menus/settings_menu.tscn`), language (English by default, or Polish; also a one-press switch on the main menu) |
 
 **Layout:** landscape, 1280 × 720 base that scales to browsers and phones held sideways. The 6 × 6 board fills the main area, with your side at the bottom and the opponent's at the top; each player's ball waits on their side of the board. One rules panel on the right holds the opponent's rules on top and yours below. A portrait layout, with rules above and below the board, comes in a later release for phones; until then, a phone held upright shows a "Rotate your device" card (`RotateHint`).
 
@@ -175,7 +176,7 @@ New players are never forced through the tutorial: How to Play glows until first
 
 - **Placing:** the ball snaps into its cell with a soft click.
 - **Skipping:** the ball dissolves at your side of the board with a low tone.
-- **Guessing:** hold Guess while a ring fills (release early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
+- **Guessing:** tap Guess and confirm on a card that states the stakes ("Right: you win. Wrong: you lose.") and what your own notes leave, with Keep playing where Guess was (or, with Hold to guess, hold it while a ring fills, releasing early to cancel); then a brief slow-down and a heartbeat before the reveal. Cosmetic guess effects build on this moment.
 
 ### Accessibility
 
@@ -183,7 +184,7 @@ The first release includes:
 
 - **Colour-blind mode (optional):** a distinct symbol on each ball colour; every ball skin supports it.
 - **Reduced motion:** turns off the slow-down, heartbeat and dissolve effects, and the menus' falling balls.
-- **Guess without holding:** tap then confirm, instead of hold-to-guess.
+- **Hold to guess (optional):** Guess is tapped, then confirmed, by default; this setting makes it a hold while a ring fills instead. Holding takes more motor control and players missed that the button needed it.
 - **Larger text:** a text-size setting for rule panels and menus.
 - **No turn timer** against the AI.
 
@@ -209,7 +210,7 @@ The prototype uses free [Kenney](https://kenney.nl) assets (CC0: free for commer
 
 Ballen runs on Godot 4.7 with the GL Compatibility renderer and statically typed GDScript, which exports to the browser first and to Android and iOS later. Game logic is kept apart from the scenes, so the AI, the highlights and a future server all run the same code.
 
-The AI sees only what a human opponent could see, and online play (later) runs on a server so no client ever receives the opponent's true rule. Architecture, the rules engine and the AI implementation are in the [technical design](technical-design.md).
+The AI sees only what a human opponent could see, and online play (later) runs on a server so no client ever receives the opponent's secret rule. Architecture, the rules engine and the AI implementation are in the [technical design](technical-design.md).
 
 ## 8. Production
 
@@ -251,8 +252,8 @@ The biggest design risk is that careful players hide perfectly; the opponent's c
 | Risk | What could happen | Mitigation |
 | --- | --- | --- |
 | Perfect hiding | Careful players reveal nothing, and games end in blind guesses | The opponent picks your colour; the 6 × 6 board fills fast; playtests check it |
-| Rule balance | Some rules are unbeatable as the true rule, too loose to read or too strict to hurt | Strictness check (20–60%), Simple / Intermediate / Hardcore tiers, AI-vs-AI tuning |
+| Rule balance | Some rules are unbeatable as the secret rule, too loose to read or too strict to hurt | Strictness check (20–60%), Simple / Intermediate / Hardcore tiers, AI-vs-AI tuning |
 | AI feel | Hard feels lucky or unfair, or Easy feels dull | The AI sees only public information; Hard never guesses on thin evidence; AI-vs-AI tuning and playtests |
-| Learning curve | True and fake rules, skips and guessing confuse new players | Optional tutorial, guided deck builder with Simple rules, glowing legal cells |
+| Learning curve | Secret and fake rules, skips and guessing confuse new players | Optional tutorial, guided deck builder with Simple rules, glowing legal cells |
 | Scope creep | Online play, player-made rules and the portrait layout delay the first release | First release is vs AI and the daily duel only, in landscape |
 | Revenue | Opt-in ads earn little | Paid version, low running costs, no design that depends on ad income |

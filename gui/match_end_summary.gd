@@ -2,7 +2,7 @@ class_name MatchEndSummary
 extends RefCounted
 
 ## What the match-end screen tells one viewer: win, lose or draw, how the
-## match ended, and both true rules. Built from the viewer's PublicView once
+## match ended, and both secret rules. Built from the viewer's PublicView once
 ## the match is over; the player's opponent is called "the AI".
 ##
 ## Guesses are read from the end of the history, so forced guesses on a full
@@ -15,10 +15,10 @@ var outcome: Outcome
 var headline: String
 ## How the match ended, in a sentence or (for forced guesses) three.
 var reason: String
-## The viewer's true rule.
-var own_true_rule: Rule
-## The AI's true rule, revealed now the match is over.
-var opponent_true_rule: Rule
+## The viewer's secret rule.
+var own_secret_rule: Rule
+## The AI's secret rule, revealed now the match is over.
+var opponent_secret_rule: Rule
 
 
 ## The summary for the view's viewer; null while the match runs.
@@ -26,8 +26,8 @@ static func from_view(view: PublicView) -> MatchEndSummary:
 	if view.result == null:
 		return null
 	var summary: MatchEndSummary = MatchEndSummary.new()
-	summary.own_true_rule = view.revealed_true_rules[view.viewer]
-	summary.opponent_true_rule = view.revealed_true_rules[view.opponent()]
+	summary.own_secret_rule = view.revealed_secret_rules[view.viewer]
+	summary.opponent_secret_rule = view.revealed_secret_rules[view.opponent()]
 	if view.result.is_draw():
 		summary.outcome = Outcome.DRAW
 		summary.headline = _tr("Draw")
@@ -66,17 +66,17 @@ static func _closing_guesses(view: PublicView) -> Array[HistoryEntry]:
 	return guesses
 
 
-## "You named R04 "Never on the edge", the AI's true rule." and the like.
+## "You named R04 "Never on the edge", the AI's secret rule." and the like.
 static func _guess_sentence(view: PublicView, guess: HistoryEntry) -> String:
 	var by_viewer: bool = guess.player == view.viewer
 	var rule: Rule = view.decks[Players.opponent(guess.player)].rule(guess.rule_id)
 	var sentence: String
 	if by_viewer:
-		sentence = _tr("You named %s \"%s\", the AI's true rule.") if guess.right \
-			else _tr("You named %s \"%s\", but it isn't the AI's true rule.")
+		sentence = _tr("You named %s \"%s\", the AI's secret rule.") if guess.right \
+			else _tr("You named %s \"%s\", but it isn't the AI's secret rule.")
 	else:
-		sentence = _tr("The AI named %s \"%s\", your true rule.") if guess.right \
-			else _tr("The AI named %s \"%s\", but it isn't your true rule.")
+		sentence = _tr("The AI named %s \"%s\", your secret rule.") if guess.right \
+			else _tr("The AI named %s \"%s\", but it isn't your secret rule.")
 	return sentence % [rule.id, _tr(rule.text)]
 
 

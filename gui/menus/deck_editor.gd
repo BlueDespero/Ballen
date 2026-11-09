@@ -158,7 +158,7 @@ func _set_hovered(rule_id: String) -> void:
 func _style_row(row: PanelContainer) -> void:
 	var picked: bool = _draft.has(row.name)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Palette.TRUE_ROW_COLOUR if picked else Palette.ROW_COLOUR
+	style.bg_color = Palette.SECRET_ROW_COLOUR if picked else Palette.ROW_COLOUR
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 14
 	style.content_margin_right = 14

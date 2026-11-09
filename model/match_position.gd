@@ -1,7 +1,7 @@
 class_name MatchPosition
 extends RefCounted
 
-## Everything on the table at one moment of a match, without the true rules:
+## Everything on the table at one moment of a match, without the secret rules:
 ## board, first player, turn, current colour, skip counts and history.
 ## Rules are checked against a position, and a match can start from one.
 

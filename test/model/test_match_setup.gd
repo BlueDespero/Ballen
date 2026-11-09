@@ -1,7 +1,7 @@
 extends GutTest
 
 # Setting up a single-player match: the deck the player picked, the AI's random
-# deck and true rule, then the match itself (checked through its PublicView).
+# deck and secret rule, then the match itself (checked through its PublicView).
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
@@ -53,7 +53,7 @@ func test_the_player_gets_the_deck_they_picked() -> void:
 
 
 ## The AI's deck is drawn before the setup, so the player sees it while
-## choosing a true rule; the match is played with that deck.
+## choosing a secret rule; the match is played with that deck.
 func test_the_ai_gets_the_deck_shown_at_setup() -> void:
 	var expected: Array[String] = ["R04", "R10", "R11", "R19", "R22"]
 	var setup: MatchSetup = MatchSetup.against_ai(_starter(), _ai_deck(), NORMAL, Fixtures.rng(1))
@@ -75,11 +75,11 @@ func test_a_level_not_built_yet_sets_up_nothing() -> void:
 	assert_push_error("Hard is not built")
 
 
-func test_the_tapped_rule_is_the_player_s_true_rule() -> void:
+func test_the_tapped_rule_is_the_player_s_secret_rule() -> void:
 	var setup: MatchSetup = _setup(2)
 	var r08: Rule = _book.rule("R08")
 	var current_match: Match = setup.start(setup.deck(PLAYER).rules[3])
-	assert_same(current_match.public_view(PLAYER).own_true_rule, r08)
+	assert_same(current_match.public_view(PLAYER).own_secret_rule, r08)
 
 
 func test_the_match_starts_with_both_decks_visible_to_the_player() -> void:
@@ -91,28 +91,28 @@ func test_the_match_starts_with_both_decks_visible_to_the_player() -> void:
 	assert_eq(_ids(view.decks[AI]), _ids(setup.deck(AI)))
 
 
-func test_the_ai_s_true_rule_is_a_random_rule_of_its_deck() -> void:
+func test_the_ai_s_secret_rule_is_a_random_rule_of_its_deck() -> void:
 	var positions: Array[int] = []
 	for seed_value: int in 20:
 		var setup: MatchSetup = _setup(seed_value)
-		var ai_true: Rule = setup.start(_book.rule("R01")).public_view(AI).own_true_rule
+		var ai_true: Rule = setup.start(_book.rule("R01")).public_view(AI).own_secret_rule
 		var position: int = setup.deck(AI).rules.find(ai_true)
-		assert_ne(position, -1, "seed %d: the AI's true rule is in its deck" % seed_value)
+		assert_ne(position, -1, "seed %d: the AI's secret rule is in its deck" % seed_value)
 		if not positions.has(position):
 			positions.append(position)
-	assert_gt(positions.size(), 1, "the true rule is not always the same slot of the deck")
+	assert_gt(positions.size(), 1, "the secret rule is not always the same slot of the deck")
 
 
 func test_the_setup_follows_the_seeded_rng() -> void:
 	var first: Match = _setup(9).start(_book.rule("R05"))
 	var again: Match = _setup(9).start(_book.rule("R05"))
-	assert_eq(again.public_view(AI).own_true_rule, first.public_view(AI).own_true_rule)
+	assert_eq(again.public_view(AI).own_secret_rule, first.public_view(AI).own_secret_rule)
 	assert_eq(again.first_player(), first.first_player())
 
 
 func test_a_rule_outside_the_player_s_deck_starts_no_match() -> void:
 	assert_null(_setup(1).start(_book.rule("R04")))
-	assert_push_error("true rule")
+	assert_push_error("secret rule")
 
 
 # Rematch
@@ -125,7 +125,7 @@ func test_a_rematch_lets_the_other_player_go_first() -> void:
 		assert_eq(rematch.first_player(), Players.opponent(first.first_player()), "seed %d" % seed_value)
 
 
-func test_a_rematch_keeps_both_decks_and_takes_the_new_true_rule() -> void:
+func test_a_rematch_keeps_both_decks_and_takes_the_new_secret_rule() -> void:
 	var setup: MatchSetup = _setup(7)
 	var first: PublicView = setup.start(_book.rule("R01")).public_view(PLAYER)
 	var view: PublicView = setup.rematch(_book.rule("R18")).public_view(PLAYER)
@@ -133,19 +133,19 @@ func test_a_rematch_keeps_both_decks_and_takes_the_new_true_rule() -> void:
 	assert_eq(view.position.turn, 0)
 	assert_eq(_ids(view.decks[PLAYER]), _ids(first.decks[PLAYER]))
 	assert_eq(_ids(view.decks[AI]), _ids(first.decks[AI]))
-	assert_same(view.own_true_rule, _book.rule("R18"))
+	assert_same(view.own_secret_rule, _book.rule("R18"))
 
 
-func test_a_rematch_draws_the_ai_a_new_true_rule_from_its_deck() -> void:
+func test_a_rematch_draws_the_ai_a_new_secret_rule_from_its_deck() -> void:
 	var changed: int = 0
 	for seed_value: int in 20:
 		var setup: MatchSetup = _setup(seed_value)
-		var before: Rule = setup.start(_book.rule("R01")).public_view(AI).own_true_rule
-		var after: Rule = setup.rematch(_book.rule("R01")).public_view(AI).own_true_rule
-		assert_true(setup.deck(AI).has(after), "seed %d: the new true rule is in the AI's deck" % seed_value)
+		var before: Rule = setup.start(_book.rule("R01")).public_view(AI).own_secret_rule
+		var after: Rule = setup.rematch(_book.rule("R01")).public_view(AI).own_secret_rule
+		assert_true(setup.deck(AI).has(after), "seed %d: the new secret rule is in the AI's deck" % seed_value)
 		if after != before:
 			changed += 1
-	assert_gt(changed, 0, "the rematch draws again rather than keeping the true rule")
+	assert_gt(changed, 0, "the rematch draws again rather than keeping the secret rule")
 
 
 func test_rematches_keep_alternating_the_first_player() -> void:

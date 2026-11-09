@@ -1,7 +1,7 @@
 extends GutTest
 
 # The AI seam for guessing: given a PublicView, check when the AI names the
-# opponent's true rule. Views come from real matches.
+# opponent's secret rule. Views come from real matches.
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
@@ -24,17 +24,17 @@ func _nowhere(rule_id: String) -> Rule:
 
 
 ## A match where the opponent has placed one ball and handed the AI red: the
-## AI's turn starts. The opponent's true rule "OT" and `permissive` other rules
+## AI's turn starts. The opponent's secret rule "OT" and `permissive` other rules
 ## allow every cell; the rest of their deck allows none, so that placement
 ## ruled them out.
 func _ai_turn(permissive: int) -> Match:
 	var opponent_deck: Array[Rule] = [Fixtures.anywhere(_book, "OT")]
 	for i: int in range(1, Deck.SIZE):
 		opponent_deck.append(Fixtures.anywhere(_book, "O%d" % i) if i <= permissive else _nowhere("N%d" % i))
-	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
-	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
-	var true_rules: Array[Rule] = [opponent_deck[0], ai_true_rule]
-	var current_match: Match = Match.from_position(MatchPosition.new(Board.new(), OPPONENT), decks, true_rules, Fixtures.rng(1))
+	var ai_secret_rule: Rule = Fixtures.anywhere(_book, "AT")
+	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_secret_rule, "A")]
+	var secret_rules: Array[Rule] = [opponent_deck[0], ai_secret_rule]
+	var current_match: Match = Match.from_position(MatchPosition.new(Board.new(), OPPONENT), decks, secret_rules, Fixtures.rng(1))
 	assert_true(current_match.submit(AI, Command.pick_colour(BallColour.RED)))
 	assert_true(current_match.submit(OPPONENT, Command.place(Vector2i(2, 2))))
 	assert_true(current_match.submit(OPPONENT, Command.pick_colour(BallColour.RED)))
@@ -81,10 +81,10 @@ func test_over_seeded_ai_matches_through_the_driver_every_guess_is_right() -> vo
 	for seed_value: int in 30:
 		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
 		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
-		var true_rules: Array[Rule] = []
+		var secret_rules: Array[Rule] = []
 		for deck: Deck in decks:
-			true_rules.append(deck.random_rule(rng))
-		var current_match: Match = Match.create(decks, true_rules, rng)
+			secret_rules.append(deck.random_rule(rng))
+		var current_match: Match = Match.create(decks, secret_rules, rng)
 		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
 		await MatchDriver.new(current_match, controllers, [], rng, func(_seconds: float) -> void: pass).run()
 		assert_eq(current_match.phase(), Match.Phase.OVER, "seed %d" % seed_value)

@@ -25,11 +25,11 @@ func after_each() -> void:
 
 func test_the_panel_fits_the_screen_in_every_state() -> void:
 	for scale: float in [1.0, Settings.LARGER_TEXT_SCALE]:
-		for without_holding: bool in [false, true]:
+		for holding: bool in [false, true]:
 			for state: String in ["guess open", "guess and seal", "seal", "board full", "match over"]:
-				var height: float = await _height(scale, without_holding, state)
+				var height: float = await _height(scale, holding, state)
 				assert_lte(PANEL_TOP + height, SCREEN_HEIGHT, "bottom at %d px: %s at text scale %s%s"
-					% [PANEL_TOP + height, state, scale, ", without holding" if without_holding else ""])
+					% [PANEL_TOP + height, state, scale, ", holding to guess" if holding else ""])
 
 
 func test_the_note_marks_hint_gives_way_on_a_full_board() -> void:
@@ -45,11 +45,11 @@ func test_the_note_marks_hint_gives_way_on_a_full_board() -> void:
 	assert_true(hint.visible, "back once the board is no longer full (a rematch)")
 
 
-func _height(scale: float, without_holding: bool, state: String) -> float:
+func _height(scale: float, holding: bool, state: String) -> float:
 	var panel: RulesPanel = PANEL_SCENE.instantiate()
 	add_child_autofree(panel)
 	panel.size = Vector2(PANEL_WIDTH, 0.0)
-	panel.guess_without_holding = without_holding
+	panel.hold_to_guess = holding
 	panel.text_scale = scale
 	var deck: Deck = _longest_deck()
 	panel.show_decks(deck, _longest_deck(), deck.rules[2])

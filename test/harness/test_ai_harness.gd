@@ -20,7 +20,7 @@ func test_a_record_counts_each_players_turns_and_skips() -> void:
 	var first: int = current_match.first_player()
 	var second: int = Players.opponent(first)
 	assert_eq(record.first_player, first)
-	assert_eq(record.true_rule_ids, ["R04", "R04"] as Array[String])
+	assert_eq(record.secret_rule_ids, ["R04", "R04"] as Array[String])
 	assert_eq(record.turns[first], 11)
 	assert_eq(record.skips[first], 3)
 	assert_eq(record.turns[second], 10)
@@ -63,8 +63,8 @@ func test_an_r10_holder_never_completes_a_line_of_3() -> void:
 	for seed_value: int in 12:
 		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
 		var decks: Array[Deck] = [_deck_with(book, r10, rng), _deck_with(book, r10, rng)]
-		var true_rules: Array[Rule] = [r10, r10]
-		var current_match: Match = Match.create(decks, true_rules, rng)
+		var secret_rules: Array[Rule] = [r10, r10]
+		var current_match: Match = Match.create(decks, secret_rules, rng)
 		var ais: Array[AIController] = [AIController.new(rng), AIController.new(rng)]
 		assert_true(Harness.play_out(current_match, ais), "seed %d finishes" % seed_value)
 		var board: Board = Board.new()

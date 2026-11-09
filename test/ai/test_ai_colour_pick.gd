@@ -24,13 +24,13 @@ func _nowhere(rule_id: String) -> Rule:
 	return _book.make_rule({"id": rule_id, "text": "Nowhere (%s)" % rule_id, "template": "nowhere", "values": {}})
 
 
-## A match where the opponent holds this deck, its first rule true, and the AI
+## A match where the opponent holds this deck, its first rule secret, and the AI
 ## holds a permissive deck.
 func _match(position: MatchPosition, opponent_deck: Array[Rule]) -> Match:
-	var ai_true_rule: Rule = Fixtures.anywhere(_book, "AT")
-	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_true_rule, "A")]
-	var true_rules: Array[Rule] = [opponent_deck[0], ai_true_rule]
-	return Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var ai_secret_rule: Rule = Fixtures.anywhere(_book, "AT")
+	var decks: Array[Deck] = [Deck.new(opponent_deck), Fixtures.deck_with(_book, ai_secret_rule, "A")]
+	var secret_rules: Array[Rule] = [opponent_deck[0], ai_secret_rule]
+	return Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 
 
 func _colours_picked(view: PublicView, seeds: int) -> Array[String]:
@@ -57,8 +57,8 @@ func test_the_ai_picks_the_colour_expected_to_rule_out_the_most_candidates() -> 
 	# Candidates "OT" (allows every cell) and R01 (never next to the same
 	# colour): the opponent's red ball at (2, 2) rules out N2..N4. After the
 	# AI's blue ball at (5, 5), the opponent places uniformly on 34 empty
-	# cells. Red: if OT is true, 8 of them (next to the red ball) rule R01
-	# out; if R01 is true, nothing is ruled out: 4/34 expected. Blue: 3 cells
+	# cells. Red: if OT is secret, 8 of them (next to the red ball) rule R01
+	# out; if R01 is secret, nothing is ruled out: 4/34 expected. Blue: 3 cells
 	# next to the blue ball: 3/68. Yellow, green: 0.
 	var deck: Array[Rule] = [Fixtures.anywhere(_book, "OT"), _book.rule("R01"), _nowhere("N2"), _nowhere("N3"), _nowhere("N4")]
 	var current_match: Match = _match(MatchPosition.new(Board.new(), OPPONENT), deck)

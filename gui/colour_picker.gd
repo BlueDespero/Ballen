@@ -3,8 +3,8 @@ extends HBoxContainer
 
 ## Four colour buttons beside the player's ball: the colour the AI places
 ## next. Picking one ends the player's turn. While the pick is due the
-## buttons light up and a ring pulses around each; otherwise they are dimmed
-## and disabled.
+## buttons light up and a ring around each pulses (Attention's rhythm), then
+## holds still; otherwise they are dimmed and disabled.
 
 signal picked(colour: String)
 
@@ -14,18 +14,19 @@ const RING_RADIUS: float = 27.0
 const RING_WIDTH_MIN: float = 2.0
 const RING_WIDTH_MAX: float = 4.0
 const RING_ALPHA_MIN: float = 0.15
-## One fade from dim to bright (or back).
-const PULSE_SECONDS: float = 0.6
 const DIMMED_ALPHA: float = 0.35
 
 ## Whether the player may pick now.
 var enabled: bool = false:
 	set(value):
+		var changed: bool = value != enabled
 		enabled = value
 		for button: Button in _buttons:
 			button.disabled = not value
 		modulate.a = 1.0 if value else DIMMED_ALPHA
-		_update_pulse()
+		# The scene sets this on every redraw; only lighting up pulses again.
+		if changed:
+			_update_pulse()
 
 ## Reduced motion: the ring stays still instead of pulsing.
 var reduced_motion: bool = false:
@@ -83,8 +84,8 @@ func _draw_symbol(button: Button, colour: String) -> void:
 		BallSymbol.draw(button, button.size / 2.0, BUTTON_SIZE.x * 0.2, colour, true)
 
 
-## Pulses the ring while enabled, unless motion is reduced; a still ring
-## shows at full brightness.
+## Pulses the ring when it lights up, unless motion is reduced; then it holds
+## still at full brightness.
 func _update_pulse() -> void:
 	if _pulse_tween != null:
 		_pulse_tween.kill()
@@ -92,10 +93,7 @@ func _update_pulse() -> void:
 	_pulse = 1.0
 	if not enabled or reduced_motion or not is_inside_tree():
 		return
-	_pulse_tween = create_tween().set_loops()
-	_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pulse_tween.tween_property(self, "_pulse", 0.0, PULSE_SECONDS)
-	_pulse_tween.tween_property(self, "_pulse", 1.0, PULSE_SECONDS)
+	_pulse_tween = Attention.pulse(self, self, "_pulse", 0.0, 1.0)
 
 
 func _style(rgb: Color, border: float) -> StyleBoxFlat:
