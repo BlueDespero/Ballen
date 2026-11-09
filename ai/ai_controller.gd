@@ -62,7 +62,7 @@ func decide(view: PublicView) -> Command:
 			return Command.guess(guess.id)
 	match view.phase:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
-			return Command.pick_colour(_colour_pick.choose(view, candidates, _rng))
+			return Command.pick_colour(_colour_pick.choose(view, _belief, _rng))
 		Match.Phase.PLACE:
 			var cells: Array[Vector2i] = _best_cells(view)
 			if cells.is_empty():

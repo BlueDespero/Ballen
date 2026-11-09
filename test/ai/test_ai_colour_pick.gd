@@ -108,7 +108,7 @@ func test_the_ai_counts_what_a_skip_would_rule_out() -> void:
 class AlwaysGreen:
 	extends ColourPickStrategy
 
-	func choose(_view: PublicView, _candidates: Array[Rule], _rng: RandomNumberGenerator) -> String:
+	func choose(_view: PublicView, _belief: Belief, _rng: RandomNumberGenerator) -> String:
 		return BallColour.GREEN
 
 
