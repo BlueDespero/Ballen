@@ -154,3 +154,32 @@ func test_the_last_rule_the_notes_leave_and_guess_pulse_once() -> void:
 	assert_ne(_panel.get_node("%GuessButton").self_modulate, Color.WHITE, "and so does Guess")
 	await wait_seconds(Attention.PULSES * 2 * Attention.PULSE_SECONDS)
 	assert_eq(last.self_modulate, Color.WHITE, "then it settles")
+
+
+# Back (Escape, or Android's back button) keeps playing, as the safe button
+# does, rather than asking to leave the match under the card.
+func test_back_closes_the_card_without_guessing() -> void:
+	var card: StakesCard = add_child_autofree(StakesCard.new())
+	card.open(_book.rule("R01"), false, Deck.SIZE, false)
+	watch_signals(card)
+	var back: InputEventAction = InputEventAction.new()
+	back.action = "ui_cancel"
+	back.pressed = true
+	card._unhandled_input(back)
+	assert_false(card.visible)
+	assert_signal_emitted(card, "cancelled")
+	assert_signal_not_emitted(card, "confirmed")
+
+
+func test_back_in_a_match_with_the_card_open_leaves_the_leave_dialog_closed() -> void:
+	var game: Control = add_child_autofree((load("res://main_game.tscn") as PackedScene).instantiate())
+	game.get_node("%MatchSetup").visible = false
+	var card: StakesCard = game.get_node("%RulesPanel").find_child("StakesCard", true, false)
+	card.open(_book.rule("R01"), false, Deck.SIZE, false)
+	var back: InputEventAction = InputEventAction.new()
+	back.action = "ui_cancel"
+	back.pressed = true
+	Input.parse_input_event(back)
+	await wait_process_frames(2)
+	assert_false(card.visible, "back closes the card")
+	assert_false(game.get_node("%LeaveMatch").visible, "and goes no further")

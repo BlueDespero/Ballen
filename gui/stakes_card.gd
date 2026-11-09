@@ -8,6 +8,7 @@ extends PanelContainer
 ## yet) sits on the right, where Guess was, so a quick second tap keeps
 ## playing; the button that guesses sits on the left. It reads only the
 ## player's notes, never the match, so it gives nothing away.
+## Back (Escape, or Android's back button) does what the safe button does.
 
 ## The player confirmed: name the rule.
 signal confirmed
@@ -106,6 +107,12 @@ func open(rule: Rule, is_sealing: bool, still_possible: int, ruled_out: bool) ->
 
 func close() -> void:
 	visible = false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_on_cancel()
 
 
 func _on_confirm() -> void:
