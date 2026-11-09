@@ -9,8 +9,9 @@ None. The game's code (everything outside `addons/`, `test/`, `harness/` and `.c
 `HTTPClient`, `StreamPeer*`, `PacketPeer*`, `TCPServer`, `UDPServer`, `WebSocket*`, `WebRTC*`, ENet or
 `MultiplayerPeer`, and no `JavaScriptBridge` or `OS.shell_open`.
 
-The one way out is the player's own click: the Credits card's two `LinkButton`s (`gui/menus/settings_menu.tscn`)
-open `https://www.kenney.nl` and `https://godotengine.org/license`, which on the web opens a new browser tab.
+The one way out is the player's own click: the Credits card's three `LinkButton`s (`gui/menus/settings_menu.tscn`)
+open `https://www.kenney.nl`, `https://godotengine.org/license` and the privacy policy
+(`https://bluedespero.github.io/Ballen/privacy-policy.html`, from `site/`), which on the web opens a new browser tab.
 
 ## File access
 

@@ -51,3 +51,12 @@ func _text_under(root: Node) -> String:
 	for node: Node in root.find_children("*", "Label", true, false):
 		parts.append((node as Label).text)
 	return "\n".join(parts)
+
+
+# Google Play wants the privacy policy reachable from the app too.
+func test_credits_link_to_the_privacy_policy() -> void:
+	var menu: Control = preload("res://gui/menus/settings_menu.tscn").instantiate()
+	add_child_autofree(menu)
+	var link: LinkButton = menu.get_node("%PrivacyLink")
+	assert_eq(link.uri, "https://bluedespero.github.io/Ballen/privacy-policy.html")
+	assert_true(FileAccess.file_exists("res://site/privacy-policy.html"), "the page it opens is in site/")

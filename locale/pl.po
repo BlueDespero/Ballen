@@ -536,3 +536,14 @@ msgstr "Zostań"
 
 msgid "Leave"
 msgstr "Wyjdź"
+
+# Privacy (Settings > Credits)
+
+msgid "Privacy"
+msgstr "Prywatność"
+
+msgid "Ballen collects no data. Your settings and decks stay on this device."
+msgstr "Ballen nie zbiera żadnych danych. Twoje ustawienia i talie zostają na tym urządzeniu."
+
+msgid "Privacy policy"
+msgstr "Polityka prywatności"
