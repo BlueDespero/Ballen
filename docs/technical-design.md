@@ -29,6 +29,12 @@ all run the same code.
 
 - The dragged ball (`gui/ball_view.gd`) asks the match whether the cell under it is legal
   (`Match.is_legal`) instead of checking rules itself; the glow shows `Match.legal_cells()`.
+- One colour means "act here": `BoardView.GLOW_COLOUR` (gold). The shared cue `Attention`
+  (`gui/attention.gd`) outlines the one control to use now; one per screen, so only one control wears
+  it. Every "act here" cue (the outline, the legal cells, the colour picker's rings, the lit Live
+  button) pulses twice when it lights up (`Attention.pulse`), then holds still: the start of motion
+  catches the eye, endless pulsing becomes noise. Reduced motion holds them still from the start.
+  Red stays for errors, losses and skips.
 - The custom-script fallback gets a fresh base script when it is first needed (the old
   half-written `rules/baserule.gd` stub was deleted).
 - The match never acts on its own. A driver (the scene, the AI-vs-AI harness, a test) asks
@@ -72,7 +78,7 @@ all run the same code.
   shows: the glow and dragging pause. Only the player's own actions return to the live board (pressing
   their ball, a colour pick, Guess or Seal, Live, or stepping past the latest turn); the colour picker,
   Guess and Seal keep following the live match meanwhile. When the AI plays on while a past board is on
-  show, nothing animates: the board stays and Live lights up and pulses until the player returns (the
+  show, nothing animates: the board stays and Live lights up (with a short pulse) until the player returns (the
   match ending returns at once, for the match-end screen). New history events are shown by one run of
   the scene's event loop at a time, so the history view never opens mid-animation. Which turn is on
   show, the stepping and the past turn's status text live in `HistoryBrowser` (`gui/history_browser.gd`,
