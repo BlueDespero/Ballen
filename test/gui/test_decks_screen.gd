@@ -106,6 +106,25 @@ func test_rename_refuses_a_taken_name_and_renames_to_a_free_one() -> void:
 	assert_eq(_row_names(screen), ["Starter", "Uno", "Two"])
 
 
+# A phone's keyboard comes up under the name field; the dialog moves above it.
+func test_keyboard_height_is_scaled_to_the_viewport() -> void:
+	assert_eq(DecksScreen.keyboard_height(0, 1080, 720.0), 0.0, "no keyboard")
+	assert_eq(DecksScreen.keyboard_height(600, 1080, 720.0), 400.0)
+	assert_eq(DecksScreen.keyboard_height(600, 0, 720.0), 0.0, "no window yet")
+
+
+func test_the_rename_dialog_sits_above_the_keyboard() -> void:
+	var screen: DecksScreen = _screen(["One"])
+	_press(screen, "One", "Rename")
+	screen._fit_dialog_above(400.0)
+	await wait_process_frames(2)
+	var card: Control = screen.get_node("%Dialog/Centre/DialogCard")
+	var keyboard_top: float = screen.get_viewport_rect().size.y - 400.0
+	assert_lte(card.get_global_rect().end.y, keyboard_top, "the card ends above the keyboard")
+	screen.get_node("%DialogCancel").pressed.emit()
+	assert_eq(screen.get_node("%Dialog/Centre").offset_bottom, 0.0, "closing resets the dialog")
+
+
 func test_copying_starter_opens_the_editor_on_starter_copy() -> void:
 	var screen: DecksScreen = _screen([])
 	_press(screen, "Starter", "Copy")
