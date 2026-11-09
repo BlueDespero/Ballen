@@ -15,6 +15,8 @@ export const SPOT = {
   setupRuleR08: { x: 296, y: 531 },
   start: { x: 461, y: 651 },
   pickRed: { x: 624, y: 660 },
+  // Guess, with the note marks hint showing (a fresh profile).
+  guess: { x: 1173, y: 372 },
   playerBall: { x: 440, y: 660 },
   newDeck: { x: 1035, y: 640 },
   deckName: { x: 650, y: 58 },

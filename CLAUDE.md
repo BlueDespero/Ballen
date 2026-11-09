@@ -26,7 +26,7 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
 - Autoloads (see `project.godot`): `EventBus` (signals), `Constants` (ball colors), `Settings` (`game_settings.gd`:
   player settings saved in `user://settings.cfg`; read them there and listen to `Settings.changed`), `WebMarkers`
   (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
-  changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
+  changes and `EventBus` signals, including playtest measures: secret-rule pick time, guess turns, early Guess presses), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
   is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
   default font, for arrows the web build has no system font for). Turn state lives in the match.
 

@@ -371,6 +371,7 @@ func _draw_suspect_edge(row: PanelContainer) -> void:
 ## Guess or Seal pressed with no rule selected: the hint says what comes
 ## first and flashes in the act-here colour.
 func _on_blocked() -> void:
+	EventBus.guess_blocked.emit()
 	_guess_hint.text = "Tap one of the AI's rules first."
 	Attention.pulse(self, _guess_hint, "self_modulate", BoardView.GLOW_COLOUR * 1.4, Color.WHITE)
 

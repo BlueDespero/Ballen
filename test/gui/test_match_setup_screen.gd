@@ -108,3 +108,19 @@ func test_the_card_fits_the_screen_with_the_longest_rules() -> void:
 		await wait_process_frames(3)
 		var card: Control = _screen.get_node("%Card")
 		assert_lte(card.get_combined_minimum_size().y, SCREEN_HEIGHT, "card height at text scale %s" % scale)
+
+
+func test_start_reports_how_the_secret_rule_was_picked() -> void:
+	watch_signals(EventBus)
+	_screen.rng = Fixtures.rng(1)
+	_screen.pick_for_me()
+	_screen.get_node("%StartButton").pressed.emit()
+	var parameters: Array = get_signal_parameters(EventBus, "secret_rule_picked")
+	assert_has(SIMPLE_IN_STARTER, parameters[0])
+	assert_gte(parameters[1] as float, 0.0, "seconds since the screen opened")
+	assert_true(parameters[2], "Pick for me chose it")
+	_tap("R03")
+	_screen.get_node("%StartButton").pressed.emit()
+	parameters = get_signal_parameters(EventBus, "secret_rule_picked")
+	assert_eq(parameters[0], "R03")
+	assert_false(parameters[2], "the player tapped it")

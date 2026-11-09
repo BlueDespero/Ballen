@@ -76,6 +76,10 @@ var _secret_rule: Rule = null
 var _level_group: ButtonGroup = ButtonGroup.new()
 var _rule_group: ButtonGroup = ButtonGroup.new()
 var _cue: Attention = Attention.new()
+## When the screen last opened (Time.get_ticks_msec), and whether Pick for me
+## made the pick: reported on Start, to measure how players choose.
+var _shown_at_msec: int = 0
+var _picked_for_me: bool = false
 
 ## Pick for me draws from this; replace it with a seeded one for repeatable picks.
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -166,6 +170,7 @@ func _show() -> void:
 	_backdrop.visible = true
 	_coin_toss.visible = false
 	visible = true
+	_shown_at_msec = Time.get_ticks_msec()
 	_point_cue()
 
 
@@ -185,6 +190,7 @@ func pick_for_me() -> void:
 	var rule: Rule = options[rng.randi_range(0, options.size() - 1)]
 	(_rule_buttons.get_node(rule.id) as Button).button_pressed = true
 	_on_rule_chosen(rule)
+	_picked_for_me = true
 
 
 ## The act-here cue: on the rules until one is picked, then on Start.
@@ -237,6 +243,7 @@ func _on_level_chosen(level: AILevel.Level) -> void:
 
 func _on_rule_chosen(rule: Rule) -> void:
 	_secret_rule = rule
+	_picked_for_me = false
 	_update_start()
 	_update_preview()
 	_point_cue()
@@ -244,6 +251,8 @@ func _on_rule_chosen(rule: Rule) -> void:
 
 func _on_start_pressed() -> void:
 	if _secret_rule != null:
+		var seconds: float = (Time.get_ticks_msec() - _shown_at_msec) / 1000.0
+		EventBus.secret_rule_picked.emit(_secret_rule.id, seconds, _picked_for_me)
 		start_requested.emit(_deck, _level, _secret_rule)
 
 

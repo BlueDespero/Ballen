@@ -60,6 +60,28 @@ test("placing a ball by tapping a glowing cell", async ({ page }, testInfo) => {
   expect(game.errors).toEqual([]);
 });
 
+test("the game reports the secret rule pick and an early Guess press", async ({ page }, testInfo) => {
+  const game = new Game(page, testInfo);
+  await game.open();
+  const playerFirst = await game.startMatch();
+  await game.waitFor(/^\[ballen\] secret_rule rule=R08 seconds=\d+\.\d picked_for_me=false$/);
+  if (!playerFirst) {
+    const since = game.markers.length;
+    await game.click(SPOT.pickRed);
+    await game.waitFor("[ballen] ball_placed by=ai", since);
+  }
+  // Guess opens once the player's turn starts; pressed with no AI rule
+  // selected, it asks for one instead.
+  for (let tries = 0; tries < 10; tries++) {
+    await page.waitForTimeout(500);
+    const since = game.markers.length;
+    await game.click(SPOT.guess);
+    if (await game.seen("[ballen] guess_blocked", since, 1_000)) break;
+  }
+  await game.waitFor("[ballen] guess_blocked");
+  expect(game.errors).toEqual([]);
+});
+
 // The RotateHint autoload prints the marker in web builds.
 test("a portrait screen shows the rotate hint", async ({ page }, testInfo) => {
   const game = new Game(page, testInfo);

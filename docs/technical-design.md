@@ -409,7 +409,10 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
 - **Storage:** `user://` (settings, saved decks) lives in the browser's IndexedDB.
 - **Web-related autoloads:**
   - `WebMarkers` prints `[ballen] …` console lines on scene changes and key events (web builds only) for the
-    tests, as the canvas has no DOM to inspect.
+    tests, as the canvas has no DOM to inspect. Some measure whether players understand the game, for
+    playtests to compare before and after a change: `secret_rule rule=R08 seconds=12.3 picked_for_me=false`
+    (Start on the setup screen), `guess by=player turn=5 right=false` and `guess_blocked` (Guess pressed
+    before selecting a rule). They stay in the browser console; nothing is sent anywhere.
   - `RotateHint` covers the screen with "Rotate your device" and takes input while the screen is taller than
     wide (`RotateHint.should_show(size)`), in every build, until the portrait layout exists.
   - `SymbolFont` adds the bundled Noto Sans Symbols as a fallback of the default font: the web has no system fonts
