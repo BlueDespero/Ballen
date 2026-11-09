@@ -128,7 +128,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
   rule and template data in `rules/data/`
 - `ai/` — `AIController` (`for_level`), `Belief`, `OpponentModel`, `HiderModel`, `Deduction`, `GuessPolicy`,
-  `DangerGuessPolicy`, `ColourPickStrategy`, `InformationColourPick`, `PlacementStrategy`, `HidingPlacement`
+  `DangerGuessPolicy`, `ColourPickStrategy`, `InformationColourPick`, `PlacementStrategy`, `HidingPlacement`,
+  `LooseColourPick`, `AnyLegalPlacement` (Easy)
 - `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`;
   strictness check: `StrictnessCheck`, `run_strictness.gd`
 - `locale/` — Polish translation (`pl.po`, keyed on the English text); player-facing text only, see

@@ -28,7 +28,7 @@ Keep this document in step with `ai/`: every PR that changes the AI updates the 
 
 | Level | Status | Built from |
 | --- | --- | --- |
-| Easy | Planned (#73): tempered belief, honest placement, loose colour picks, guesses at ~0.95 | — |
+| Easy | Built | Belief with `easy_model()` (uniform, temper 0.15), `GuessPolicy(0.95)`, `LooseColourPick` (focus 0.4), `AnyLegalPlacement` |
 | Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, `HidingPlacement` |
 | Hard | Planned (#22, #73): joint honest/bluffing model, value-of-information colours, hiding utility, MCTS, expected-value guessing | — |
 
@@ -64,6 +64,8 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `InformationColourPick` | `ai/information_colour_pick.gd` | Normal's colour pick: highest expected information gain about the opponent's rule, plus a skip bonus |
 | `PlacementStrategy` | `ai/placement_strategy.gd` | Base placement: the legal cells most of its 5 deck rules allow, ties at random. `most_shared(view, rules)`, `pick(cells, rng)` |
 | `HidingPlacement` | `ai/hiding_placement.gd` | Normal's placement: hide among the rules the opponent can still believe, then keep room for the next ball |
+| `AnyLegalPlacement` | `ai/any_legal_placement.gd` | Easy's placement: any legal cell at random |
+| `LooseColourPick` | `ai/loose_colour_pick.gd` | Easy's colour pick: the base strategy's pick with chance `focus`, otherwise any colour |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
 
 Callers: the match scene (`main_game.gd`) builds the AI with `AIController.for_level(_setup.ai_level(), _rng)` and
@@ -181,7 +183,8 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
 
 - **`GuessPolicy` (base):** names `belief.top()` when its probability ≥ the fixed threshold (−1e-9 tolerance).
   `GuessPolicy.new()` (threshold 1) guesses only when one rule is left; `GuessPolicy.new(INF)` never guesses. A
-  ruled-out rule (probability 0) is never named.
+  ruled-out rule (probability 0) is never named. **Easy** uses it with `AIController.EASY_THRESHOLD` (0.95): it never
+  gambles, even one skip from losing. With its slow-learning model it rarely reaches 0.95 before one rule is left.
 - **`DangerGuessPolicy` (Normal):**
 
   ```
@@ -232,6 +235,11 @@ at random. Cost: 5 legal-cell checks per colour (20 per pick) plus the outcome l
 each is equally likely and the opponent places uniformly among its legal cells or skips. Kept as the base class and
 as the comparison point in measurements.
 
+### Easy: `LooseColourPick`
+
+With chance `focus` (0.4) the base strategy's considered pick, otherwise any of the 4 colours at random. A player
+still sees it try, now and then, to hand them a colour that splits their rules.
+
 ## Placement
 
 Every strategy's `choose(view, exposure, rng)` returns a cell among `view.own_legal_cells()` (its secret rule's legal
@@ -249,6 +257,11 @@ cells), or `NO_CELL` if there is none.
 3. Ties at random.
 
 Cost: one legal check per own rule and legal cell, plus 4 legal-cell sweeps per cell tied after step 1.
+
+### Easy: `AnyLegalPlacement`
+
+Any cell its secret rule allows, at random: no attempt to keep its fakes believable, so its moves give its rule
+away. That is what makes Easy readable for a new player.
 
 ### Base: `PlacementStrategy`
 
@@ -290,6 +303,9 @@ opponent's rules and a softmax over which fake to break when one must break (Har
 | `DangerGuessPolicy.SAFE` | `ai/danger_guess_policy.gd` | 0.95 | Research doc |
 | `DangerGuessPolicy.DESPERATE` | same | 0.35 | Head-to-head sweep 0.35 / 0.5 / 0.6: 0.35 won most |
 | `HidingPlacement` worst-colour room | `ai/hiding_placement.gd` | min over 4 colours | Tiebreak only; a skip costs a pip whatever the colour |
+| Easy temper | `AIController.easy_model()` | 0.15 (uniform model) | Learns slowly: each placement's evidence counts 0.15 (Normal's 0.4); an inner placement against R04 among 4 permissive rules moves it from 0.20 to about 0.22 |
+| `AIController.EASY_THRESHOLD` | `ai/ai_controller.gd` | 0.95 | A fixed high threshold, no gambling |
+| `LooseColourPick.focus` | `ai/loose_colour_pick.gd` | 0.4 | Considered picks some of the time, so it still looks like it tries |
 | `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
 | `Controller.MIN_PAUSE` / `MAX_PAUSE` | `model/controller.gd` | 0.5 / 1.5 s | Default pause (milestone 1) |
@@ -350,6 +366,15 @@ Placement (#21), 200 seeded matches, seats swapped, both sides otherwise Normal:
 
 Of its 118 wins, 71 came from the opponent guessing wrong: better hiding makes the opponent's gambles fail.
 Matches run a little longer (14.0 turns against 13.3).
+
+Levels, 200 seeded matches, seats swapped:
+
+| Match-up | Result | Gate |
+| --- | --- | --- |
+| Normal vs Easy | 181 – 19, 0 draws (90.5%); Normal's wins: 180 right guesses, 1 forced | Normal ≥ 65%: met |
+
+Easy almost never guesses first (its belief rarely reaches 0.95), so against people it is the opponent that gives its
+rule away and leaves the guessing to them.
 
 ### Speed
 
@@ -439,6 +464,7 @@ Before merging a change to `ai/`:
 | `test/ai/test_ai_colour_pick.gd` | The base colour scores and the swappable strategy |
 | `test/ai/test_information_colour_pick.gd` | A colour all rules treat alike is worth 0; the telling colour is picked; the skip bonus grows with the opponent's skips; a ruled-out rule no longer counts |
 | `test/ai/test_ai_placement.gd` | Placement on max-k legal cells (through the controller) |
+| `test/ai/test_easy_level.gd` | Easy is built; places anywhere legal (gives R04 away); learns more slowly than Normal; loose colour picks; never gambles; Normal beats it clearly over 30 seeded matches |
 | `test/ai/test_ai_pause.gd` | A clear decision pauses briefly; a guess held back at its threshold pauses longer than any routine move; pauses stay within 0.5–5 s |
 | `test/model/test_match_driver.gd` | The driver asks each paused controller for its pause after deciding; skip displays |
 | `test/ai/test_hiding_placement.gd` | Hides off cells a believable fake forbids; once that fake is ruled out its cells are free again; `room_after` takes the worst colour; ties go to the most room |
@@ -454,3 +480,4 @@ Before merging a change to `ai/`:
 | #20 | Colour strategies take the belief; Normal picks by `InformationColourPick` (expected information gain plus skip bonus) |
 | #21 | Placement is a `PlacementStrategy`; Normal places by `HidingPlacement` (believable rules only, then room); the exposure belief is updated every decision |
 | #23 | The controller chooses its pause (`Controller.pause_seconds`), after its decision; the AI's grows with how close the decision was |
+| Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |

@@ -96,7 +96,7 @@ all run the same code.
   unit-tested on a match's `PublicView`); `HistoryNav` only draws the buttons.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
   a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
-  (`AILevel`: Easy, Normal, Hard; only Normal is built, the others show as coming soon), taps one rule
+  (`AILevel`: Easy, Normal, Hard; Easy and Normal are built, Hard shows as coming soon), taps one rule
   of the deck to make it secret (or Pick for me taps a random Simple one), and presses Start, which
   names the pick. The card opens with the goal and the stakes, and numbers its three steps. Beside the
   rules, `RulePreview` (`gui/rule_preview.gd`) shows a fixed mid-match position with the tapped rule's
@@ -319,9 +319,11 @@ How the AI works as built, with its parameters, measurements and debugging recip
 guess, hiding, difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
 and summarised in the README's "How the AI thinks".
 
-### As built (Normal, #19)
+### As built (Easy and Normal)
 
-One level so far, Normal. `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a `PublicView`,
+Two levels so far, Easy and Normal (`AIController.for_level`); the table describes Normal's pieces, and
+[ai-internals.md](ai-internals.md) Easy's (`easy_model()`, a fixed 0.95 guess threshold, `LooseColourPick`,
+`AnyLegalPlacement`). `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a `PublicView`,
 returns a `Command`, and makes every random choice through an injected, seedable RNG.
 `AIController.for_level(level, rng)` builds a level's AI from the pieces below (the match scene and the
 harness use it); `normal_model()` is Normal's model of the player.
