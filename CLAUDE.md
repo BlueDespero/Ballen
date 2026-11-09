@@ -110,10 +110,22 @@ Every pull request and every push to `master` runs:
 - `test`: import step, GUT suite, harness with `--matches 20 --seed 1`.
 - `web`, after `test`: stamps `config/version` with `+<short sha>`, exports Web and runs the web tests in all four
   browsers. A failure uploads the Playwright report as an artifact.
+- `android`, after `test`: installs the Android SDK packages Godot's Gradle build uses, stamps the version (name
+  `+<short sha>`, code the workflow run number), exports the App Bundle and checks it with
+  `.github/scripts/check_aab.sh` (package, target SDK 36, min SDK 24, version code, no permissions, 16 KB aligned
+  arm64 libraries). On `master` with the upload key set it uploads the signed bundle as the artifact
+  `android-bundle`, to upload to Google Play by hand; otherwise a throwaway key signs it and nothing is kept.
 - `deploy`, on `master` only, after `web`: `butler push build/web <ITCH_GAME>:html5` with the build `web` tested.
 
 Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
 API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.
+
+The Android upload key goes in three secrets: `ANDROID_KEYSTORE_BASE64` (the keystore file, base64), `ANDROID_KEY_ALIAS`
+and `ANDROID_KEYSTORE_PASSWORD` (one password for the keystore and the key, as Godot passes one). Make it once with
+`keytool -genkeypair -keystore upload.keystore -storetype PKCS12 -alias upload -keyalg RSA -keysize 2048 -validity
+10000`, encode it with `base64 -w0 upload.keystore` (Git Bash), keep the file and password safe outside the repo, and
+register it in the Play Console under Play App Signing. Without the secrets `android` still passes on `master` but warns
+that its bundle can't be uploaded.
 
 ## Commits
 
