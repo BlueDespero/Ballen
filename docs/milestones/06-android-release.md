@@ -48,6 +48,8 @@ code and can be done before the developer account exists.
 
 ### 1. Hide Quit on mobile
 
+**Done:** `QuitButton.is_shown(is_web, is_mobile)`.
+
 `gui/menus/quit_button.gd` hides the button only on the web, so it would show on Android, where apps don't
 quit themselves and the GDD wants Quit on desktop only.
 
@@ -56,6 +58,8 @@ quit themselves and the GDD wants Quit on desktop only.
 - Tests: `is_shown` for desktop, web and mobile.
 
 ### 2. Android back button
+
+**Done:** the `BackButton` autoload turns the go-back request into `ui_cancel`; `LeaveMatchDialog` during a match.
 
 Godot quits the app on Android's back gesture by default (`application/config/quit_on_go_back`), from any
 screen. Back must step back instead, like Escape on desktop.
@@ -71,12 +75,17 @@ screen. Back must step back instead, like Escape on desktop.
 
 ### 3. Landscape lock
 
+**Done.**
+
 Ballen is landscape-only. Without a lock, Android rotates to portrait and `RotateHint` covers the screen.
 
 - `display/window/handheld/orientation` = sensor landscape (both landscape directions).
 - Keep `RotateHint`: split-screen and tablet multi-window can still give a tall window.
 
 ### 4. Screen cutouts and the safe area
+
+**Done, to check on a device:** the `SafeArea` autoload insets the current scene; the match layout shrinks to fit
+(`main_game.gd` `layout_scale`). Checked on a simulated left cutout.
 
 Landscape phones put the camera notch or punch hole at the left or right edge, over the board or panels.
 
@@ -87,6 +96,9 @@ Landscape phones put the camera notch or punch hole at the left or right edge, o
 
 ### 5. Text fields and the on-screen keyboard
 
+**Done, to check on a device:** the Rename dialog centres above the keyboard (`DecksScreen.keyboard_height`); the deck
+editor's name field is at the top and needs nothing.
+
 The deck name fields (`deck_editor.tscn` `NameField`, `decks_screen.tscn` `DialogName`) bring up the
 on-screen keyboard, which in landscape covers most of the screen.
 
@@ -96,6 +108,8 @@ on-screen keyboard, which in landscape covers most of the screen.
 
 ### 6. App icon
 
+**Done:** `assets/icon/android/`.
+
 - An adaptive icon: a 432×432 foreground (the art inside the central 264×264 safe zone), a background, and
   a monochrome layer for Android 13 themed icons; made from `assets/icon/icon.png` (256×256, so redraw or
   export the source art larger).
@@ -103,6 +117,8 @@ on-screen keyboard, which in landscape covers most of the screen.
   they use Kenney art.
 
 ### 7. Android export preset
+
+**Done:** checked with an unsigned APK export (see the release audit's "Android build").
 
 A preset "Android" in `export_presets.cfg`, next to "Web":
 
@@ -117,6 +133,9 @@ A preset "Android" in `export_presets.cfg`, next to "Web":
 - No keystore in the repo. A local debug export uses the debug keystore.
 
 ### 8. CI: build and check the bundle
+
+**Done, not yet run:** the `android` job and `.github/scripts/check_aab.sh`; CI runs on pull requests and `master`, so
+the first pull request is its first run.
 
 A job `android` in `.github/workflows/ci.yml`, after `test`, on every pull request and push to `master`:
 
@@ -135,6 +154,8 @@ Update the CI section of `CLAUDE.md` with the new job and secrets.
 
 ### 9. Running on Android in tests
 
+**Later.**
+
 The web tests wait for `[ballen] …` markers that only web builds print.
 
 - First release: a manual device checklist (ticket 12) is enough.
@@ -143,6 +164,9 @@ The web tests wait for `[ballen] …` markers that only web builds print.
 
 ### 10. Privacy policy
 
+**Done:** `site/privacy-policy.html`, published by `.github/workflows/pages.yml` once Pages is turned on (Settings >
+Pages > Source: GitHub Actions) and the branch is on `master`; linked from Settings > Credits.
+
 - `docs/privacy-policy.md` (English and Polish): no data collected or shared, settings and decks stay on the
   device, no ads, no accounts, how to reach the developer.
 - Publish it with GitHub Pages from this repo (public, so free) and give that URL to the Play listing; link
@@ -150,11 +174,15 @@ The web tests wait for `[ballen] …` markers that only web builds print.
 
 ### 11. Release audit for Android
 
+**Done.**
+
 Add an Android section to `docs/release-audit.md`: what the AAB contains and its size, permissions (none),
 where `user://` lives (app-private storage, deleted on uninstall, kept across updates), and the Android items
 for the release checklist (target SDK, version code, signing, the bundletool checks).
 
 ### 12. Device check
+
+**To do** (needs the devices and the internal testing track).
 
 On three real devices: a phone with a punch hole or notch (cutout margins, both landscape directions), an
 Android tablet (large screen, split screen) and an older or low-end phone (start-up time, frame rate):
