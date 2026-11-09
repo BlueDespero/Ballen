@@ -4,6 +4,7 @@ extends Control
 ## The match-end screen over the board: the result for the player, how the
 ## match ended, both true rules revealed, and the way out. It dims the whole
 ## layout but sits below the rules panel in the tree, so the panel stays lit.
+## Back (Escape, or Android's back button) does what Main menu does.
 
 ## The player pressed Rematch.
 signal rematch_requested
@@ -29,6 +30,12 @@ func _ready() -> void:
 	visible = false
 	_rematch_button.pressed.connect(rematch_requested.emit)
 	_main_menu_button.pressed.connect(main_menu_requested.emit)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		main_menu_requested.emit()
 
 
 ## Fills the screen from the player's summary and fades it in the first time.

@@ -8,6 +8,8 @@ extends Control
 ## scene can show both decks there while the player chooses. After Start the
 ## screen gives way to the board and shows who goes first for a moment. It only
 ## reports the player's choices; the scene sets up the match.
+## Back (Escape, or Android's back button) does what Main menu does, until
+## Start: from the coin toss on, the match has begun.
 
 ## The screen now shows this deck's rules to choose from.
 signal deck_shown(deck: Deck)
@@ -77,6 +79,12 @@ func _ready() -> void:
 	for level: AILevel.Level in AILevel.ALL:
 		_level_buttons.add_child(_level_button(level))
 	_fit_card()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and not _coin_toss.visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		main_menu_requested.emit()
 
 
 ## Spaces the deck picker's list so each item is DECK_ITEM_HEIGHT tall.
