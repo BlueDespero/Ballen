@@ -12,6 +12,17 @@ extends Controller
 ## colour-pick strategy the colour expected to teach it the most. It also keeps
 ## the same belief about its own rules (its exposure).
 
+## Thinking pauses (pause_seconds), in seconds: the shortest, the longest
+## for a routine colour pick or placement, and the longest of all, for a
+## guess the AI only just made or only just held back.
+const SHORTEST_PAUSE: float = 0.5
+const ROUTINE_PAUSE: float = 2.5
+const LONGEST_PAUSE: float = 5.0
+## A placement is routine: this far from SHORTEST_PAUSE toward ROUTINE_PAUSE.
+const PLACEMENT_CLOSENESS: float = 0.2
+## Natural variation of a pause, either way, in seconds.
+const PAUSE_WOBBLE: float = 0.15
+
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
 var _colour_pick: ColourPickStrategy
@@ -19,6 +30,10 @@ var _placement: PlacementStrategy
 var _belief: Belief
 ## The same reasoning about the AI's own rules: how exposed its secret rule is.
 var _exposure: Belief
+## How close the last decision was, for its pause: the action's closeness and,
+## if the AI weighed a guess, the guess's.
+var _action_closeness: float = 0.0
+var _guess_closeness: float = -1.0
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
@@ -57,18 +72,36 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 	return AIController.new(rng)
 
 
+## Longer the closer the last decision was, so a long pause honestly means the
+## AI was unsure (GDD, "Thinking time"): up to ROUTINE_PAUSE for a colour pick
+## or placement, up to LONGEST_PAUSE when it weighed a guess near its threshold.
+## A small wobble keeps equal pauses from looking mechanical.
+func pause_seconds(rng: RandomNumberGenerator) -> float:
+	var seconds: float = lerpf(SHORTEST_PAUSE, ROUTINE_PAUSE, _action_closeness)
+	if _guess_closeness >= 0.0:
+		seconds = maxf(seconds, lerpf(SHORTEST_PAUSE, LONGEST_PAUSE, _guess_closeness))
+	seconds += rng.randf_range(-PAUSE_WOBBLE, PAUSE_WOBBLE)
+	return clampf(seconds, SHORTEST_PAUSE, LONGEST_PAUSE)
+
+
 func decide(view: PublicView) -> Command:
 	_belief.update(view)
 	_exposure.update(view)
 	var candidates: Array[Rule] = _belief.alive()
+	_action_closeness = 0.0
+	_guess_closeness = -1.0
 	if view.can_guess():
 		var guess: Rule = _guess_policy.choose(_belief, _exposure, view, _rng)
+		_guess_closeness = _guess_policy.last_closeness
 		if guess != null:
 			return Command.guess(guess.id)
 	match view.phase:
 		Match.Phase.FIRST_COLOUR, Match.Phase.PICK_COLOUR:
-			return Command.pick_colour(_colour_pick.choose(view, _belief, _rng))
+			var colour: String = _colour_pick.choose(view, _belief, _rng)
+			_action_closeness = _colour_pick.last_closeness
+			return Command.pick_colour(colour)
 		Match.Phase.PLACE:
+			_action_closeness = PLACEMENT_CLOSENESS
 			var cell: Vector2i = _placement.choose(view, _exposure, _rng)
 			if cell == PlacementStrategy.NO_CELL:
 				return null

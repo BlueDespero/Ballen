@@ -14,6 +14,13 @@ extends RefCounted
 
 ## Scores closer than this are a tie.
 const TIE: float = 1e-9
+## Below this best score there is nothing to weigh: the pick is easy.
+const WORTH_WEIGHING: float = 0.05
+
+## How close the last pick was, 0 (one colour clearly best, or nothing to
+## weigh) to 1 (the runner-up as good as the best): the AI's thinking pause
+## grows with it.
+var last_closeness: float = 0.0
 
 
 ## The colour to hand the opponent.
@@ -22,7 +29,19 @@ func choose(view: PublicView, belief: Belief, rng: RandomNumberGenerator) -> Str
 	var candidates: Array[Rule] = belief.alive()
 	for colour: String in BallColour.ALL:
 		scores[colour] = score(view, candidates, colour)
+	last_closeness = closeness(scores)
 	return best_of(scores, rng)
+
+
+## How close the runner-up's score is to the best one, 0 to 1; 0 when even the
+## best is below WORTH_WEIGHING.
+static func closeness(scores: Dictionary[String, float]) -> float:
+	var ranked: Array = scores.values()
+	ranked.sort()
+	var best: float = ranked[-1]
+	if best < WORTH_WEIGHING:
+		return 0.0
+	return clampf(ranked[-2] / best, 0.0, 1.0)
 
 
 ## The colour with the highest score, ties broken at random.

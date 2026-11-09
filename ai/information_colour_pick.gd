@@ -31,6 +31,7 @@ func choose(view: PublicView, belief: Belief, rng: RandomNumberGenerator) -> Str
 	var scores: Dictionary[String, float] = {}
 	for colour: String in BallColour.ALL:
 		scores[colour] = value(view, belief, colour)
+	last_closeness = closeness(scores)
 	return best_of(scores, rng)
 
 

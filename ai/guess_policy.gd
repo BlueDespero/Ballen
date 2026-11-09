@@ -8,6 +8,12 @@ extends RefCounted
 
 ## Probabilities this close below the threshold still reach it.
 const TOLERANCE: float = 1e-9
+## How far from the threshold the top rule must be for the call to be easy.
+const CLEAR_MARGIN: float = 0.3
+
+## How close the last call was, 0 (clear either way) to 1 (the top rule right
+## at the threshold): the AI's thinking pause grows with it.
+var last_closeness: float = 0.0
 
 var _threshold: float
 
@@ -25,9 +31,14 @@ func threshold(_view: PublicView, _exposure: Belief) -> float:
 ## The rule to name now, or null to hold off. Only a rule the hard evidence
 ## left can be named: a ruled-out rule has probability 0.
 func choose(belief: Belief, exposure: Belief, view: PublicView, rng: RandomNumberGenerator) -> Rule:
+	last_closeness = 0.0
 	var top: Rule = belief.top(rng)
 	if top == null or belief.probability(top.id) <= 0.0:
 		return null
-	if belief.probability(top.id) < threshold(view, exposure) - TOLERANCE:
+	var chance: float = belief.probability(top.id)
+	var bar: float = threshold(view, exposure)
+	if is_finite(bar):
+		last_closeness = clampf(1.0 - absf(chance - bar) / CLEAR_MARGIN, 0.0, 1.0)
+	if chance < bar - TOLERANCE:
 		return null
 	return top
