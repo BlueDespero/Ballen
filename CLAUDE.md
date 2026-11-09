@@ -29,8 +29,9 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   changes and `EventBus` signals), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
   is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
   default font, for arrows the web build has no system font for), `BackButton` (`gui/back_button.gd`: turns
-  Android's back gesture into a `ui_cancel` press, so each screen's Escape handler serves back). Turn state lives in
-  the match.
+  Android's back gesture into a `ui_cancel` press, so each screen's Escape handler serves back), `SafeArea`
+  (`gui/safe_area.gd`: in the phone and tablet apps, insets the current scene to the display's safe area, clear of the
+  camera cutout). Turn state lives in the match.
 
 ## Tests
 

@@ -30,6 +30,7 @@ WebMarkers="*res://gui/web_markers.gd"
 RotateHint="*res://gui/rotate_hint.gd"
 SymbolFont="*res://gui/symbol_font.gd"
 BackButton="*res://gui/back_button.gd"
+SafeArea="*res://gui/safe_area.gd"
 
 [display]
 
@@ -51,3 +52,4 @@ locale/translations=PackedStringArray("res://locale/pl.po")
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.11, 0.12, 0.15, 1)

@@ -46,6 +46,7 @@ holds none of it.
 | `RotateHint` | `gui/rotate_hint.gd` | A top `CanvasLayer` that covers the screen and takes input while the screen is taller than wide. |
 | `SymbolFont` | `gui/symbol_font.gd` | Adds the bundled Noto Sans Symbols as a fallback of the default font (the web has no system fonts for ← →). |
 | `BackButton` | `gui/back_button.gd` | Turns Android's go-back request into a `ui_cancel` press (Escape). Never fires on the web, where browsers send no go-back request. |
+| `SafeArea` | `gui/safe_area.gd` | Phone and tablet apps only: insets the current scene to the display's safe area (clear of the camera cutout). Does nothing on the web. |
 
 ## What the export contains
 
