@@ -100,3 +100,29 @@ func test_the_summary_reports_every_number() -> void:
 		"R10             1       0.0%      0.0%  0 / 0 / 1",
 	]
 	assert_eq(stats.summary(), "\n".join(expected) + "\n")
+
+
+func _level_record(levels: Array[int], winner: int) -> MatchRecord:
+	var result: MatchResult = MatchResult.new(winner, MatchResult.Reason.RIGHT_GUESS)
+	return MatchRecord.new(["R01", "R04"], 0, result, [5, 5], [0, 0], levels)
+
+
+func test_a_run_between_levels_counts_each_levels_wins() -> void:
+	var stats: HarnessStats = HarnessStats.new()
+	var normal_easy: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.EASY]
+	var easy_normal: Array[int] = [AILevel.Level.EASY, AILevel.Level.NORMAL]
+	stats.add(_level_record(normal_easy, 0)) # Normal wins
+	stats.add(_level_record(easy_normal, 1)) # Normal wins from the other seat
+	stats.add(_level_record(easy_normal, 0)) # Easy wins
+	stats.add(_level_record(normal_easy, Players.NONE))
+	assert_eq(stats.levels(), [AILevel.Level.NORMAL, AILevel.Level.EASY] as Array[int])
+	assert_eq(stats.level_wins(AILevel.Level.NORMAL), 2)
+	assert_eq(stats.level_wins(AILevel.Level.EASY), 1)
+	assert_almost_eq(stats.level_win_share(AILevel.Level.NORMAL), 2.0 / 3.0, 1e-9, "draws are left out")
+	assert_string_contains(stats.summary(), "Level wins (of decided matches): Normal 2 (66.7%), Easy 1 (33.3%), draws 1")
+
+
+func test_a_run_of_one_level_has_no_level_line() -> void:
+	var stats: HarnessStats = HarnessStats.new()
+	stats.add(_level_record([AILevel.Level.NORMAL, AILevel.Level.NORMAL] as Array[int], 0))
+	assert_false(stats.summary().contains("Level wins"))

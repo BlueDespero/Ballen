@@ -9,11 +9,17 @@ extends RefCounted
 const MAX_COMMANDS: int = 500
 
 
-## Plays match_count matches; match i is play(book, match_seed(seed_value, i)).
-static func run(book: RuleBook, match_count: int, seed_value: int) -> HarnessStats:
+## Plays match_count matches between AIs of these two levels; match i is
+## play(book, match_seed(seed_value, i), levels), with the levels' seats
+## swapped in every other match so neither always plays the same seat.
+static func run(book: RuleBook, match_count: int, seed_value: int,
+		levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]) -> HarnessStats:
 	var stats: HarnessStats = HarnessStats.new()
 	for i: int in match_count:
-		stats.add(play(book, match_seed(seed_value, i)))
+		var seats: Array[int] = levels.duplicate()
+		if i % 2 == 1:
+			seats.reverse()
+		stats.add(play(book, match_seed(seed_value, i), seats))
 	return stats
 
 
@@ -23,10 +29,11 @@ static func match_seed(seed_value: int, i: int) -> int:
 	return hash([seed_value, i])
 
 
-## One match between two AIs: each gets a deck drawn at random from the
-## book and a random secret rule from it; the coin toss picks the first player.
-## Every random choice comes from one RNG seeded with seed_value.
-static func play(book: RuleBook, seed_value: int) -> MatchRecord:
+## One match between two AIs, player p at levels[p]: each gets a deck drawn at
+## random from the book and a random secret rule from it; the coin toss picks
+## the first player. Every random choice comes from one RNG seeded with
+## seed_value.
+static func play(book: RuleBook, seed_value: int, levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]) -> MatchRecord:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var decks: Array[Deck] = []
@@ -36,10 +43,10 @@ static func play(book: RuleBook, seed_value: int) -> MatchRecord:
 		var deck: Deck = Deck.draw(book, rng)
 		decks.append(deck)
 		secret_rules.append(deck.random_rule(rng))
-		ais.append(AIController.for_level(AILevel.Level.NORMAL, rng))
+		ais.append(AIController.for_level(levels[player] as AILevel.Level, rng))
 	var current_match: Match = Match.create(decks, secret_rules, rng)
 	play_out(current_match, ais)
-	return MatchRecord.from_match(current_match)
+	return MatchRecord.from_match(current_match, levels)
 
 
 ## Asks the AI of every awaited player for a command and submits it until
