@@ -26,7 +26,7 @@ var _exposure: Belief
 func _init(
 	rng: RandomNumberGenerator,
 	guess_policy: GuessPolicy = DangerGuessPolicy.new(),
-	colour_pick: ColourPickStrategy = ColourPickStrategy.new(),
+	colour_pick: ColourPickStrategy = InformationColourPick.new(normal_model()),
 	model: OpponentModel = normal_model(),
 ) -> void:
 	_rng = rng
@@ -47,7 +47,7 @@ static func normal_model() -> OpponentModel:
 static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AIController:
 	match level:
 		AILevel.Level.NORMAL:
-			return AIController.new(rng, DangerGuessPolicy.new(), ColourPickStrategy.new(), normal_model())
+			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model())
 	push_error("AIController: level %d is not built yet" % level)
 	return AIController.new(rng)
 
