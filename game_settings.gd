@@ -23,6 +23,13 @@ const AUDIO: String = "audio"
 const ACCESSIBILITY: String = "accessibility"
 const HINTS: String = "hints"
 const GENERAL: String = "general"
+## One-time hints for a new player, each anchored to what it explains and
+## gone for good once the player does it (saved under [hints] as
+## <name>_seen). Never a Next button: a hint the player can click past is a
+## hint they skip.
+const HINT_COLOUR_PICK: String = "colour_pick"
+const HINT_WATCH_AI: String = "watch_ai"
+const ONE_TIME_HINTS: Array[String] = [HINT_COLOUR_PICK, HINT_WATCH_AI]
 
 ## The config file the settings load from and save to.
 var path: String = DEFAULT_PATH
@@ -72,6 +79,7 @@ var note_marks_seen: bool = false:
 		_notify()
 
 var _loading: bool = false
+var _hints_seen: Dictionary[String, bool] = {}
 
 
 ## The autoload loads the saved settings as the game starts.
@@ -94,6 +102,8 @@ func load_settings() -> void:
 	hold_to_guess = _read(file, ACCESSIBILITY, "hold_to_guess", false)
 	larger_text = _read(file, ACCESSIBILITY, "larger_text", false)
 	note_marks_seen = _read(file, HINTS, "note_marks_seen", false)
+	for hint: String in ONE_TIME_HINTS:
+		_hints_seen[hint] = _read(file, HINTS, hint + "_seen", false)
 	language = _read(file, GENERAL, "language", ENGLISH)
 	_loading = false
 	changed.emit()
@@ -113,6 +123,20 @@ func mark_note_marks_seen() -> void:
 	save_settings()
 
 
+## Whether the player has done what a one-time hint (ONE_TIME_HINTS) says.
+func hint_seen(hint: String) -> bool:
+	return _hints_seen.get(hint, false)
+
+
+## The player did what the hint says: remembers it and saves the settings,
+## so it never comes back. Does nothing once it is remembered.
+func mark_hint_seen(hint: String) -> void:
+	if hint_seen(hint):
+		return
+	_hints_seen[hint] = true
+	save_settings()
+
+
 ## Writes the settings to `path`.
 func save_settings() -> Error:
 	var file: ConfigFile = ConfigFile.new()
@@ -122,6 +146,8 @@ func save_settings() -> Error:
 	file.set_value(ACCESSIBILITY, "hold_to_guess", hold_to_guess)
 	file.set_value(ACCESSIBILITY, "larger_text", larger_text)
 	file.set_value(HINTS, "note_marks_seen", note_marks_seen)
+	for hint: String in ONE_TIME_HINTS:
+		file.set_value(HINTS, hint + "_seen", hint_seen(hint))
 	file.set_value(GENERAL, "language", language)
 	return file.save(path)
 

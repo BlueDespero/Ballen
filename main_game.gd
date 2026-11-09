@@ -27,6 +27,14 @@ const SKIP_DISSOLVE_SECONDS: float = 0.8
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 ## The waiting balls fade to this while a past board is on show.
 const PAUSED_BALL_ALPHA: float = 0.35
+## Where each one-time hint's bottom-right corner sits in the layout: over the
+## board's bottom right, just above the colour picker (the board takes no input
+## while the pick is due), and above the board's top right, beside the AI's
+## rules.
+const HINT_CORNERS: Dictionary[String, Vector2] = {
+	GameSettings.HINT_COLOUR_PICK: Vector2(704, 628),
+	GameSettings.HINT_WATCH_AI: Vector2(736, 112),
+}
 
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
@@ -59,6 +67,8 @@ var _history: HistoryBrowser = HistoryBrowser.new()
 ## The act-here cue: on the player's ball while they place, on the colour
 ## picker while their pick is due, nowhere otherwise.
 var _cue: Attention = Attention.new()
+## A one-time hint for a new player (CoachMark.hint_for), beside what it explains.
+var _coach: CoachMark = CoachMark.new()
 
 
 func _ready() -> void:
@@ -78,6 +88,7 @@ func _ready() -> void:
 	_history_nav.live_pressed.connect(_go_live)
 	_history_nav.forward_pressed.connect(_step_forward)
 	add_child(_cue)
+	$Layout.add_child(_coach)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
 	_show_setup()
@@ -105,6 +116,7 @@ func _apply_settings() -> void:
 	_rules_panel.text_scale = Settings.text_scale()
 	_setup_screen.text_scale = Settings.text_scale()
 	TextScale.apply(_match_end, Settings.text_scale())
+	TextScale.apply(_coach, Settings.text_scale())
 
 
 ## An empty board under the match setup screen: a new match draws the AI's
@@ -184,6 +196,7 @@ func _on_cell_pressed(cell: Vector2i) -> void:
 ## The player's own actions return to the live board first, so what they
 ## cause animates there.
 func _on_colour_picked(colour: String) -> void:
+	Settings.mark_hint_seen(GameSettings.HINT_COLOUR_PICK)
 	_go_live()
 	_human.choose(Command.pick_colour(colour))
 
@@ -246,6 +259,7 @@ func _show_skip(skip: HistoryEntry) -> void:
 	_rules_panel.seal_enabled = false
 	_show_status(TurnPrompt.new())
 	_cue.target = null
+	_coach.show_hint("", Vector2.ZERO)
 	var ball: BallView = _waiting_ball(skip.player)
 	var note: Label = _player_skip_note if skip.player == HUMAN else _ai_skip_note
 	note.modulate.a = 1.0
@@ -350,6 +364,7 @@ func _show_past_turn() -> void:
 	_rules_panel.show_skips(past.skips[AI], past.skips[HUMAN])
 	_show_status(TurnPrompt.new("A past board.", _history.past_turn_text()))
 	_cue.target = null
+	_coach.show_hint("", Vector2.ZERO)
 
 
 ## The live board and everything around it, from the player's view.
@@ -371,7 +386,11 @@ func _show_live_match(view: PublicView) -> void:
 		_cue.target = _picker
 	else:
 		_cue.target = null
+	var hint: String = CoachMark.hint_for(view, Settings)
+	_coach.show_hint(hint, HINT_CORNERS.get(hint, Vector2.ZERO))
 	if view.phase == Match.Phase.OVER:
+		# Reading the AI's placements is hinted through the first match only.
+		Settings.mark_hint_seen(GameSettings.HINT_WATCH_AI)
 		_rules_panel.show_match_over(view.revealed_secret_rules[AI])
 		_match_end.show_summary(MatchEndSummary.from_view(view))
 

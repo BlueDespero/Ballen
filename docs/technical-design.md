@@ -38,6 +38,9 @@ all run the same code.
   button) pulses twice when it lights up (`Attention.pulse`), then holds still: the start of motion
   catches the eye, endless pulsing becomes noise. Reduced motion holds them still from the start.
   Red stays for errors, losses and skips.
+- One-time hints (`CoachMark`, `gui/coach_mark.gd`) teach what a player only learns by doing. `hint_for(view,
+  settings)` picks at most one for the view; the scene places it beside what it explains. Each goes for good
+  once the player acts (`Settings.mark_hint_seen`, saved under `[hints]`), never by a Next button.
 - The custom-script fallback gets a fresh base script when it is first needed (the old
   half-written `rules/baserule.gd` stub was deleted).
 - The match never acts on its own. A driver (the scene, the AI-vs-AI harness, a test) asks

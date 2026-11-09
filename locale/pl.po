@@ -324,6 +324,12 @@ msgstr "Typ zatwierdzony."
 msgid "The AI is guessing…"
 msgstr "Komputer typuje…"
 
+msgid "You pick the colour the AI places next. Pick one that some of its rules can't allow: where it goes, or a skip, gives its rule away."
+msgstr "To Ty wybierasz kolor następnej kuli komputera. Wybierz taki, na który część jego reguł nie pozwala: to, gdzie ją położy, albo pominięcie zdradzi jego regułę."
+
+msgid "Watch where the AI places: which of its rules allow that cell? Tap the cross beside those that don't."
+msgstr "Patrz, gdzie komputer kładzie kule: które z jego reguł pozwalają na to pole? Stuknij krzyżyk przy tych, które nie pozwalają."
+
 msgid "A past board."
 msgstr "Dawna plansza."
 
