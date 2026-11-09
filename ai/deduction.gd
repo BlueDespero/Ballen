@@ -29,7 +29,7 @@ static func candidates(view: PublicView) -> Array[Rule]:
 	return remaining
 
 
-## Whether the event proves the rule is not its player's true rule, judged on
+## Whether the event proves the rule is not its player's secret rule, judged on
 ## the position just before the event (MatchPosition.before). #58 can pass a
 ## hypothetical event.
 static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) -> bool:

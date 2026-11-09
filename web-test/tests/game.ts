@@ -171,7 +171,7 @@ export class Game {
     await send("touchend", points[points.length - 1]);
   }
 
-  // Single Player, true rule R08 (any cell is legal for a first ball), Start;
+  // Single Player, secret rule R08 (any cell is legal for a first ball), Start;
   // returns whether the player goes first.
   async startMatch(): Promise<boolean> {
     const since = this.markers.length;

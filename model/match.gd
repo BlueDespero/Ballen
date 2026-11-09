@@ -16,7 +16,7 @@ extends RefCounted
 ##                 opponent, makes a sealed forced guess
 ##   OVER          the match has a result and accepts no command
 ##
-## Guess windows: the current player may name the opponent's true rule in
+## Guess windows: the current player may name the opponent's secret rule in
 ## PLACE (before placing) and in PICK_COLOUR (after placing or skipping, until
 ## the colour pick). A right guess wins and a wrong guess loses at once. After
 ## the placement that fills the board, the placer's window stays open in
@@ -37,7 +37,7 @@ const LOSING_SKIP: int = 3
 
 var _position: MatchPosition
 var _decks: Array[Deck] = []
-var _true_rules: Array[Rule] = []
+var _secret_rules: Array[Rule] = []
 var _rng: RandomNumberGenerator
 var _phase: Phase = Phase.FIRST_COLOUR
 var _result: MatchResult = null
@@ -46,50 +46,50 @@ var _result: MatchResult = null
 var _forced_guesses: Array[String] = ["", ""]
 
 
-func _init(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> void:
+func _init(position: MatchPosition, decks: Array[Deck], secret_rules: Array[Rule], rng: RandomNumberGenerator) -> void:
 	_position = position
 	_decks = decks.duplicate()
-	_true_rules = true_rules.duplicate()
+	_secret_rules = secret_rules.duplicate()
 	_rng = rng
 
 
 ## A new match on an empty board. Unless a first player is given (a rematch),
 ## a coin toss on the rng picks one; the second player then picks the first
-## colour. Returns null (and reports an error) if the decks or true rules
+## colour. Returns null (and reports an error) if the decks or secret rules
 ## don't fit.
-static func create(decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator, first_player: int = Players.NONE) -> Match:
-	if not _setup_is_valid(decks, true_rules):
+static func create(decks: Array[Deck], secret_rules: Array[Rule], rng: RandomNumberGenerator, first_player: int = Players.NONE) -> Match:
+	if not _setup_is_valid(decks, secret_rules):
 		return null
 	if not Players.is_valid(first_player):
 		first_player = rng.randi_range(0, Players.COUNT - 1)
-	return Match.new(MatchPosition.new(Board.new(), first_player), decks, true_rules, rng)
+	return Match.new(MatchPosition.new(Board.new(), first_player), decks, secret_rules, rng)
 
 
 ## A match that continues from a position (for tests and replays). The position
 ## is copied. At turn 0 it waits for the first colour pick; otherwise the
 ## current player's turn starts in the position's colour.
-static func from_position(position: MatchPosition, decks: Array[Deck], true_rules: Array[Rule], rng: RandomNumberGenerator) -> Match:
-	if not _setup_is_valid(decks, true_rules):
+static func from_position(position: MatchPosition, decks: Array[Deck], secret_rules: Array[Rule], rng: RandomNumberGenerator) -> Match:
+	if not _setup_is_valid(decks, secret_rules):
 		return null
 	if position.turn > 0 and not BallColour.is_valid(position.colour):
 		push_error("Match.from_position: turn %d needs a colour, got '%s'" % [position.turn, position.colour])
 		return null
-	var current_match: Match = Match.new(position.copy(), decks, true_rules, rng)
+	var current_match: Match = Match.new(position.copy(), decks, secret_rules, rng)
 	if position.turn > 0:
 		current_match._start_turn()
 	return current_match
 
 
-static func _setup_is_valid(decks: Array[Deck], true_rules: Array[Rule]) -> bool:
-	if decks.size() != Players.COUNT or true_rules.size() != Players.COUNT:
-		push_error("Match needs a deck and a true rule for each of the 2 players")
+static func _setup_is_valid(decks: Array[Deck], secret_rules: Array[Rule]) -> bool:
+	if decks.size() != Players.COUNT or secret_rules.size() != Players.COUNT:
+		push_error("Match needs a deck and a secret rule for each of the 2 players")
 		return false
 	for player: int in Players.COUNT:
 		if decks[player].rules.size() != Deck.SIZE:
 			push_error("Match: player %d's deck has %d rules, not %d" % [player, decks[player].rules.size(), Deck.SIZE])
 			return false
-		if not decks[player].has(true_rules[player]):
-			push_error("Match: player %d's true rule is not in their deck" % player)
+		if not decks[player].has(secret_rules[player]):
+			push_error("Match: player %d's secret rule is not in their deck" % player)
 			return false
 	return true
 
@@ -127,10 +127,10 @@ func public_view(viewer: int) -> PublicView:
 	view.position = _position.copy()
 	for deck: Deck in _decks:
 		view.decks.append(deck.copy())
-	view.own_true_rule = _true_rules[viewer]
+	view.own_secret_rule = _secret_rules[viewer]
 	view.result = result()
 	if _phase == Phase.OVER:
-		view.revealed_true_rules = _true_rules.duplicate()
+		view.revealed_secret_rules = _secret_rules.duplicate()
 	return view
 
 
@@ -156,13 +156,13 @@ func history() -> Array[HistoryEntry]:
 	return _position.copy().history
 
 
-## The current player's legal cells for the current colour, under their true
+## The current player's legal cells for the current colour, under their secret
 ## rule; empty outside the PLACE phase. Drives highlights and the drop check.
 func legal_cells() -> Array[Vector2i]:
 	if _phase != Phase.PLACE:
 		return []
 	var player: int = current_player()
-	return RuleChecker.legal_cells(_true_rules[player], _position, player, _position.colour)
+	return RuleChecker.legal_cells(_secret_rules[player], _position, player, _position.colour)
 
 
 ## Whether the current player may place the current ball on this cell now.
@@ -170,7 +170,7 @@ func is_legal(cell: Vector2i) -> bool:
 	if _phase != Phase.PLACE:
 		return false
 	var player: int = current_player()
-	return RuleChecker.is_legal(_true_rules[player], _position, player, _position.colour, cell)
+	return RuleChecker.is_legal(_secret_rules[player], _position, player, _position.colour, cell)
 
 
 ## Hands a player's command to the match. Returns false, changing nothing,
@@ -220,7 +220,7 @@ func _guess(player: int, rule_id: String) -> bool:
 	var opponent: int = Players.opponent(player)
 	if not _decks[opponent].has_id(rule_id):
 		return false
-	var right: bool = rule_id == _true_rules[opponent].id
+	var right: bool = rule_id == _secret_rules[opponent].id
 	_position.history.append(HistoryEntry.guess(player, rule_id, right))
 	if right:
 		_end(MatchResult.new(player, MatchResult.Reason.RIGHT_GUESS))
@@ -244,7 +244,7 @@ func _forced_guess(player: int, rule_id: String) -> bool:
 	var placer: int = current_player()
 	var right: Array[bool] = [false, false]
 	for guesser: int in [placer, Players.opponent(placer)]:
-		right[guesser] = _forced_guesses[guesser] == _true_rules[Players.opponent(guesser)].id
+		right[guesser] = _forced_guesses[guesser] == _secret_rules[Players.opponent(guesser)].id
 		_position.history.append(HistoryEntry.guess(guesser, _forced_guesses[guesser], right[guesser]))
 	var winner: int = Players.NONE
 	if right[0] != right[1]:

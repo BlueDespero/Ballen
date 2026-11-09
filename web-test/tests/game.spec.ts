@@ -30,7 +30,7 @@ test("placing a ball by dragging it onto the board", async ({ page }, testInfo) 
     await game.waitFor("[ballen] ball_placed by=ai", since);
   }
   await page.waitForTimeout(500);
-  // The AI may have taken a cell; with true rule R08 every free cell is legal.
+  // The AI may have taken a cell; with secret rule R08 every free cell is legal.
   for (const target of [cell(2, 2), cell(3, 3), cell(1, 4)]) {
     const since = game.markers.length;
     await game.drag(SPOT.playerBall, target);

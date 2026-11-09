@@ -12,14 +12,14 @@ func before_each() -> void:
 	_book = Fixtures.book()
 
 
-## A match with a permissive true rule for player 0 (and for player 1 unless
+## A match with a permissive secret rule for player 0 (and for player 1 unless
 ## given); player 0 goes first.
-func _match(true_rule_1: Rule = null) -> Match:
-	if true_rule_1 == null:
-		true_rule_1 = Fixtures.anywhere(_book, "BT")
-	var true_rules: Array[Rule] = [Fixtures.anywhere(_book, "AT"), true_rule_1]
-	var decks: Array[Deck] = [Fixtures.deck_with(_book, true_rules[0], "A"), Fixtures.deck_with(_book, true_rules[1], "B")]
-	return Match.create(decks, true_rules, Fixtures.rng(1), 0)
+func _match(secret_rule_1: Rule = null) -> Match:
+	if secret_rule_1 == null:
+		secret_rule_1 = Fixtures.anywhere(_book, "BT")
+	var secret_rules: Array[Rule] = [Fixtures.anywhere(_book, "AT"), secret_rule_1]
+	var decks: Array[Deck] = [Fixtures.deck_with(_book, secret_rules[0], "A"), Fixtures.deck_with(_book, secret_rules[1], "B")]
+	return Match.create(decks, secret_rules, Fixtures.rng(1), 0)
 
 
 ## Submits each command for the player the match awaits.

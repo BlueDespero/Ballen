@@ -2,7 +2,7 @@ class_name RulesPanel
 extends PanelContainer
 
 ## The rules panel on the right: the AI's 5 rules on top, the player's 5 below
-## with their true rule highlighted, and each side's skip pips beside its
+## with their secret rule highlighted, and each side's skip pips beside its
 ## title. The player selects one of the AI's rules by clicking it and names it
 ## by holding Guess under them (or tapping it, then Confirm, with the "guess
 ## without holding" setting). Two small buttons, ✗ and ?, at the right end of
@@ -94,8 +94,8 @@ var _match_over: bool = false
 ## Whether the decks are only a preview, before the match starts.
 var _preview: bool = false
 var _marks: Dictionary[String, int] = {}
-## The AI's true rule once the match is over; "" before.
-var _ai_true_rule_id: String = ""
+## The AI's secret rule once the match is over; "" before.
+var _ai_secret_rule_id: String = ""
 
 @onready var _sections: VBoxContainer = $Sections
 @onready var _ai_rules: VBoxContainer = %AIRules
@@ -136,14 +136,14 @@ func _apply_spacing() -> void:
 
 
 ## Shows both decks for a new match (also a rematch: the match-over marks go).
-## Without the player's true rule (the setup screen, before Start) they are a
+## Without the player's secret rule (the setup screen, before Start) they are a
 ## preview: the AI's rules take no note marks and no selection.
-func show_decks(ai_deck: Deck, player_deck: Deck, player_true_rule: Rule) -> void:
-	_preview = player_true_rule == null
+func show_decks(ai_deck: Deck, player_deck: Deck, player_secret_rule: Rule) -> void:
+	_preview = player_secret_rule == null
 	_match_over = false
-	_ai_true_rule_id = ""
+	_ai_secret_rule_id = ""
 	_fill(_ai_rules, ai_deck, null)
-	_fill(_player_rules, player_deck, player_true_rule)
+	_fill(_player_rules, player_deck, player_secret_rule)
 	_marks.clear()
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
@@ -263,26 +263,26 @@ func _get_marks() -> Dictionary[String, int]:
 	return _marks.duplicate()
 
 
-## Once the match is over: marks the AI's true rule and closes guessing.
-func show_match_over(ai_true_rule: Rule) -> void:
+## Once the match is over: marks the AI's secret rule and closes guessing.
+func show_match_over(ai_secret_rule: Rule) -> void:
 	if _match_over:
 		return
 	_match_over = true
-	_ai_true_rule_id = ai_true_rule.id
+	_ai_secret_rule_id = ai_secret_rule.id
 	guess_enabled = false
 	seal_enabled = false
 	_select("")
 	for row: Node in _ai_rules.get_children():
 		var panel: PanelContainer = row as PanelContainer
 		panel.mouse_default_cursor_shape = Control.CURSOR_ARROW
-		if String(panel.name) == ai_true_rule.id:
+		if String(panel.name) == ai_secret_rule.id:
 			# Right after the text, before the mark buttons.
-			var true_label: Label = Palette.label("SECRET", Palette.GOLD_COLOUR, TAG_FONT_SIZE)
-			panel.get_node("Line").add_child(true_label)
-			panel.get_node("Line").move_child(true_label, panel.get_node("Line/Text").get_index() + 1)
+			var secret_label: Label = Palette.label("SECRET", Palette.GOLD_COLOUR, TAG_FONT_SIZE)
+			panel.get_node("Line").add_child(secret_label)
+			panel.get_node("Line").move_child(secret_label, panel.get_node("Line/Text").get_index() + 1)
 	_update_guess()
 	TextScale.apply(self, text_scale)
-	_fit_rule_text(_ai_rules.get_node(ai_true_rule.id) as PanelContainer)
+	_fit_rule_text(_ai_rules.get_node(ai_secret_rule.id) as PanelContainer)
 
 
 ## Clicking an AI rule selects it; clicking it again clears the selection. Not
@@ -305,16 +305,16 @@ func _select(rule_id: String) -> void:
 	_update_guess()
 
 
-## An AI rule row's look: selected, marked ?, or the AI's true rule once the
+## An AI rule row's look: selected, marked ?, or the AI's secret rule once the
 ## match is over.
 func _style_ai_row(row: PanelContainer) -> void:
 	var rule_id: String = String(row.name)
-	row.add_theme_stylebox_override("panel", _style(rule_id == selected_rule_id, rule_id == _ai_true_rule_id))
+	row.add_theme_stylebox_override("panel", _style(rule_id == selected_rule_id, rule_id == _ai_secret_rule_id))
 	row.queue_redraw()
 
 
 ## Over a rule marked ?: a yellow left edge, drawn on top of the row's box so
-## a selected or true row keeps its own border.
+## a selected or secret row keeps its own border.
 func _draw_suspect_edge(row: PanelContainer) -> void:
 	if _marks.get(String(row.name), NoteMark.Mark.NONE) != NoteMark.Mark.QUESTION:
 		return
@@ -396,19 +396,19 @@ func _pip(filled: bool) -> Panel:
 	return pip
 
 
-func _fill(list: VBoxContainer, deck: Deck, true_rule: Rule) -> void:
+func _fill(list: VBoxContainer, deck: Deck, secret_rule: Rule) -> void:
 	for child: Node in list.get_children():
 		list.remove_child(child)
 		child.queue_free()
 	for rule: Rule in deck.rules:
-		list.add_child(_row(rule, rule == true_rule))
+		list.add_child(_row(rule, rule == secret_rule))
 
 
-func _row(rule: Rule, is_true: bool) -> PanelContainer:
+func _row(rule: Rule, is_secret: bool) -> PanelContainer:
 	var row: PanelContainer = PanelContainer.new()
 	row.name = rule.id
 	row.custom_minimum_size.y = LARGER_ROW_HEIGHT if _larger_text() else ROW_HEIGHT
-	row.add_theme_stylebox_override("panel", _style(false, is_true))
+	row.add_theme_stylebox_override("panel", _style(false, is_secret))
 	var line: HBoxContainer = HBoxContainer.new()
 	line.name = "Line"
 	line.add_theme_constant_override("separation", 10)
@@ -427,20 +427,20 @@ func _row(rule: Rule, is_true: bool) -> PanelContainer:
 	if _larger_text():
 		text_label.add_theme_constant_override("line_spacing", LARGER_LINE_SPACING)
 	line.add_child(text_label)
-	if is_true:
+	if is_secret:
 		line.add_child(Palette.label("SECRET", Palette.GOLD_COLOUR, TAG_FONT_SIZE))
 	return row
 
 
-## A rule row's box. Selected rows turn blue and the true rule gold.
-func _style(is_selected: bool, is_true: bool) -> StyleBoxFlat:
+## A rule row's box. Selected rows turn blue and the secret rule gold.
+func _style(is_selected: bool, is_secret: bool) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Palette.ROW_COLOUR
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
-	if is_true or is_selected:
-		style.bg_color = Palette.TRUE_ROW_COLOUR if is_true else Palette.SELECTED_ROW_COLOUR
+	if is_secret or is_selected:
+		style.bg_color = Palette.SECRET_ROW_COLOUR if is_secret else Palette.SELECTED_ROW_COLOUR
 		style.set_border_width_all(2)
-		style.border_color = Palette.GOLD_COLOUR if is_true else Palette.SELECTED_BORDER_COLOUR
+		style.border_color = Palette.GOLD_COLOUR if is_secret else Palette.SELECTED_BORDER_COLOUR
 	return style

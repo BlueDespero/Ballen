@@ -159,8 +159,8 @@ func test_a_player_with_no_legal_cell_is_skipped_and_asked_for_a_colour() -> voi
 	position.colour = BallColour.RED
 	var r04: Rule = _book.rule("R04")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
-	var true_rules: Array[Rule] = [r04, r04]
-	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var secret_rules: Array[Rule] = [r04, r04]
+	var current_match: Match = Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 	var human: HumanController = HumanController.new()
 	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = _driver(current_match, controllers, [1], 3)
@@ -203,8 +203,8 @@ func test_after_a_skip_the_driver_waits_for_the_skip_display_before_going_on() -
 	position.colour = BallColour.RED
 	var r04: Rule = _book.rule("R04")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, r04, "B")]
-	var true_rules: Array[Rule] = [r04, r04]
-	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var secret_rules: Array[Rule] = [r04, r04]
+	var current_match: Match = Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 	var human: HumanController = HumanController.new()
 	var controllers: Array[Controller] = [human, _ai(2)]
 	var driver: MatchDriver = MatchDriver.new(current_match, controllers, [1], Fixtures.rng(3), _record_wait, 2.3)

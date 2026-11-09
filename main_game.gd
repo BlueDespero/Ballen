@@ -2,11 +2,11 @@ extends Control
 
 ## The match scene: shows the match from the player's side and sends the
 ## player's commands. Before the match, the match setup screen lets the player
-## pick a deck and the AI level and choose a true rule while both decks are
+## pick a deck and the AI level and choose a secret rule while both decks are
 ## shown; then the coin toss is shown and play starts. The match decides what is
 ## legal; a MatchDriver runs the player's HumanController and the AI, pausing
 ## before each AI action. At match end, Rematch goes back to the setup screen
-## to choose a true rule on the same decks at the same level.
+## to choose a secret rule on the same decks at the same level.
 ##
 ## The history view (the arrows and Live under the board, or the ← and → keys)
 ## steps turn by turn through past boards, rebuilt from the player's view; a
@@ -103,7 +103,7 @@ func _apply_settings() -> void:
 
 ## An empty board under the match setup screen: a new match draws the AI's
 ## deck and offers the saved decks and the AI levels; a rematch keeps the decks
-## and level (the setup keeps them) and the player chooses a true rule again.
+## and level (the setup keeps them) and the player chooses a secret rule again.
 ## The rules panel shows the AI's deck beside the screen.
 func _show_setup() -> void:
 	_rules_panel.show_skips(0, 0)
@@ -122,21 +122,21 @@ func _show_setup() -> void:
 	_update_history_nav()
 
 
-## Both decks in the rules panel while the player chooses a true rule.
+## Both decks in the rules panel while the player chooses a secret rule.
 func _on_setup_deck_shown(deck: Deck) -> void:
 	_rules_panel.show_decks(_ai_deck, deck, null)
 
 
 ## Starts the match (its coin toss picks the first player; in a rematch the
 ## other player goes first), shows who goes first, then lets the driver play.
-func _on_start_requested(deck: Deck, level: AILevel.Level, true_rule: Rule) -> void:
+func _on_start_requested(deck: Deck, level: AILevel.Level, secret_rule: Rule) -> void:
 	var is_rematch: bool = _match != null
 	if not is_rematch:
 		_setup = MatchSetup.against_ai(deck, _ai_deck, level, _rng)
-	_match = _setup.rematch(true_rule) if is_rematch else _setup.start(true_rule)
+	_match = _setup.rematch(secret_rule) if is_rematch else _setup.start(secret_rule)
 	_shown_events = 0
 	var view: PublicView = _match.public_view(HUMAN)
-	_rules_panel.show_decks(view.decks[AI], view.decks[HUMAN], view.own_true_rule)
+	_rules_panel.show_decks(view.decks[AI], view.decks[HUMAN], view.own_secret_rule)
 	_board_view.show_board(view.position.board, [], HUMAN, view.position.first_player)
 	var player_goes_first: bool = view.position.first_player == HUMAN
 	_status.text = "You go first." if player_goes_first else "The AI goes first."
@@ -170,7 +170,7 @@ func _on_colour_picked(colour: String) -> void:
 	_human.choose(Command.pick_colour(colour))
 
 
-## Guess names the AI's true rule outright: right wins, wrong loses.
+## Guess names the AI's secret rule outright: right wins, wrong loses.
 func _on_guess_requested(rule_id: String) -> void:
 	_go_live()
 	_human.choose(Command.guess(rule_id))
@@ -182,7 +182,7 @@ func _on_seal_requested(rule_id: String) -> void:
 	_human.choose(Command.forced_guess(rule_id))
 
 
-## Back to the setup screen to choose a true rule for the next match on the
+## Back to the setup screen to choose a secret rule for the next match on the
 ## same decks.
 func _on_rematch_requested() -> void:
 	_match_end.hide_summary()
@@ -346,7 +346,7 @@ func _show_live_match(view: PublicView) -> void:
 	_rules_panel.show_skips(view.position.skips[AI], view.position.skips[HUMAN])
 	_status.text = _status_text(view)
 	if view.phase == Match.Phase.OVER:
-		_rules_panel.show_match_over(view.revealed_true_rules[AI])
+		_rules_panel.show_match_over(view.revealed_secret_rules[AI])
 		_match_end.show_summary(MatchEndSummary.from_view(view))
 
 

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Everything one player may know about a match (ADR 0002): a snapshot built
 ## by Match.public_view(viewer), holding no reference back to the match. It
-## never holds the opponent's legal cells, nor the opponent's true rule while
+## never holds the opponent's legal cells, nor the opponent's secret rule while
 ## the match runs. Changing a view changes nothing in the match.
 
 ## The player this view was built for.
@@ -17,13 +17,13 @@ var awaiting_players: Array[int] = []
 var position: MatchPosition
 ## Both players' decks, indexed by player.
 var decks: Array[Deck] = []
-## The viewer's own true rule.
-var own_true_rule: Rule
+## The viewer's own secret rule.
+var own_secret_rule: Rule
 ## Null while the match runs.
 var result: MatchResult
-## Both players' true rules, indexed by player, once the match is over; empty
+## Both players' secret rules, indexed by player, once the match is over; empty
 ## while it runs.
-var revealed_true_rules: Array[Rule] = []
+var revealed_secret_rules: Array[Rule] = []
 
 
 func opponent() -> int:
@@ -56,8 +56,8 @@ func forced_guess_due() -> bool:
 
 
 ## The viewer's legal cells for the current colour when it is their turn to
-## place; empty otherwise. Computed from the viewer's own true rule only.
+## place; empty otherwise. Computed from the viewer's own secret rule only.
 func own_legal_cells() -> Array[Vector2i]:
 	if phase != Match.Phase.PLACE or current_player != viewer:
 		return []
-	return RuleChecker.legal_cells(own_true_rule, position, viewer, position.colour)
+	return RuleChecker.legal_cells(own_secret_rule, position, viewer, position.colour)

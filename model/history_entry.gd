@@ -20,7 +20,7 @@ var cell: Vector2i
 var colour: String
 ## GUESS: the id of the opponent's rule the guesser named.
 var rule_id: String
-## GUESS: whether that rule was the opponent's true rule.
+## GUESS: whether that rule was the opponent's secret rule.
 var right: bool
 
 

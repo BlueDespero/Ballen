@@ -2,8 +2,8 @@ class_name MatchSetupScreen
 extends Control
 
 ## The match setup screen before a match: the player picks a saved deck and
-## the AI level, taps one rule of the deck to make it true, then presses Start.
-## A rematch comes back here with the same deck and level, so only the true
+## the AI level, taps one rule of the deck to make it secret, then presses Start.
+## A rematch comes back here with the same deck and level, so only the secret
 ## rule is chosen again. The screen leaves the rules panel uncovered, so the
 ## scene can show both decks there while the player chooses. After Start the
 ## screen gives way to the board and shows who goes first for a moment. It only
@@ -12,7 +12,7 @@ extends Control
 ## The screen now shows this deck's rules to choose from.
 signal deck_shown(deck: Deck)
 ## The player pressed Start with these choices.
-signal start_requested(deck: Deck, level: AILevel.Level, true_rule: Rule)
+signal start_requested(deck: Deck, level: AILevel.Level, secret_rule: Rule)
 ## The player pressed Main menu.
 signal main_menu_requested
 
@@ -60,7 +60,7 @@ var text_scale: float = 1.0:
 var _store: DeckStore = null
 var _deck: Deck = null
 var _level: AILevel.Level = DEFAULT_LEVEL
-var _true_rule: Rule = null
+var _secret_rule: Rule = null
 var _level_group: ButtonGroup = ButtonGroup.new()
 var _rule_group: ButtonGroup = ButtonGroup.new()
 
@@ -104,7 +104,7 @@ func show_setup(store: DeckStore) -> void:
 
 
 ## Shows the setup for a rematch: the deck and level of the last match stay,
-## and the player chooses a true rule again.
+## and the player chooses a secret rule again.
 func show_rematch() -> void:
 	_title.text = "Rematch"
 	_deck_picker.disabled = true
@@ -147,7 +147,7 @@ func _show() -> void:
 ## once, so the new ones keep their rule-id names.
 func _show_deck(deck: Deck) -> void:
 	_deck = deck
-	_true_rule = null
+	_secret_rule = null
 	_start_button.disabled = true
 	for child: Node in _rule_buttons.get_children():
 		_rule_buttons.remove_child(child)
@@ -168,13 +168,13 @@ func _on_level_chosen(level: AILevel.Level) -> void:
 
 
 func _on_rule_chosen(rule: Rule) -> void:
-	_true_rule = rule
+	_secret_rule = rule
 	_start_button.disabled = false
 
 
 func _on_start_pressed() -> void:
-	if _true_rule != null:
-		start_requested.emit(_deck, _level, _true_rule)
+	if _secret_rule != null:
+		start_requested.emit(_deck, _level, _secret_rule)
 
 
 ## Levels that are built can be picked unless locked (a rematch keeps the
@@ -220,9 +220,9 @@ func _rule_button(rule: Rule) -> Button:
 
 
 ## A choice button: a plain row, outlined on hover, gold once chosen (like the
-## true rule in the rules panel), dimmed when it can't be chosen.
+## secret rule in the rules panel), dimmed when it can't be chosen.
 func _style_choice(button: Button, margin: int = 16) -> void:
-	var chosen: StyleBoxFlat = _style(Palette.TRUE_ROW_COLOUR, 2, margin)
+	var chosen: StyleBoxFlat = _style(Palette.SECRET_ROW_COLOUR, 2, margin)
 	button.add_theme_stylebox_override("normal", _style(Palette.ROW_COLOUR, 0, margin))
 	button.add_theme_stylebox_override("hover", _style(Palette.ROW_COLOUR.lightened(0.1), 2, margin))
 	button.add_theme_stylebox_override("pressed", chosen)

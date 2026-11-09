@@ -7,9 +7,9 @@ extends RefCounted
 enum Reason {
 	## The loser's third skip.
 	THIRD_SKIP,
-	## The winner named the loser's true rule.
+	## The winner named the loser's secret rule.
 	RIGHT_GUESS,
-	## The loser named a rule that wasn't the winner's true rule.
+	## The loser named a rule that wasn't the winner's secret rule.
 	WRONG_GUESS,
 	## Both forced guesses on a full board; a draw unless exactly one was right.
 	FORCED_GUESSES,

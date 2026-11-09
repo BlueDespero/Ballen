@@ -14,7 +14,7 @@ func before_each() -> void:
 	_book = Fixtures.book()
 
 
-## Player 0 is to place the last ball. True rules "AT" (player 0) and "BT"
+## Player 0 is to place the last ball. Secret rules "AT" (player 0) and "BT"
 ## (player 1), decks filled with A1..A4 / B1..B4; every rule allows every
 ## empty cell.
 func _nearly_full() -> Match:

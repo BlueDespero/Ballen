@@ -1,7 +1,7 @@
 extends GutTest
 
 # What the match-end screen tells each viewer, built from their PublicView once
-# the match is over: win, lose or draw, how the match ended and both true rules.
+# the match is over: win, lose or draw, how the match ended and both secret rules.
 
 const Fixtures := preload("res://test/helpers/fixtures.gd")
 
@@ -12,7 +12,7 @@ func before_each() -> void:
 	_book = Fixtures.book()
 
 
-## A match whose true rules are "AT" (player 0) and "BT" (player 1), past the
+## A match whose secret rules are "AT" (player 0) and "BT" (player 1), past the
 ## first colour pick: the first player is to place.
 func _started(seed_value: int) -> Match:
 	var current_match: Match = Fixtures.new_match(_book, Fixtures.anywhere(_book, "AT"), Fixtures.anywhere(_book, "BT"), seed_value)
@@ -60,14 +60,14 @@ func test_the_ais_wrong_guess_wins_for_the_viewer() -> void:
 	assert_eq(summary.reason, "The AI named A2 \"Anywhere (A2)\", but it isn't your secret rule.")
 
 
-func test_each_viewer_sees_both_true_rules_from_their_side() -> void:
+func test_each_viewer_sees_both_secret_rules_from_their_side() -> void:
 	var current_match: Match = _guessed(0, "B2")
 	var mine: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(0))
-	assert_eq(mine.own_true_rule.id, "AT")
-	assert_eq(mine.opponent_true_rule.id, "BT")
+	assert_eq(mine.own_secret_rule.id, "AT")
+	assert_eq(mine.opponent_secret_rule.id, "BT")
 	var theirs: MatchEndSummary = MatchEndSummary.from_view(current_match.public_view(1))
-	assert_eq(theirs.own_true_rule.id, "BT")
-	assert_eq(theirs.opponent_true_rule.id, "AT")
+	assert_eq(theirs.own_secret_rule.id, "BT")
+	assert_eq(theirs.opponent_secret_rule.id, "AT")
 
 
 func test_there_is_no_summary_while_the_match_runs() -> void:
@@ -91,8 +91,8 @@ func _third_skip_by_player_0() -> Match:
 	var r04: Rule = _book.rule("R04")
 	var bt: Rule = Fixtures.anywhere(_book, "BT")
 	var decks: Array[Deck] = [Fixtures.deck_with(_book, r04, "A"), Fixtures.deck_with(_book, bt, "B")]
-	var true_rules: Array[Rule] = [r04, bt]
-	var current_match: Match = Match.from_position(position, decks, true_rules, Fixtures.rng(1))
+	var secret_rules: Array[Rule] = [r04, bt]
+	var current_match: Match = Match.from_position(position, decks, secret_rules, Fixtures.rng(1))
 	assert_eq(current_match.phase(), Match.Phase.OVER)
 	return current_match
 

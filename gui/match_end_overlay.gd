@@ -2,7 +2,7 @@ class_name MatchEndOverlay
 extends Control
 
 ## The match-end screen over the board: the result for the player, how the
-## match ended, both true rules revealed, and the way out. It dims the whole
+## match ended, both secret rules revealed, and the way out. It dims the whole
 ## layout but sits below the rules panel in the tree, so the panel stays lit.
 
 ## The player pressed Rematch.
@@ -36,10 +36,10 @@ func show_summary(summary: MatchEndSummary) -> void:
 	_headline.text = summary.headline
 	_headline.add_theme_color_override("font_color", _outcome_colour(summary.outcome))
 	_reason.text = summary.reason
-	_ai_rule_id.text = summary.opponent_true_rule.id
-	_ai_rule_text.text = summary.opponent_true_rule.text
-	_player_rule_id.text = summary.own_true_rule.id
-	_player_rule_text.text = summary.own_true_rule.text
+	_ai_rule_id.text = summary.opponent_secret_rule.id
+	_ai_rule_text.text = summary.opponent_secret_rule.text
+	_player_rule_id.text = summary.own_secret_rule.id
+	_player_rule_text.text = summary.own_secret_rule.text
 	if visible:
 		return
 	visible = true
