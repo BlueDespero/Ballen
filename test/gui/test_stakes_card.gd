@@ -140,3 +140,17 @@ func test_the_card_fits_over_the_ai_s_rules() -> void:
 		_tap_guess("R17")
 		await wait_process_frames(3)
 		assert_lte(_card().get_combined_minimum_size().y, _card().size.y, "text scale %s" % scale)
+
+
+func test_the_last_rule_the_notes_leave_and_guess_pulse_once() -> void:
+	for rule_id: String in ["R01", "R03", "R05"]:
+		_panel.call("_on_mark_pressed", rule_id, NoteMark.Mark.CROSS)
+	var last: Control = _panel.get_node("%AIRules").get_node("R18")
+	await wait_seconds(Attention.PULSE_SECONDS / 2.0)
+	assert_eq(last.self_modulate, Color.WHITE, "not while two rules are left")
+	_panel.call("_on_mark_pressed", "R08", NoteMark.Mark.CROSS)
+	await wait_seconds(Attention.PULSE_SECONDS / 2.0)
+	assert_ne(last.self_modulate, Color.WHITE, "the one rule left lights up")
+	assert_ne(_panel.get_node("%GuessButton").self_modulate, Color.WHITE, "and so does Guess")
+	await wait_seconds(Attention.PULSES * 2 * Attention.PULSE_SECONDS)
+	assert_eq(last.self_modulate, Color.WHITE, "then it settles")

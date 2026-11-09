@@ -243,6 +243,22 @@ func _on_mark_pressed(rule_id: String, pressed: NoteMark.Mark) -> void:
 	_style_ai_row(row as PanelContainer)
 	Settings.mark_note_marks_seen()
 	_update_mark_hint()
+	if mark == NoteMark.Mark.CROSS:
+		_point_out_last_rule()
+
+
+## Once the player's ✗ marks leave one rule, it and Guess pulse once in the
+## act-here colour: their notes say they could name it now.
+func _point_out_last_rule() -> void:
+	var left: Array[String] = []
+	for rule_id: String in _marks:
+		if _marks[rule_id] != NoteMark.Mark.CROSS:
+			left.append(rule_id)
+	if left.size() != 1:
+		return
+	var lit: Color = BoardView.GLOW_COLOUR * 1.3
+	Attention.pulse(self, _ai_rules.get_node(left[0]), "self_modulate", lit, Color.WHITE)
+	Attention.pulse(self, _guess_button, "self_modulate", lit, Color.WHITE)
 
 
 ## Over a ✗ rule's text: a line through the middle of each line of text, as
