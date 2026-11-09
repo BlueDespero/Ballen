@@ -38,6 +38,9 @@ The art in `assets/` is Kenney's "UI Pack – Pixel Adventure" and other Kenney 
 ([www.kenney.nl](https://www.kenney.nl)), released under Creative Commons Zero (CC0 1.0, public domain). See
 [`License.txt`](License.txt).
 
+The game icon (`assets/icon/icon.png`) and the Android launcher and store icons (`assets/icon/android/`) are composed
+from the board's Kenney cell and ball sprites.
+
 ## Bundled font
 
 `assets/fonts/NotoSansSymbols-Variable.ttf` is Noto Sans Symbols
