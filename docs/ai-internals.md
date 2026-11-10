@@ -31,10 +31,11 @@ Keep this document in step with `ai/`: every PR that changes the AI updates the 
 | --- | --- | --- |
 | Easy | Built | Belief with `easy_model()` (uniform, temper 0.15), `GuessPolicy(0.95)`, `LooseColourPick` (focus 0.4), `AnyLegalPlacement` |
 | Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, `HidingPlacement` |
-| Hard | In progress (#22): pieces built, not yet playable (55% against Normal, gate 60%); tree search to come | Belief with `normal_model()`, `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement` |
+| Hard | Built (#22): beats Normal 61.4% over 1000 seeded matches (gate 60%) | Belief with `normal_model()`, `RolloutGuessPolicy` (32 playouts), `SoftmaxColourPick`, `RolloutPlacement` (4 cells × 8 playouts); thinks in steps in the scene, at most 2.5 s a decision |
 
-`AILevel.BUILT` lists the playable levels; the match setup screen shows the rest as "coming soon". `for_level(HARD)`
-already builds Hard, for the harness and tests, but it stays out of `BUILT` until it meets its gate.
+`AILevel.BUILT` lists the playable levels (all three); the match setup screen would show a level not built as
+"coming soon". Hard's playouts play its own future moves with its one-step pieces (`AIController.hard_without_search`:
+`ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`), which keeps them quick.
 
 ## Ground rules
 
@@ -69,8 +70,8 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `AnyLegalPlacement` | `ai/any_legal_placement.gd` | Easy's placement: any legal cell at random |
 | `LooseColourPick` | `ai/loose_colour_pick.gd` | Easy's colour pick: the base strategy's pick with chance `focus`, otherwise any colour |
 | `ValueGuessPolicy` | `ai/value_guess_policy.gd` | Hard's guessing: guess when its expected value beats waiting one more opponent turn |
-| `RolloutGuessPolicy` | `ai/rollout_guess_policy.gd` | Hard's guessing being measured: V_wait from playouts of the rest of the match |
-| `RolloutPlacement` | `ai/rollout_placement.gd` | Hard's placement being measured: of the best hiding cells, the one whose playouts it wins most |
+| `RolloutGuessPolicy` | `ai/rollout_guess_policy.gd` | Hard's guessing: V_wait from playouts of the rest of the match |
+| `RolloutPlacement` | `ai/rollout_placement.gd` | Hard's placement: of the best hiding cells, the one whose playouts it wins most |
 | `Playouts` | `ai/playouts.gd` | Plays a match on from the AI's view (`Match.resume`), the opponent's rule drawn from a tempered belief |
 | `SoftmaxColourPick` | `ai/softmax_colour_pick.gd` | Hard's colour pick: information-gain values, the colour drawn by softmax rather than always the best |
 | `ExposurePlacement` | `ai/exposure_placement.gd` | Hard's placement: the cell after which the exposure belief holds the secret rule least likely |
@@ -230,7 +231,7 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
   guesses. `threshold()` reads the top probability recorded by the last `choose()`, so call `choose()` first.
   `choose()` and `threshold()` take the exposure belief, so a fake the AI broke (ruled out in the exposure)
   already counts as known to the opponent.
-- **`RolloutGuessPolicy` (Hard, being measured; not yet `for_level(HARD)`):** the same rule, 2p − 1 ≥ V_wait,
+- **`RolloutGuessPolicy` (Hard):** the same rule, 2p − 1 ≥ V_wait,
   but with V_wait measured instead of estimated. It plays the rest of the match `simulations` times (16) from the
   view, with `Match.resume`:
   - the opponent's secret rule is drawn from the belief;
@@ -326,7 +327,7 @@ has probability 0, so it no longer constrains placement (test `test_after_breaki
 once R04 is broken, Hard protects the remaining fakes instead). Still missing: choosing *which* fake to lose when a
 break is forced, with later turns in mind; the tree search covers it.
 
-### Hard, being measured: `RolloutPlacement`
+### Hard: `RolloutPlacement`
 
 1. Rank the legal cells as `ExposurePlacement` does (`best_hiding`: least exposed first).
 2. Play out the rest of the match from each of the best 4 cells (`Playouts.play` with that first cell), 8 times
@@ -365,8 +366,18 @@ The legal cells most of all 5 deck rules allow, ties at random (milestone 1's be
   - Guess closeness (`GuessPolicy.last_closeness`): 1 − |p_top − threshold| ÷ 0.3, clamped; a guess made or held back
     right at the threshold pauses up to 5 s.
 
-  On Easy and Normal this is a tell an attentive player can read (a long pause means unsure); Hard will add jitter so
-  it carries none.
+  On Easy and Normal this is a tell an attentive player can read (a long pause means unsure).
+- **Hard thinks in steps** (`thinks_in_steps`). Its decisions take long (in Chrome about 2 s on average, up to 6.6 s
+  with no limit), so the driver calls `think_step(view, deadline)` once a frame, each slice about
+  `MatchDriver.THINK_SLICE_MSEC` (12 ms), until it has a command; the scene keeps drawing meanwhile.
+  - Its playout policies stop at the deadline and carry on at the next step. Their random draws are the same either
+    way, so a seeded decision is the same in steps as at once (tested).
+  - In the scene a decision thinks for at most `HARD_THINK_LIMIT_MSEC` (2.5 s), then settles for the playouts done.
+    The harness sets no limit, so the gate numbers are for the full-strength Hard. A slow phone gets a slightly
+    weaker Hard.
+  - Its pause leaves out the time it already thought, so the visible wait is its thinking time, at least the usual
+    pause. That time varies with the position, not with how sure it is, so it says little. The GDD's "Hard thinks
+    on your turn too" (pondering) is not built.
 - **In tests and the harness:** no pause. `Harness.play_out` asks the awaited players in turn and gives up (returns
   false) on a `null` command, a rejected command, or after `MAX_COMMANDS` (500).
 
@@ -386,6 +397,11 @@ The legal cells most of all 5 deck rules allow, ties at random (milestone 1's be
 | `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
 | `ValueGuessPolicy.SAFE` / `DESPERATE` | `ai/value_guess_policy.gd` | 0.95 / 0.35 | Normal's range, for the opponent's chance of guessing |
 | `ValueGuessPolicy.ODDS_PER_TURN` | same | 1.6 | Sweep 1.15 / 1.3 / 1.6 / 2.5 against Normal: 105 / 105 / 109 / 109 wins of 200 |
+| `AIController.HARD_GUESS_PLAYOUTS` | `ai/ai_controller.gd` | 32 | 16 / 32: 56.5% / 58.5% over 400 matches (with one-step placement) |
+| `AIController.HARD_PLACEMENT_CANDIDATES` / `_PLAYOUTS` | same | 4 cells × 8 | Adds about 3 points (59.5% against 56.5% over 400 matches); the gate run's setting |
+| `AIController.HARD_THINK_LIMIT_MSEC` | same | 2500 | GDD: up to 5 s a choice; a turn can hold three decisions |
+| `MatchDriver.THINK_SLICE_MSEC` | `model/match_driver.gd` | 12 ms | Leaves room in a 60 fps frame's 16 ms |
+| `Playouts` belief temper | `ai/playouts.gd` | 0.1 | 0 / 0.1 / 0.4: 53.5 / 58.8 / 57.5% over 200 matches |
 | `SoftmaxColourPick.precision` | `ai/softmax_colour_pick.gd` | 6 | A colour worth half the best is drawn about 1 time in 20 |
 | `ExposurePlacement.TIE` | `ai/exposure_placement.gd` | 1e-6 | Probability tie tolerance |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
@@ -520,8 +536,8 @@ affordable). Against Normal, same seeds:
   names the AI's rule more often than it does in real play, waiting looks bad, and the AI guesses early and wrong.
 - **Placement by playouts adds about 3 points** over playout guessing alone on the same seeds (59.5% against
   56.5%): 123–76 on seeds 0–199 and 114–85 on seeds 200–399. Over 1000 matches, with 32 playouts for guessing, it
-  meets the gate: 613–385 (61.4%, standard error about 1.5 points). The run took about 1.5 hours on 4 cores. Next:
-  `for_level(HARD)` builds this version, then frame-sliced thinking in the scene, then Hard joins `BUILT`.
+  meets the gate: 613–385 (61.4%, standard error about 1.5 points). The run took about 1.5 hours on 4 cores. This
+  is Hard as built.
 - **More playouts help a little:** 32 instead of 16 gains about 2 points on the same seeds, at twice the cost.
 - **The best version gains about 2.4 points** over the one-step estimate (standard error about 2 points over 600
   matches). Hard still loses mostly through its own wrong guesses.
@@ -557,6 +573,10 @@ mid-game board (26 empty cells):
 
 The harness's 20 matches went from 22 s to 13 s, 11 s, then 2.1 s, with identical output each time (seeds 1–4
 checked). In Chrome, three whole Normal-vs-Normal matches take 0.24 s.
+
+**Hard in Chrome** (3 seeded Hard-vs-Normal matches, no thinking limit): a decision took 2.25 s on average, median
+1.95 s, longest 6.6 s; a whole Hard turn a median of 3.8 s, longest 9.8 s. Hence the 2.5 s limit per decision in the
+scene.
 
 **What that means for the tree search.** A simulated turn needs at least one rule check for the mover and five to
 update a belief. With the interpreter that was about 3 ms, so 200 simulations per move came to about 10 s on desktop.
@@ -628,7 +648,8 @@ Before merging a change to `ai/`:
 7. This document, the technical design's AI section and, if levels change, the GDD's level table updated.
 8. The level gates hold over 1000 seeded matches (the nightly "AI gates" workflow, or locally
    `godot --headless --path . -s harness/run_harness.gd -- --matches 1000 --seed 1 --levels normal,easy --gate 0.65`):
-   Normal beats Easy ≥ 65%; once Hard exists, Hard beats Normal ≥ 60%.
+   Normal beats Easy ≥ 65%, and Hard beats Normal ≥ 60%. Hard's run takes about an hour on 4 cores; the workflow plays
+   it in 4 parts at once with `--start` and adds up the wins.
 
 ## Tests
 
@@ -664,3 +685,4 @@ Before merging a change to `ai/`:
 | #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
 | #22 (part) | `legal_cells` reuses one scratch board (twice as fast), then counts whole-board conditions once per call, then compiles rules to cell bit masks (about 20 times faster again); `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured; `Match.resume`; `RolloutGuessPolicy` measured (57.4%) |
 | Docs | `docs/ai-theory-explained.md`: the theory and equations for non-specialists, with worked examples and DMU sections |
+| #22 | Hard is built: `RolloutGuessPolicy` and `RolloutPlacement` over `Playouts` (`Match.resume`); controllers can think in steps (`thinks_in_steps`, `think_step`); a 2.5 s thinking limit in the scene; harness `--start`; Hard in the CI smoke run and the nightly gates |

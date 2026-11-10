@@ -33,7 +33,7 @@ opponent's secret rule.
 8. [Expected value: when to guess](#8-expected-value-when-to-guess)
 9. [Exposure: the AI reading itself](#9-exposure-the-ai-reading-itself)
 10. [Softmax: choosing with some randomness](#10-softmax-choosing-with-some-randomness)
-11. [Playouts and tree search (Hard, in progress)](#11-playouts-and-tree-search-hard-in-progress)
+11. [Playouts and tree search (Hard)](#11-playouts-and-tree-search-hard)
 12. [Symbols at a glance](#symbols-at-a-glance)
 
 ## 1. Probability and odds
@@ -437,10 +437,10 @@ considered pick 40% of the time, any colour otherwise.
 **Read more.** DMU §3.3.3 Behavioral Game Theory (p. 71), §3.3.1–3.3.2 on why mixing your choices matters against
 an opponent (Nash equilibrium); McKelvey and Palfrey (1995) on quantal response, cited in the research doc.
 
-## 11. Playouts and tree search (Hard, in progress)
+## 11. Playouts and tree search (Hard)
 
-Hard's first use of playouts is built and being measured (`RolloutGuessPolicy`). The full tree search is not built
-yet (issue #22).
+Hard uses playouts for its two biggest choices, when to guess (`RolloutGuessPolicy`) and where to place
+(`RolloutPlacement`). A full tree search over every choice is not built (issue #22).
 
 **Idea: playouts.** Section 8's formula *estimates* how much waiting is worth. A **playout** measures it instead:
 imagine the rest of the match, played out to the end, and see who wins. Do that many times and average the results.
@@ -467,7 +467,9 @@ guess  if  2p − 1 ≥ V_wait
   too early, and it won *less* (51%).
 - **Draw from an honest belief.** Drawing the opponent's rule from an overconfident belief also makes guessing look
   safer than it is (section 6); a lower temper helped.
-- The best version wins 57.4% against Normal, up from 55%. The target is 60%.
+- Guessing by playouts won 57.4% against Normal, up from 55%. Placing by playouts too (each of the 4 best hiding
+  cells played out 8 times, on the same imagined matches so they are compared fairly) brought Hard to 61.4% over
+  1000 matches, past its 60% target. That is Hard as built.
 
 **Idea: tree search (next).** Playouts judge one decision: guess or wait. **Monte Carlo tree search** (MCTS) uses
 the same playouts for every decision (colours and cells too). It grows a tree of the most promising lines, spending

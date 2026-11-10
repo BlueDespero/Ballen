@@ -20,7 +20,7 @@ all run the same code.
 | --- | --- | --- |
 | Game model (`model/`) | Board, turn order, colour picks, skips, guesses, move history | Plain `RefCounted` classes, no scene nodes; `Match` is a passive state machine |
 | Rules engine (`rules/`) | Templates, parts (selectors, filters, conditions, combiners), evaluation | Pure functions over a placement context; rules and templates loaded from `rules/data/*.json` |
-| AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; one level now, Easy, Normal and Hard later |
+| AI (`ai/`) | Placement, colour picks, deduction, guessing | Receives a public view only; Easy, Normal and Hard |
 | Scenes / UI | Match scene (`main_game.tscn`), match setup screen (`gui/match_setup_screen.tscn`), board (`gui/board_view.gd`), waiting balls and drag (`gui/ball_view.gd`), tap to place (`BoardView.cell_pressed`), colour picker, rules panel (`gui/rules_panel.tscn`), match-end screen (`gui/match_end_overlay.tscn`), menus | Show the model and send player actions; never decide legality themselves |
 | Autoloads | `EventBus` (global signals), `Constants` (colour table), `Settings` (player settings, `user://settings.cfg`) | Turn state lives in `Match`, not in an autoload |
 | Online (later) | Both secret rules; checks every move | Server-authoritative; clients never receive the opponent's secret rule |
@@ -96,7 +96,7 @@ all run the same code.
   unit-tested on a match's `PublicView`); `HistoryNav` only draws the buttons.
 - The match setup screen (`gui/match_setup_screen.tscn`) comes before every match: the player picks
   a deck (`DeckStore`: the starter deck first, then the saved decks) and the AI level
-  (`AILevel`: Easy, Normal, Hard; Easy and Normal are built, Hard shows as coming soon), taps one rule
+  (`AILevel`: Easy, Normal, Hard, all three built), taps one rule
   of the deck to make it secret (or Pick for me taps a random Simple one), and presses Start, which
   names the pick. The card opens with the goal and the stakes, and numbers its three steps. Beside the
   rules, `RulePreview` (`gui/rule_preview.gd`) shows a fixed mid-match position with the tapped rule's
@@ -334,10 +334,10 @@ How the AI works as built, with its parameters, measurements and debugging recip
 guess, hiding, difficulty levels, compute budget) is in [ai-decision-theory-research.md](ai-decision-theory-research.md)
 and summarised in the README's "How the AI thinks".
 
-### As built (Easy and Normal)
+### As built (Easy, Normal and Hard)
 
-Two levels so far, Easy and Normal (`AIController.for_level`); the table describes Normal's pieces, and
-[ai-internals.md](ai-internals.md) Easy's (`easy_model()`, a fixed 0.95 guess threshold, `LooseColourPick`,
+Three levels (`AIController.for_level`); the table describes Normal's pieces, Hard's are below, and
+[ai-internals.md](ai-internals.md) has Easy's (`easy_model()`, a fixed 0.95 guess threshold, `LooseColourPick`,
 `AnyLegalPlacement`). `AIController` (`ai/ai_controller.gd`) is a `Controller`: it gets a `PublicView`,
 returns a `Command`, and makes every random choice through an injected, seedable RNG.
 `AIController.for_level(level, rng)` builds a level's AI from the pieces below (the match scene and the
@@ -358,24 +358,27 @@ lands. The AI's grows with how close the decision was: 0.5–2.5 s for a colour 
 placement (routine), up to 5 s when it weighed a guess near its threshold, ±0.15 s. Tests and the harness play AIs
 with no pause.
 
-### Later levels
+### Hard
 
-Easy, Normal and Hard plug into the same seams; none needs the model to change:
+Hard plays the rest of the match out to judge its two biggest choices: Monte Carlo playouts, not yet a full tree
+search.
 
-- Soft evidence: each level brings its own `OpponentModel` (Easy: tempered further, so it learns slowly; Hard:
-  a joint honest/bluffing hider) and `GuessPolicy`. `Deduction` stays the hard elimination mask under it.
-- Colour picks: a `ColourPickStrategy` subclass overrides `score()` (another model of the opponent) or
-  `choose()` (e.g. a softer, more random pick for Easy).
-- Placement: a `PlacementStrategy` subclass per level (Easy places anywhere legal; Hard adds pressure and a
-  softmax over which fake to break).
-- `AIController.new(rng, guess_policy, colour_pick, model)` takes the objects and `for_level` chooses them, so
-  a level is a choice of objects.
+- **`Playouts`** (`ai/playouts.gd`) plays a match on from the AI's view (`Match.resume`). It draws the opponent's
+  secret rule from a belief tempered to 0.1 (the usual one is overconfident against a hider). The opponent plays as
+  Normal, and the AI as its own one-step pieces (`AIController.hard_without_search`: `ValueGuessPolicy`,
+  `SoftmaxColourPick`, `ExposurePlacement`).
+- **`RolloutGuessPolicy`** guesses when 2p − 1 beats the average result of 32 playouts in which it doesn't guess now.
+- **`RolloutPlacement`** plays out the 4 best hiding cells (`ExposurePlacement`'s ranking) 8 times each on shared
+  seeds, and places on the best.
+- **Result:** Hard beats Normal 613–385 over 1000 seeded matches (61.4%; gate 60%).
+- **Thinking in steps:** a decision takes about 2 s in Chrome. `Controller.thinks_in_steps()` makes `MatchDriver`
+  call `think_step(view, deadline)` once a frame (12 ms slices) until the command is ready. The playout policies
+  carry on where they stopped, with the same random draws, so a seeded match plays the same. In the scene a
+  decision thinks for at most 2.5 s; the harness sets no limit. Its pause leaves out the time it thought.
+- **Not built:** thinking on the player's turn (pondering), and a full tree search over colour picks too.
 
-Planned implementation notes:
-
-- Easy and Normal use heuristics plus at most one-step lookahead (well under a frame).
-- Hard adds Monte Carlo tree search keyed on public history, spread across frames or a thread, and keeps searching during the player's turn.
-- AI thinking pause: Hard adds random jitter so its pauses carry no information.
+A level is a choice of objects: `AIController.new(rng, guess_policy, colour_pick, model, placement)` takes them and
+`for_level` chooses them.
 
 ## AI-vs-AI harness
 
@@ -461,7 +464,8 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
 
 ## Open technical questions
 
-- [ ] Board representation: 64-bit bitmasks (36 cells) for speed in Hard's search?
+- [x] Board representation: 64-bit bitmasks (36 cells) for speed in Hard's search. Rules compile to cell masks
+  (ADR 0003).
 - [x] Threads on the web export need cross-origin isolation: the web build uses the `nothreads` template (see Web
   build).
 - [x] Save format and location for decks: rule ids in `user://decks.json` (see Saved decks).
