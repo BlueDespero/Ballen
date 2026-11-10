@@ -5,7 +5,8 @@ extends GuessPolicy
 ## "Guess when confidence beats the value of waiting"). Guessing the top rule
 ## now is worth 2p − 1 (win +1, loss −1). Waiting is worth the average result
 ## of `simulations` playouts of the match from here in which the AI doesn't
-## guess at this decision (Playouts). It guesses when 2p − 1 ≥ that average.
+## guess at this decision (Playouts). It guesses when 2p − 1 beats that
+## average by more than its noise (NOISE_MARGIN standard errors).
 ## p comes from the playouts' tempered belief.
 ##
 ## With a deadline (GuessPolicy.deadline_msec) it plays on until then, part of
@@ -16,6 +17,10 @@ extends GuessPolicy
 ## Settles with fewer playouts than this (must_finish), the average is too
 ## noisy to bet the match on: it decides as Hard's one-step policy instead.
 const FEWEST_PLAYOUTS: int = 8
+## How many standard errors of the playouts' average a guess must clear: the
+## average of a few dozen playouts is noisy, and acting on noise is what makes
+## a guess look lucky (GDD: Hard never guesses on thin evidence).
+const NOISE_MARGIN: float = 1.5
 
 var simulations: int
 var _playouts: Playouts
@@ -27,6 +32,7 @@ var _top: Rule
 var _chance: float
 var _played: int
 var _total: float
+var _total_squares: float
 var _current: Playouts.Playout = null
 var _one_step: ValueGuessPolicy = ValueGuessPolicy.new()
 var _belief_seen: Belief
@@ -61,6 +67,7 @@ func choose(belief_now: Belief, exposure: Belief, view: PublicView, rng: RandomN
 		_pending_key = key
 		_played = 0
 		_total = 0.0
+		_total_squares = 0.0
 		_current = null
 	_pending = not _play(view, rng)
 	if _pending:
@@ -70,8 +77,10 @@ func choose(belief_now: Belief, exposure: Belief, view: PublicView, rng: RandomN
 		last_closeness = _one_step.last_closeness
 		return guess
 	var waiting: float = _total / _played
-	last_closeness = clampf(1.0 - absf(2.0 * _chance - 1.0 - waiting) / (2.0 * CLEAR_MARGIN), 0.0, 1.0)
-	return _top if 2.0 * _chance - 1.0 >= waiting else null
+	var spread: float = sqrt(maxf(_total_squares / _played - waiting * waiting, 0.0))
+	var bar: float = waiting + NOISE_MARGIN * spread / sqrt(_played)
+	last_closeness = clampf(1.0 - absf(2.0 * _chance - 1.0 - bar) / (2.0 * CLEAR_MARGIN), 0.0, 1.0)
+	return _top if 2.0 * _chance - 1.0 >= bar else null
 
 
 ## The average result for the AI (1 win, −1 loss, 0 draw) of playing on from
@@ -103,6 +112,7 @@ func _play(view: PublicView, rng: RandomNumberGenerator) -> bool:
 		if not _current.run(deadline_msec):
 			return false
 		_total += _current.value
+		_total_squares += _current.value * _current.value
 		_current = null
 		_played += 1
 		finished_one = true
