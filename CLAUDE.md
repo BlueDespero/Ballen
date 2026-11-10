@@ -15,6 +15,8 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   adding or changing a rule.
 - `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
   colour picks, guessing, difficulty levels).
+- `docs/ai-theory-explained.md`: the AI's theory and equations for non-specialists, with worked examples and
+  links to the textbook's chapters; update it when the AI's maths changes.
 - `docs/ai-internals.md`: how the AI works as built, its parameters and measurements, debugging recipes and the
   quality checklist; update it (and its change log) in every PR that changes `ai/`.
 - `docs/release-audit.md`: what the web build reaches (network, files, autoloads) and ships, licences, known

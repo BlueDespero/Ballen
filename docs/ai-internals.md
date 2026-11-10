@@ -2,7 +2,8 @@
 
 How the AI opponent works as built: what it reads, how it decides, the numbers it runs on, how they were measured,
 and how to debug and check it. For the reasoning behind the design see
-[ai-decision-theory-research.md](ai-decision-theory-research.md); for the plan of the remaining levels see issue #73.
+[ai-decision-theory-research.md](ai-decision-theory-research.md); for the theory and equations explained for a
+non-specialist, with worked examples, see [ai-theory-explained.md](ai-theory-explained.md); for the plan of the remaining levels see issue #73.
 Keep this document in step with `ai/`: every PR that changes the AI updates the sections it touches and the
 [change log](#change-log).
 
@@ -113,6 +114,10 @@ events are read.
 
 ## The belief
 
+Theory: [Bayes' rule](ai-theory-explained.md#2-bayes-rule-updating-a-belief), [hard and soft evidence](ai-theory-explained.md#3-hard-and-soft-evidence),
+[models of the player](ai-theory-explained.md#4-models-of-the-player), [logarithms](ai-theory-explained.md#5-logarithms-adding-instead-of-multiplying),
+[lapse, temper and calibration](ai-theory-explained.md#6-lapse-temper-and-calibration), [exposure](ai-theory-explained.md#9-exposure-the-ai-reading-itself).
+
 ### What it holds
 
 For each rule r of the deck it reasons about: `alive[r]` (the hard mask) and `log_score[r]` (the soft evidence).
@@ -183,6 +188,8 @@ how exposed the AI is. Normal's guessing and placement use it.
 
 ## Guessing
 
+Theory: [expected value: when to guess](ai-theory-explained.md#8-expected-value-when-to-guess).
+
 A guess ends the match: right wins, wrong loses. The policy decides when.
 
 - **`GuessPolicy` (base):** names `belief.top()` when its probability ≥ the fixed threshold (−1e-9 tolerance).
@@ -228,6 +235,9 @@ wrong; against an AI that waits for certainty, Normal wins about 65%.
 
 ## Colour picks
 
+Theory: [entropy and information gain](ai-theory-explained.md#7-entropy-and-information-gain-choosing-a-colour),
+[softmax](ai-theory-explained.md#10-softmax-choosing-with-some-randomness).
+
 Every strategy's `choose(view, belief, rng)` returns the colour handed to the opponent; ties (within 1e-9) are
 broken by the RNG (`ColourPickStrategy.best_of`). Each colour is judged on the position the opponent will face
 (`ColourPickStrategy.next_turn(view, colour)`: the pick added to history, the turn advanced, the colour set).
@@ -270,6 +280,8 @@ With chance `focus` (0.4) the base strategy's considered pick, otherwise any of 
 still sees it try, now and then, to hand them a colour that splits their rules.
 
 ## Placement
+
+Theory: [exposure](ai-theory-explained.md#9-exposure-the-ai-reading-itself).
 
 Every strategy's `choose(view, exposure, rng)` returns a cell among `view.own_legal_cells()` (its secret rule's legal
 cells), or `NO_CELL` if there is none.
@@ -544,3 +556,4 @@ Before merging a change to `ai/`:
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
 | #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |
 | #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
+| Docs | `docs/ai-theory-explained.md`: the theory and equations for non-specialists, with worked examples and DMU sections |
