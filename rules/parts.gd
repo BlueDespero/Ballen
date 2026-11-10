@@ -74,6 +74,12 @@ const _INVARIANT: String = "_invariant"
 static var _next_invariant: int = 0
 
 
+## The colour after this one in the cycle yellow -> blue -> red -> green -> yellow.
+static func next_colour_after(colour: String) -> String:
+	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
+	return cycle[(cycle.find(colour) + 1) % cycle.size()]
+
+
 static func has_part(part: String) -> bool:
 	return _parts.has(part)
 
@@ -315,8 +321,7 @@ static func _any_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i
 ## {"part": "next_colour", "of": ...}
 static func _next_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
 	var kept: Array[Vector2i] = []
-	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
-	var next: String = cycle[(cycle.find(ctx.colour) + 1) % cycle.size()]
+	var next: String = next_colour_after(ctx.colour)
 	for cell: Vector2i in _cells(node.of, ctx):
 		var ball: Ball = ctx.board.ball_at(cell)
 		if ball != null and ball.colour == next:
