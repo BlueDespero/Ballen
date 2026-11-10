@@ -499,9 +499,12 @@ affordable). Against Normal, same seeds:
 | Playouts, AI played on as Hard, temper 0.4 | 0–199 | 115 – 85 (57.5%) |
 | Playouts, AI played on as Hard, temper 0 | 0–199 | 107 – 93 (53.5%) |
 | Playouts, AI played on as Hard, temper 0.1 (as built) | 0–599 | 343 – 255, 2 draws (57.4%) |
+| Same, 16 playouts, for comparison with the next row | 0–399 | 225 – 173, 2 draws (56.5%) |
+| Same, 32 playouts per decision | 0–399 | 233 – 165, 2 draws (58.5%) |
 
 - **Playing the AI on as Normal undervalues waiting.** Normal hides worse than Hard, so in the playouts the opponent
   names the AI's rule more often than it does in real play, waiting looks bad, and the AI guesses early and wrong.
+- **More playouts help a little:** 32 instead of 16 gains about 2 points on the same seeds, at twice the cost.
 - **The best version gains about 2.4 points** over the one-step estimate (standard error about 2 points over 600
   matches). Hard still loses mostly through its own wrong guesses.
 - **Cost:** a guess decision takes about 0.5 s headless on one core (16 playouts of the rest of the match). 100 Hard-vs-Normal
