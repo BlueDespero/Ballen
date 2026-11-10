@@ -6,17 +6,14 @@ extends RefCounted
 ## no command), or stop() is called. The match alone decides what is legal.
 ##
 ## The scene drives the player and the AI with it, redrawing on `changed`; it
-## pauses the AI so the player can follow its turn, and holds the match while
+## pauses the AI (as long as its controller says, Controller.pause_seconds,
+## between its decision and the command landing) so the player can follow it, and holds the match while
 ## a skip is shown. Tests drive two AIs with no pause. The AI-vs-AI harness has
 ## its own loop (Harness.play_out): it needs no signals or awaits, and gives up
 ## on a rejected command instead of asking again.
 
 ## The match accepted a command.
 signal changed
-
-## Bounds of the random pause before a paused player's command, in seconds.
-const MIN_PAUSE: float = 0.5
-const MAX_PAUSE: float = 1.5
 
 var _match: Match
 var _controllers: Array[Controller] = []
@@ -27,10 +24,11 @@ var _skip_seconds: float
 var _stopped: bool = false
 
 
-## controllers is indexed by player. Before each command of a player in
-## paused_players the driver awaits wait.call(seconds), with seconds drawn
-## from rng between MIN_PAUSE and MAX_PAUSE. The scene passes a timer; tests
-## pass a function that only records the pause.
+## controllers is indexed by player. After each decision of a player in
+## paused_players, before its command lands, the driver awaits
+## wait.call(seconds), with seconds from the controller's pause_seconds(rng).
+## The scene passes a timer; tests pass a function that only records the
+## pause.
 ## After a command that makes a player skip, the driver also awaits
 ## wait.call(skip_seconds), so the scene can show the skip before anyone acts
 ## again; with skip_seconds 0 it goes straight on.
@@ -50,15 +48,15 @@ func _init(current_match: Match, controllers: Array[Controller], paused_players:
 func run() -> void:
 	while not _stopped and _match.phase() != Match.Phase.OVER:
 		for player: int in _match.awaiting_players():
-			if _paused_players.has(player):
-				await _wait.call(_rng.randf_range(MIN_PAUSE, MAX_PAUSE))
-				if _stopped:
-					return
 			var command: Command = await _controllers[player].decide(_match.public_view(player))
 			if _stopped:
 				return
 			if command == null:
 				return
+			if _paused_players.has(player):
+				await _wait.call(_controllers[player].pause_seconds(_rng))
+				if _stopped:
+					return
 			var events_before: int = _match.history().size()
 			if _match.submit(player, command):
 				changed.emit()

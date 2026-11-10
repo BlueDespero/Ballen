@@ -1,0 +1,58 @@
+# The AI level gates (docs/ai-internals.md, "Quality checklist"): each harder
+# level must beat the one below it over many seeded matches. Too slow for every
+# pull request, so it runs nightly and on demand from the Actions tab.
+name: AI gates
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      matches:
+        description: Matches per pairing
+        default: "1000"
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.7.1
+  GODOT_RELEASE_URL: https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable
+  MATCHES: ${{ github.event.inputs.matches || '1000' }}
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          zip="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          mkdir -p ~/godot-download ~/godot
+          cd ~/godot-download
+          curl -fsSL -o "$zip" "$GODOT_RELEASE_URL/$zip"
+          curl -fsSL -o SHA512-SUMS.txt "$GODOT_RELEASE_URL/SHA512-SUMS.txt"
+          grep " $zip\$" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "$zip"
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/godot/godot
+          chmod +x ~/godot/godot
+
+      - name: Add Godot to PATH
+        run: echo "$HOME/godot" >> "$GITHUB_PATH"
+
+      - name: Import project
+        run: godot --headless --path . --import || echo "Import exited with $?; the harness will catch real failures."
+
+      # Normal must beat Easy in at least 65% of decided matches.
+      - name: Normal beats Easy
+        run: godot --headless --path . -s harness/run_harness.gd -- --matches "$MATCHES" --seed 1 --levels normal,easy --gate 0.65

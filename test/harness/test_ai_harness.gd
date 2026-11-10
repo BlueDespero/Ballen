@@ -107,3 +107,14 @@ func test_the_same_seed_plays_the_same_match() -> void:
 	var record: MatchRecord = Harness.play(book, 8)
 	assert_true(record.is_finished())
 	assert_eq(ObjectWalker.dump(Harness.play(book, 8)), ObjectWalker.dump(record))
+
+
+func test_a_run_between_levels_swaps_their_seats_every_other_match() -> void:
+	var levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.EASY]
+	var book: RuleBook = RuleBook.load_default()
+	var first: MatchRecord = Harness.play(book, Harness.match_seed(7, 0), levels)
+	assert_eq(first.levels, levels)
+	var stats: HarnessStats = Harness.run(book, 4, 7, levels)
+	assert_eq(stats.finished(), 4)
+	assert_eq(stats.levels().size(), 2)
+	assert_eq(stats.level_wins(AILevel.Level.NORMAL) + stats.level_wins(AILevel.Level.EASY) + stats.draws(), 4)

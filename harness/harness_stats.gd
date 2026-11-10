@@ -109,7 +109,31 @@ func win_rate(rule_id: String) -> float:
 	return float(wins(rule_id)) / held
 
 
-## Every number as text, one secret rule per row of the table.
+## Finished matches the AI at this level won.
+func level_wins(level: int) -> int:
+	return _count(_finished, func(record: MatchRecord) -> bool:
+		return not record.result.is_draw() and record.levels[record.result.winner] == level)
+
+
+## The levels that played, in order of first appearance.
+func levels() -> Array[int]:
+	var seen: Array[int] = []
+	for record: MatchRecord in _finished:
+		for level: int in record.levels:
+			if not seen.has(level):
+				seen.append(level)
+	return seen
+
+
+## The share of decided (not drawn) finished matches won by this level; 0 if
+## none was decided.
+func level_win_share(level: int) -> float:
+	var decided: int = finished() - draws()
+	return float(level_wins(level)) / decided if decided > 0 else 0.0
+
+
+## Every number as text, one secret rule per row of the table. A run between
+## two levels adds a line with each level's wins.
 func summary() -> String:
 	var lines: Array[String] = [
 		"Matches finished: %d / %d" % [finished(), matches()],
@@ -121,9 +145,16 @@ func summary() -> String:
 			ended_by(MatchResult.Reason.FORCED_GUESSES),
 		],
 		"Average turns per match (both players): %.1f" % average_turns(),
+	]
+	if levels().size() > 1:
+		var parts: Array[String] = []
+		for level: int in levels():
+			parts.append("%s %d (%.1f%%)" % [AILevel.title(level as AILevel.Level), level_wins(level), level_win_share(level) * 100.0])
+		lines.append("Level wins (of decided matches): %s, draws %d" % [", ".join(parts), draws()])
+	lines.append_array([
 		"",
 		"Secret rule  Held  Skip rate  Win rate  W / L / D",
-	]
+	])
 	for rule_id: String in secret_rule_ids():
 		var held: int = holders(rule_id)
 		var won: int = wins(rule_id)

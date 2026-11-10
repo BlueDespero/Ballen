@@ -15,20 +15,24 @@ var result: MatchResult
 var turns: Array[int] = []
 ## Turns that ended in a skip, by player.
 var skips: Array[int] = []
+## The AI level (AILevel.Level) that played each seat, by player.
+var levels: Array[int] = []
 
 
-func _init(p_secret_rule_ids: Array[String], p_first_player: int, p_result: MatchResult, p_turns: Array[int], p_skips: Array[int]) -> void:
+func _init(p_secret_rule_ids: Array[String], p_first_player: int, p_result: MatchResult, p_turns: Array[int], p_skips: Array[int],
+		p_levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]) -> void:
 	secret_rule_ids = p_secret_rule_ids.duplicate()
 	first_player = p_first_player
 	result = p_result
 	turns = p_turns.duplicate()
 	skips = p_skips.duplicate()
+	levels = p_levels.duplicate()
 
 
 ## The record of a match as it stands (its result is null while it runs),
 ## turns counted from its history. The secret rules are read from each
-## player's own view.
-static func from_match(current_match: Match) -> MatchRecord:
+## player's own view; levels are the AI levels that played each seat.
+static func from_match(current_match: Match, levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]) -> MatchRecord:
 	var ids: Array[String] = []
 	var turns_played: Array[int] = []
 	var skipped: Array[int] = []
@@ -43,7 +47,7 @@ static func from_match(current_match: Match) -> MatchRecord:
 			HistoryEntry.Type.SKIP:
 				turns_played[entry.player] += 1
 				skipped[entry.player] += 1
-	return MatchRecord.new(ids, current_match.first_player(), current_match.result(), turns_played, skipped)
+	return MatchRecord.new(ids, current_match.first_player(), current_match.result(), turns_played, skipped, levels)
 
 
 func is_finished() -> bool:

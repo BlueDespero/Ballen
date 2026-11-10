@@ -57,6 +57,11 @@ jobs:
       - name: AI-vs-AI harness
         run: godot --headless --path . -s harness/run_harness.gd -- --matches 20 --seed 1
 
+      # Each built level pairing plays a few matches, so a broken level fails
+      # fast; the win-rate gates need more matches and run in ai-gates.yml.
+      - name: AI level pairings (smoke)
+        run: godot --headless --path . -s harness/run_harness.gd -- --matches 6 --seed 1 --levels normal,easy
+
   # Exports the web build and runs the Playwright tests on it, so a PR shows
   # web breakage before it merges. On master, the tested build goes to deploy.
   web:

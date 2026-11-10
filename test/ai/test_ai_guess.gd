@@ -76,19 +76,46 @@ func test_a_swapped_guess_policy_changes_when_the_ai_guesses() -> void:
 	assert_has(["OT", "O1"], command.rule_id)
 
 
-func test_over_seeded_ai_matches_through_the_driver_every_guess_is_right() -> void:
-	var right_guesses: int = 0
+func test_over_seeded_ai_matches_guesses_only_name_rules_still_possible() -> void:
+	var guesses: int = 0
 	for seed_value: int in 30:
 		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
 		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
-		var secret_rules: Array[Rule] = []
-		for deck: Deck in decks:
-			secret_rules.append(deck.random_rule(rng))
+		var secret_rules: Array[Rule] = [decks[0].random_rule(rng), decks[1].random_rule(rng)]
 		var current_match: Match = Match.create(decks, secret_rules, rng)
-		var controllers: Array[Controller] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
-		await MatchDriver.new(current_match, controllers, [], rng, func(_seconds: float) -> void: pass).run()
-		assert_eq(current_match.phase(), Match.Phase.OVER, "seed %d" % seed_value)
-		assert_ne(current_match.result().reason, MatchResult.Reason.WRONG_GUESS, "seed %d" % seed_value)
-		if current_match.result().reason == MatchResult.Reason.RIGHT_GUESS:
-			right_guesses += 1
-	assert_gt(right_guesses, 0, "some matches end on a guess")
+		var ais: Array[AIController] = [AIController.new(Fixtures.rng(seed_value + 100)), AIController.new(Fixtures.rng(seed_value + 200))]
+		while current_match.phase() != Match.Phase.OVER:
+			var player: int = current_match.awaiting_players()[0]
+			var view: PublicView = current_match.public_view(player)
+			var command: Command = await ais[player].decide(view)
+			if command.type == Command.Type.GUESS:
+				var live: Array[String] = []
+				for rule: Rule in Deduction.candidates(view):
+					live.append(rule.id)
+				assert_has(live, command.rule_id, "seed %d: never a rule the moves ruled out" % seed_value)
+				guesses += 1
+			assert_true(current_match.submit(player, command), "seed %d" % seed_value)
+	assert_gt(guesses, 0, "some matches end on a guess")
+
+
+func test_reading_soft_evidence_beats_waiting_for_certainty() -> void:
+	# Normal against an AI that, like the first AI, guesses only once one rule
+	# is left; seats swap between seeds. Measured over 200 matches: about 65%.
+	var wins: int = 0
+	var losses: int = 0
+	for seed_value: int in 40:
+		var rng: RandomNumberGenerator = Fixtures.rng(seed_value)
+		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
+		var secret_rules: Array[Rule] = [decks[0].random_rule(rng), decks[1].random_rule(rng)]
+		var normal_seat: int = seed_value % 2
+		var ais: Array[AIController] = []
+		for player: int in Players.COUNT:
+			ais.append(AIController.for_level(AILevel.Level.NORMAL, Fixtures.rng(seed_value + 100 * player)) if player == normal_seat
+				else AIController.new(Fixtures.rng(seed_value + 100 * player), GuessPolicy.new(), ColourPickStrategy.new(), OpponentModel.new()))
+		var current_match: Match = Match.create(decks, secret_rules, rng)
+		assert_true(Harness.play_out(current_match, ais), "seed %d" % seed_value)
+		if current_match.result().winner == normal_seat:
+			wins += 1
+		elif current_match.result().winner != Players.NONE:
+			losses += 1
+	assert_gt(wins, losses, "Normal wins %d, loses %d" % [wins, losses])

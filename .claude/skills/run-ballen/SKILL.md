@@ -129,8 +129,8 @@ layout and centres it, so these coordinates no longer hold.
   (x 48–688, y 27–693) over the board backdrop
   (`Layout/MatchSetup/Backdrop/BoardBackdrop`). Deck picker (`DeckRow/DeckPicker`, an OptionButton: `Starter` first, then the saved decks)
   centre (434,122); click it, then the list's items at x≈226, y≈170, 214, 258, … (step 44). AI level buttons
-  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; only
-  Normal is enabled (and pressed), the others read "(coming soon)"; `LevelDescription:text` describes
+  (`LevelRow/LevelButtons/Easy|Normal|Hard`) at y=176: Easy x≈287, Normal x≈432, Hard x≈579; Easy and
+  Normal are enabled (Normal pressed by default), Hard reads "(coming soon)"; `LevelDescription:text` describes
   the level. The card opens with the goal (`Title`) and the stakes. `RuleRow/PickForMeButton`
   ("Pick for me", centre (596,294)) taps a random Simple rule of the deck. Your deck's rules as toggle
   buttons (x 80–512, centre x 296; a long rule wraps onto two lines, moving the rows below it down):

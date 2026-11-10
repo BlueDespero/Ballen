@@ -74,17 +74,17 @@ func test_two_ais_play_until_a_third_skip_ends_the_match() -> void:
 	assert_signal_emit_count(driver, "changed", 37, "skips are not commands")
 
 
-func test_a_paused_player_waits_half_a_second_to_a_second_and_a_half_before_each_command() -> void:
+func test_a_paused_ai_waits_its_thinking_pause_before_each_command_lands() -> void:
 	var current_match: Match = _r04_match(11)
 	var controllers: Array[Controller] = [_ai(1), _ai(2)]
 	await _driver(current_match, controllers, [1], 3).run()
 	var commands_by_1: int = _count(current_match, HistoryEntry.Type.PLACEMENT, 1) + _count(current_match, HistoryEntry.Type.COLOUR_PICK, 1)
 	assert_eq(_waits.size(), commands_by_1, "a pause each time player 1 is asked, none for player 0")
 	for seconds: float in _waits:
-		assert_between(seconds, 0.5, 1.5)
+		assert_between(seconds, AIController.SHORTEST_PAUSE, AIController.LONGEST_PAUSE)
 	var sorted: Array[float] = _waits.duplicate()
 	sorted.sort()
-	assert_gt(sorted[-1] - sorted[0], 0.5, "pauses vary")
+	assert_gt(sorted[-1] - sorted[0], 0.5, "pauses vary with the choice")
 
 
 func test_pauses_follow_the_seeded_rng() -> void:
@@ -213,6 +213,6 @@ func test_after_a_skip_the_driver_waits_for_the_skip_display_before_going_on() -
 	human.choose(Command.pick_colour(BallColour.BLUE))
 	assert_eq(_waits.size(), 3, "the AI's skip display, the AI's pause, the player's skip display")
 	assert_eq(_waits[0], 2.3, "the AI's skip is shown before its pause starts")
-	assert_between(_waits[1], 0.5, 1.5)
+	assert_between(_waits[1], AIController.SHORTEST_PAUSE, AIController.LONGEST_PAUSE)
 	assert_eq(_waits[2], 2.3, "the player's skip is shown before they are asked for a colour")
 	human.choose(null) # gives up the decision, ending run()
