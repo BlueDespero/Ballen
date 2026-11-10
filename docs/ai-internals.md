@@ -70,6 +70,8 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `LooseColourPick` | `ai/loose_colour_pick.gd` | Easy's colour pick: the base strategy's pick with chance `focus`, otherwise any colour |
 | `ValueGuessPolicy` | `ai/value_guess_policy.gd` | Hard's guessing: guess when its expected value beats waiting one more opponent turn |
 | `RolloutGuessPolicy` | `ai/rollout_guess_policy.gd` | Hard's guessing being measured: V_wait from playouts of the rest of the match |
+| `RolloutPlacement` | `ai/rollout_placement.gd` | Hard's placement being measured: of the best hiding cells, the one whose playouts it wins most |
+| `Playouts` | `ai/playouts.gd` | Plays a match on from the AI's view (`Match.resume`), the opponent's rule drawn from a tempered belief |
 | `SoftmaxColourPick` | `ai/softmax_colour_pick.gd` | Hard's colour pick: information-gain values, the colour drawn by softmax rather than always the best |
 | `ExposurePlacement` | `ai/exposure_placement.gd` | Hard's placement: the cell after which the exposure belief holds the secret rule least likely |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
@@ -323,6 +325,16 @@ Unlike counting believable rules, this weighs *how* telling a cell is, and a fak
 has probability 0, so it no longer constrains placement (test `test_after_breaking_a_fake_it_protects_the_others`:
 once R04 is broken, Hard protects the remaining fakes instead). Still missing: choosing *which* fake to lose when a
 break is forced, with later turns in mind; the tree search covers it.
+
+### Hard, being measured: `RolloutPlacement`
+
+1. Rank the legal cells as `ExposurePlacement` does (`best_hiding`: least exposed first).
+2. Play out the rest of the match from each of the best 4 cells (`Playouts.play` with that first cell), 8 times
+   each, on the same 8 seeds for every cell, so the cells are compared on the same imagined matches.
+3. Place on the cell with the best total; ties go to the better-hiding cell.
+
+This is where looking ahead pays: it can see that a cell which hides well now leaves no hiding cell next turn, or
+which fake is better to lose. Cost: 32 playouts per placement.
 
 ### Easy: `AnyLegalPlacement`
 
