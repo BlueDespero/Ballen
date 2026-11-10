@@ -93,6 +93,24 @@ func test_playouts_follow_the_seed() -> void:
 	assert_between(first, -1.0, 1.0)
 
 
+func test_playout_placement_picks_one_of_its_best_hiding_cells() -> void:
+	var current_match: Match = _match()
+	var view: PublicView = current_match.public_view(AI)
+	var exposure: Belief = _exposure(view)
+	var placement: RolloutPlacement = RolloutPlacement.new(3, 2)
+	var cell: Vector2i = placement.choose(view, exposure, Fixtures.rng(3))
+	assert_true(view.own_legal_cells().has(cell))
+	assert_true(placement.best_hiding(view, exposure, view.own_legal_cells()).slice(0, 3).has(cell))
+	assert_false(Board.is_on_edge(cell), "the best hiding cells keep R04 believable")
+
+
+func test_playout_placement_follows_the_seed() -> void:
+	var view: PublicView = _match().public_view(AI)
+	var exposure: Belief = _exposure(view)
+	assert_eq(RolloutPlacement.new(3, 2).choose(view, exposure, Fixtures.rng(5)),
+		RolloutPlacement.new(3, 2).choose(view, exposure, Fixtures.rng(5)))
+
+
 func test_after_breaking_a_fake_it_protects_the_others() -> void:
 	# The AI's own edge placement broke R04: from then on, an opponent knows
 	# R04 isn't its rule, so the AI no longer stays off the edge for it.
