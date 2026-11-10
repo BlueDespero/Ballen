@@ -173,6 +173,21 @@ export class Game {
     await send("touchend", points[points.length - 1]);
   }
 
+  // Going second, the player picks the AI's first colour (red) and the AI
+  // places. The tap is retried until the game reports the pick, and the AI
+  // gets a long wait: on a loaded CI machine a failure then says which half
+  // stalled, the tap or the AI.
+  async pickFirstColourForAI(): Promise<void> {
+    const since = this.markers.length;
+    for (let tries = 0; tries < 5; tries++) {
+      const before = this.markers.length;
+      await this.click(SPOT.pickRed);
+      if (await this.seen("[ballen] colour_picked by=player", before, 3_000)) break;
+    }
+    await this.waitFor("[ballen] colour_picked by=player", since);
+    await this.waitFor("[ballen] ball_placed by=ai", since, 60_000);
+  }
+
   // Single Player, secret rule R08 (any cell is legal for a first ball), Start;
   // returns whether the player goes first.
   async startMatch(): Promise<boolean> {
