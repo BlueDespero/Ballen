@@ -309,8 +309,13 @@ Why these numbers:
 - Strictness agrees at the ends: every Simple rule forbids at most about 31% of cells; the two rules
   above the 60% band (R07, R11) are not Simple. It does not separate Intermediate from Simple well, since
   loose colour-gated rules (R02, R05, R10) score low but are read quickly through colour picks.
-- Re-measure when the AI changes (M3 levels): the win rates depend on how the AI picks colours and
-  deduces.
+- Re-measure when the AI changes: the win rates depend on how the AI picks colours and deduces.
+- **Re-measured with the M3 Normal** (2000 matches, seed 1): 8 rules moved. R01 and R11 rose to
+  Intermediate (35.4%, 34.5%), and R10 to Simple (59.4%). R03 and R04 fell to Hardcore (26.9%, 22.5%): the
+  belief reads an always-on position rule fast. R14, R20 and R21 fell to Intermediate (50.5%, 53.2%, 36.2%). The
+  new Normal's mirror matches are races (58% of them end on a wrong guess), so the clusters are less clean than
+  before: 7.0–32.5% (5 rules), 34.5–53.2% (8), 57.9–88.3% (9), with R14 and R20 a few points under the 55%
+  line. Playtests should confirm the borderline ones.
 
 ## AI opponent
 

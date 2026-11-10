@@ -53,7 +53,7 @@ func test_r03_carries_its_player_text_and_data() -> void:
 	var rule: Rule = _book.rule("R03")
 	assert_eq(rule.text, "Only on even rows")
 	assert_eq(rule.to_data(), {"id": "R03", "text": "Only on even rows", "template": "only_on_axis",
-		"values": {"axis": "row", "parity": "even"}, "tier": "intermediate"})
+		"values": {"axis": "row", "parity": "even"}, "tier": "hardcore"})
 
 
 # R05 At most 2 of a colour in any row ---------------------------------------
