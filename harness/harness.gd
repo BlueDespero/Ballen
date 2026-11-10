@@ -9,13 +9,15 @@ extends RefCounted
 const MAX_COMMANDS: int = 500
 
 
-## Plays match_count matches between AIs of these two levels; match i is
-## play(book, match_seed(seed_value, i), levels), with the levels' seats
-## swapped in every other match so neither always plays the same seat.
+## Plays match_count matches between AIs of these two levels, numbered from
+## first_match; match i is play(book, match_seed(seed_value, i), levels), with
+## the levels' seats swapped in every odd-numbered match so neither always
+## plays the same seat. Runs from different first matches split one long run
+## into parts that can be played at once.
 static func run(book: RuleBook, match_count: int, seed_value: int,
-		levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]) -> HarnessStats:
+		levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL], first_match: int = 0) -> HarnessStats:
 	var stats: HarnessStats = HarnessStats.new()
-	for i: int in match_count:
+	for i: int in range(first_match, first_match + match_count):
 		var seats: Array[int] = levels.duplicate()
 		if i % 2 == 1:
 			seats.reverse()

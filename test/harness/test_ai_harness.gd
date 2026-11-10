@@ -45,6 +45,17 @@ func test_a_rejected_command_leaves_the_match_unfinished() -> void:
 	assert_false(MatchRecord.from_match(current_match).is_finished())
 
 
+func test_a_run_split_in_two_plays_the_same_matches() -> void:
+	var book: RuleBook = RuleBook.load_default()
+	var levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.EASY]
+	var whole: HarnessStats = Harness.run(book, 4, 7, levels)
+	var first: HarnessStats = Harness.run(book, 2, 7, levels, 0)
+	var second: HarnessStats = Harness.run(book, 2, 7, levels, 2)
+	for level: int in levels:
+		assert_eq(first.level_wins(level) + second.level_wins(level), whole.level_wins(level))
+	assert_eq(first.draws() + second.draws(), whole.draws())
+
+
 func test_a_seeded_run_plays_every_match_to_the_end() -> void:
 	var stats: HarnessStats = Harness.run(RuleBook.load_default(), 3, 7)
 	assert_eq(stats.matches(), 3)
