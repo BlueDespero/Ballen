@@ -19,8 +19,16 @@ const _COLOUR_CHARS: Dictionary[String, String] = {
 	BallColour.GREEN: "g",
 }
 
+## Every cell's bit in a cell mask: bit y * SIZE + x, the same order as _balls.
+const ALL_CELLS_MASK: int = (1 << (SIZE * SIZE)) - 1
+
 # Index y * SIZE + x; null means an empty cell.
 var _balls: Array[Ball] = []
+# Bit masks of the same cells (see ALL_CELLS_MASK), kept in step with _balls
+# for the compiled rules (RuleCompiler).
+var _occupied: int = 0
+var _colour_masks: Dictionary[String, int] = {}
+var _owner_masks: Array[int] = [0, 0]
 
 
 func _init() -> void:
@@ -109,13 +117,56 @@ func place(cell: Vector2i, ball: Ball) -> void:
 		push_error("Board.place: cell %s is not an empty cell" % cell)
 		return
 	_balls[_index(cell)] = ball
+	var bit: int = 1 << _index(cell)
+	_occupied |= bit
+	_colour_masks[ball.colour] = _colour_masks.get(ball.colour, 0) | bit
+	_owner_masks[ball.owner] |= bit
 
 
 ## Empties a cell (no-op if it is empty or off the board). For trying
 ## placements on a scratch copy; a match never removes a ball.
 func remove(cell: Vector2i) -> void:
-	if contains(cell):
-		_balls[_index(cell)] = null
+	if not contains(cell) or _balls[_index(cell)] == null:
+		return
+	var ball: Ball = _balls[_index(cell)]
+	_balls[_index(cell)] = null
+	var bit: int = 1 << _index(cell)
+	_occupied &= ~bit
+	_colour_masks[ball.colour] &= ~bit
+	_owner_masks[ball.owner] &= ~bit
+
+
+## The cells holding a ball, as a cell mask (see ALL_CELLS_MASK).
+func occupied_mask() -> int:
+	return _occupied
+
+
+## The cells holding a ball of this colour, either owner, as a cell mask.
+func colour_mask(colour: String) -> int:
+	return _colour_masks.get(colour, 0)
+
+
+## The cells holding a ball owned by this player, as a cell mask.
+func owner_mask(owner: int) -> int:
+	return _owner_masks[owner]
+
+
+## A cell's bit in a cell mask.
+static func bit(cell: Vector2i) -> int:
+	return 1 << (cell.y * SIZE + cell.x)
+
+
+## The cells of a cell mask, in the order empty_cells and all_cells list them.
+@warning_ignore("integer_division")
+static func cells_of(mask: int) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	var index: int = 0
+	while mask != 0:
+		if mask & 1:
+			cells.append(Vector2i(index % SIZE, index / SIZE))
+		mask >>= 1
+		index += 1
+	return cells
 
 
 func empty_cells() -> Array[Vector2i]:
@@ -136,6 +187,9 @@ func copy() -> Board:
 	for i: int in _balls.size():
 		if _balls[i] != null:
 			board._balls[i] = _balls[i].copy()
+	board._occupied = _occupied
+	board._colour_masks = _colour_masks.duplicate()
+	board._owner_masks = _owner_masks.duplicate()
 	return board
 
 
