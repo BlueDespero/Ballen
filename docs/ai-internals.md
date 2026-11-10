@@ -391,6 +391,20 @@ rule. 60 seeded matches, opponents playing Normal's max-k placement. Right / tim
 
 (The 0.9–1 bucket includes certainty, a single rule left, which is always right.)
 
+**Against today's Normal the soft evidence is much weaker.** The table above was measured against the old max-k
+placement. Since Normal hides (`HidingPlacement`), its placements look much the same under every believable rule.
+Normal vs Normal, 200 seeded matches, right / times seen for one seat's top rule at each decision:
+
+| Model | 0.5–0.6 | 0.6–0.7 | 0.7–0.8 | 0.8–0.9 |
+| --- | --- | --- | --- | --- |
+| Normal (temper 0.4) | 148/403 (37%) | 82/209 (39%) | 48/111 (43%) | 24/67 (36%) |
+| Temper 0.15 | 93/234 (40%) | 27/85 (32%) | 6/28 (21%) | 8/20 (40%) |
+
+So Normal is overconfident against a hider. Lowering its temper doesn't help: with temper 0.15 (Normal's exposure and
+everything else unchanged) it beat Normal only 184–212 over 400 matches (46%). Being honest makes it wait, and in the
+mirror race waiting gets it named first. The guessing threshold and the temper were tuned together; change them
+together.
+
 ### Strength
 
 | Match-up (200 seeded matches) | Result |
@@ -439,8 +453,29 @@ Hard's pieces (#22), 200 seeded matches against Normal, seats swapped:
 | Expected-value guessing alone, otherwise Normal | about 105 wins |
 | A joint honest/bluffing `MixtureModel` belief in place of `normal_model()` | 89 – 109 (dropped) |
 
-The heuristics alone don't reach the 60% gate; the one-turn lookahead in `value_of_waiting` is the part the tree
-search will replace.
+Over seeds 0–599 (600 matches) the pieces as built win 329–268 (55.0%). Variants tried after that, none kept
+(each over the same seeds; ±3.5 points is noise at 200 matches):
+
+| Variant (Hard vs Normal) | Hard's share of decided matches |
+| --- | --- |
+| Exact one-step lookahead for V_wait: every outcome of the opponent's next turn in each colour (`InformationColourPick` outcomes), max(0, 2p' − 1) | 55.8% (600 matches) |
+| Same, plus a level-k model of when the opponent guesses (their threshold slides with Hard's own confidence, as Normal's does) | 55.7% (600) |
+| Two-step placement: the best hiding cell next turn in each colour, average or worst colour | 55.3%, 54.3% (200) |
+| Hiding weights from the rules still alive only (as Normal's hiding counts them) | 55.0% (200) |
+| Lower temper for Hard's belief and exposure: 0.25 / 0.15 / 0.05 / 0 | 52.0 / 52.5 / 52.0 / 51.3% (200) |
+| Lower temper for the belief only, exposure kept at Normal's model: 0.25 / 0.15 / 0.05 / 0 | 56.5 / 55.5 / 56.3 / 57.3% (200) |
+
+How the matches end (pieces as built, seeds 0–199): Hard's guesses were right 40 times and wrong 69; Normal's right
+8 and wrong 82. Hard wins mostly because Normal, unable to read it, guesses wrong. It loses mostly by guessing
+wrong itself, often when its exposure belief says all its fakes are broken (the opponent can be certain), where a
+gamble is the right call. That can happen as early as turn 2 on some decks.
+
+Lowering the temper of the exposure (how Hard predicts the opponent reads it) made Normal name Hard's rule far more
+often (13 right guesses in 200 at temper 0.4, 54 at 0): the exposure must model how the opponent really reads, while
+the belief about the opponent could be more honest. Neither change reaches the gate.
+
+Conclusion: one-step heuristics plateau at about 55–57% against Normal. Reaching 60% needs real lookahead (the tree
+search), and that needs faster rule checks; see [Speed](#speed).
 
 Easy almost never guesses first (its belief rarely reaches 0.95), so against people it is the opponent that gives its
 rule away and leaves the guessing to them.
@@ -457,6 +492,22 @@ Desktop, headless, 20 harness matches (`--seed 1`):
 
 That is about 20 ms per decision on average, including the engine; placements are the heaviest. The belief costs at
 most 5 legal-cell checks per new opponent event, a colour pick 20 sweeps, a placement up to 4 sweeps per tied cell.
+
+**Rule checks.** `RuleChecker.legal_cells` (one rule, one colour, all empty cells) is the unit of cost. Desktop,
+mid-game board (26 empty cells):
+
+| | Per `legal_cells` call |
+| --- | --- |
+| Before: one board copy per cell tried | about 920 µs (R04 alone about 580 µs, three quarters of it copying) |
+| Now: one scratch board per call | about 490 µs on average; simple rules about 250 µs, `must_touch` and `never_more_than` rules 1.1–1.6 ms |
+
+The harness's 20 matches went from 22 s to 13 s with identical output. What remains is the parts interpreter
+itself (about 10 µs per cell for the simplest rules).
+
+**What that means for the tree search.** A simulated turn needs at least one rule check for the mover and five to
+update a belief, about 3 ms; a playout to the end of a match about 50 ms; the planned 200 simulations per move about
+10 s on desktop, and several times that in a browser. The research doc's budget (50–200 simulations in 300 ms on a
+phone) assumed rules compiled to 64-bit bitmasks. So the search is blocked on a faster rule engine.
 
 ### How to reproduce
 
@@ -556,4 +607,5 @@ Before merging a change to `ai/`:
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
 | #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |
 | #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
+| #22 (part) | `legal_cells` reuses one scratch board (twice as fast); `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured |
 | Docs | `docs/ai-theory-explained.md`: the theory and equations for non-specialists, with worked examples and DMU sections |

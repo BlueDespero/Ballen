@@ -225,6 +225,11 @@ too early. The temper was set by measuring exactly this over seeded AI-vs-AI mat
 Untempered, the AI was much surer than it should have been; at 0.4 its confidence roughly matches how often it is
 right.
 
+Calibration depends on who you play. Those numbers were measured against an earlier Normal that didn't hide. Against
+today's Normal, which hides, a rule held at 0.7 is right only about 40% of the time: a good hider makes soft
+evidence weak. Yet an honest Normal (lower temper) loses more, because it waits and gets named first (section 8:
+waiting is worth little once the opponent is close). Details in `docs/ai-internals.md`, "Calibration".
+
 **Example.** Section 2's inner placement, as each level sees it (R04 was 0.2 before):
 
 | Level | Model, temper | R04 after one inner placement |
