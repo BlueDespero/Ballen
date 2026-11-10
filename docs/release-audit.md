@@ -98,7 +98,8 @@ Shown in the game under Options → Credits → Licences and listed in `THIRD_PA
 ## Android build
 
 The "Android" preset (`export_presets.cfg`) builds an App Bundle for Google Play with Gradle; CI's `android` job
-builds and checks it (`.github/scripts/check_aab.sh`). Checked on 9 November 2026 with an unsigned APK export of the
+builds and checks it (`.github/scripts/check_aab.sh`); its first run, on pull request #94, built a bundle that
+passed every check. Checked on 9 November 2026 with an unsigned APK export of the
 same preset (no Gradle: this machine can't reach the Android SDK downloads):
 
 - **Manifest:** package `io.github.bluedespero.ballen`, version name from `config/version`, min SDK 24, target SDK 36,
@@ -138,8 +139,6 @@ same preset (no Gradle: this machine can't reach the Android SDK downloads):
 - **Android not yet on a device:** the bundle hasn't been installed on a phone or tablet; the safe-area inset, the
   keyboard above the Rename dialog and the back button are checked in tests and on a simulated cutout only. Ticket 12
   of `docs/milestones/06-android-release.md` is the device check.
-- **CI's `android` job hasn't run yet:** it runs on the first pull request; until then the Gradle build itself is
-  untested.
 
 ## Re-check before each public release
 

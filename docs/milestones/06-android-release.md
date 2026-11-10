@@ -134,8 +134,8 @@ A preset "Android" in `export_presets.cfg`, next to "Web":
 
 ### 8. CI: build and check the bundle
 
-**Done, not yet run:** the `android` job and `.github/scripts/check_aab.sh`; CI runs on pull requests and `master`, so
-the first pull request is its first run.
+**Done:** the `android` job and `.github/scripts/check_aab.sh`; its first run (pull request #94) built a bundle that
+passed every check. Signed uploads wait for the upload key secrets.
 
 A job `android` in `.github/workflows/ci.yml`, after `test`, on every pull request and push to `master`:
 
