@@ -232,7 +232,7 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
   `choose()` and `threshold()` take the exposure belief, so a fake the AI broke (ruled out in the exposure)
   already counts as known to the opponent.
 - **`RolloutGuessPolicy` (Hard):** the same rule, 2p − 1 ≥ V_wait,
-  but with V_wait measured instead of estimated. It plays the rest of the match `simulations` times (16) from the
+  but with V_wait measured instead of estimated. It plays the rest of the match `simulations` times (Hard: 32) from the
   view, with `Match.resume`:
   - the opponent's secret rule is drawn from the belief;
   - the opponent plays as Normal and the AI as Hard's one-step pieces (`AIController.hard_without_search`);
@@ -242,6 +242,10 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
   p use the policy's own belief, tempered to 0.1 rather than 0.4. The usual belief is overconfident against a
   player who hides (see "Calibration"), and drawing the opponent's rule from it made guessing look better than it
   is.
+
+  It guesses only when 2p − 1 clears V_wait by `NOISE_MARGIN` (1.5) standard errors of the playouts' average.
+  Without that margin, a noisy average sometimes made a 1-in-5 guess on the first turn look right: an
+  expected-value call on thin evidence, which looks like luck to a player (GDD).
 - **Forced guess** (full board): always names `belief.top()`. Exactly one right guess wins, so the most likely rule is
   the best pick whatever the confidence.
 
@@ -370,11 +374,18 @@ The legal cells most of all 5 deck rules allow, ties at random (milestone 1's be
 - **Hard thinks in steps** (`thinks_in_steps`). Its decisions take long (in Chrome about 2 s on average, up to 6.6 s
   with no limit), so the driver calls `think_step(view, deadline)` once a frame, each slice about
   `MatchDriver.THINK_SLICE_MSEC` (12 ms), until it has a command; the scene keeps drawing meanwhile.
-  - Its playout policies stop at the deadline and carry on at the next step. Their random draws are the same either
-    way, so a seeded decision is the same in steps as at once (tested).
-  - In the scene a decision thinks for at most `HARD_THINK_LIMIT_MSEC` (2.5 s), then settles for the playouts done.
-    The harness sets no limit, so the gate numbers are for the full-strength Hard. A slow phone gets a slightly
-    weaker Hard.
+  - Its playout policies stop at the deadline, even in the middle of a playout (`Playouts.Playout` plays a command
+    at a time), and carry on at the next step. Their random draws are the same either way, so a seeded decision is
+    the same in steps as at once (tested).
+  - Even so, one command inside a playout (a Normal decision) can take 100–180 ms in headless Chrome, so frames come
+    at 6–10 per second while Hard thinks. That's acceptable for a turn-based game; finer slicing would have to split
+    the AI's own decisions.
+  - In the scene, the guess and the placement each think for at most `HARD_THINK_LIMIT_MSEC` (2.5 s) by the wall
+    clock (frames included), then settle for the playouts done. A guess decision cut short after fewer than
+    `RolloutGuessPolicy.FEWEST_PLAYOUTS` (8) playouts falls back to Hard's one-step policy; a placement cut short
+    before any cell is played out takes the best hiding cell. In headless Chrome Hard places 3.5–5.3 s after its
+    colour arrives (8 runs). The harness sets no limit, so the gate numbers are for the full-strength Hard, and a
+    slow phone gets a somewhat weaker Hard.
   - Its pause leaves out the time it already thought, so the visible wait is its thinking time, at least the usual
     pause. That time varies with the position, not with how sure it is, so it says little. The GDD's "Hard thinks
     on your turn too" (pondering) is not built.
@@ -399,7 +410,9 @@ The legal cells most of all 5 deck rules allow, ties at random (milestone 1's be
 | `ValueGuessPolicy.ODDS_PER_TURN` | same | 1.6 | Sweep 1.15 / 1.3 / 1.6 / 2.5 against Normal: 105 / 105 / 109 / 109 wins of 200 |
 | `AIController.HARD_GUESS_PLAYOUTS` | `ai/ai_controller.gd` | 32 | 16 / 32: 56.5% / 58.5% over 400 matches (with one-step placement) |
 | `AIController.HARD_PLACEMENT_CANDIDATES` / `_PLAYOUTS` | same | 4 cells × 8 | Adds about 3 points (59.5% against 56.5% over 400 matches); the gate run's setting |
-| `AIController.HARD_THINK_LIMIT_MSEC` | same | 2500 | GDD: up to 5 s a choice; a turn can hold three decisions |
+| `AIController.HARD_THINK_LIMIT_MSEC` | same | 2500 | GDD: up to 5 s a choice; the guess and the placement each get it, by the wall clock |
+| `RolloutGuessPolicy.NOISE_MARGIN` | `ai/rollout_guess_policy.gd` | 1.5 standard errors | Stops guesses on a noisy average (first-turn guesses seen in the browser; GDD: never on thin evidence) |
+| `RolloutGuessPolicy.FEWEST_PLAYOUTS` | same | 8 | Below this, a guess decision cut short uses the one-step policy |
 | `MatchDriver.THINK_SLICE_MSEC` | `model/match_driver.gd` | 12 ms | Leaves room in a 60 fps frame's 16 ms |
 | `Playouts` belief temper | `ai/playouts.gd` | 0.1 | 0 / 0.1 / 0.4: 53.5 / 58.8 / 57.5% over 200 matches |
 | `SoftmaxColourPick.precision` | `ai/softmax_colour_pick.gd` | 6 | A colour worth half the best is drawn about 1 time in 20 |

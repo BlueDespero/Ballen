@@ -460,6 +460,11 @@ V_wait ≈ (1/N) · Σ_{i=1..N} result_i,     result = +1 win, −1 loss, 0 draw
 guess  if  2p − 1 ≥ V_wait
 ```
 
+**Noise.** 32 playouts give an average, not the truth. When the results spread from −1 to +1, the average is only
+good to about ±0.15 (its **standard error**: the spread divided by √32). So Hard guesses only when 2p − 1 beats the
+average by 1.5 standard errors. Without that, a run of unlucky playouts once made a 1-in-5 guess on the very first
+turn look worthwhile.
+
 **What the measurements taught** (`docs/ai-internals.md`, "Playouts for guessing"):
 
 - **A playout is only as good as the players imagined in it.** When the AI imagined its own future moves as Normal's
