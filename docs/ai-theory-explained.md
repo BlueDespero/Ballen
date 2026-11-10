@@ -33,7 +33,7 @@ opponent's secret rule.
 8. [Expected value: when to guess](#8-expected-value-when-to-guess)
 9. [Exposure: the AI reading itself](#9-exposure-the-ai-reading-itself)
 10. [Softmax: choosing with some randomness](#10-softmax-choosing-with-some-randomness)
-11. [Tree search (planned for Hard)](#11-tree-search-planned-for-hard)
+11. [Playouts and tree search (Hard, in progress)](#11-playouts-and-tree-search-hard-in-progress)
 12. [Symbols at a glance](#symbols-at-a-glance)
 
 ## 1. Probability and odds
@@ -437,23 +437,46 @@ considered pick 40% of the time, any colour otherwise.
 **Read more.** DMU §3.3.3 Behavioral Game Theory (p. 71), §3.3.1–3.3.2 on why mixing your choices matters against
 an opponent (Nash equilibrium); McKelvey and Palfrey (1995) on quantal response, cited in the research doc.
 
-## 11. Tree search (planned for Hard)
+## 11. Playouts and tree search (Hard, in progress)
 
-Not built yet; this section will be completed when it is (issue #22).
+Hard's first use of playouts is built and being measured (`RolloutGuessPolicy`). The full tree search is not built
+yet (issue #22).
 
-**Idea.** The one-turn lookahead of section 8 guesses how good the future is. **Monte Carlo tree search** (MCTS)
-plays it out instead: from the current position it imagines many possible continuations of the match, each time
-drawing the opponent's secret rule from the belief (so likelier rules are imagined more often) and playing quick,
-simple moves to the end. It counts how each of its candidate moves fared and grows a tree of the most promising
-lines, spending more of its time on moves that look good but are not yet well tested. The move that did best over
-all the imagined matches is played.
+**Idea: playouts.** Section 8's formula *estimates* how much waiting is worth. A **playout** measures it instead:
+imagine the rest of the match, played out to the end, and see who wins. Do that many times and average the results.
+Each imagined match starts from the real position. Because the AI doesn't know the opponent's secret rule, each
+playout first draws one from the belief: a rule held at 0.4 is drawn in about 40% of the playouts. This is the
+**Monte Carlo** idea: estimate an average by sampling.
 
-**Why it helps Ballen.** It sees what one step can't: that breaking this fake now keeps a better one for later, that
-a colour sets up a forced skip two turns on, or that waiting one more turn is safe.
+**Example.** At some decision, the AI's top rule is held at p = 0.6, so guessing is worth 2(0.6) − 1 = 0.2. It plays
+16 matches on without guessing now. Say they end 9 wins, 6 losses and 1 draw: waiting is worth
+(9 − 6) / 16 ≈ 0.19. Guessing (0.2) is slightly better, so it guesses. Had the playouts ended 11–5, waiting would be
+worth 0.375, and it would hold back.
 
-**Read more.** DMU §4.6.4 Monte Carlo Tree Search, §6.5.4 (Monte Carlo tree search for partially observable
-problems), §4.6.3 Sparse Sampling; Silver and Veness (2010), "Monte-Carlo Planning in Large POMDPs", cited in the
-research doc.
+**Equation.**
+
+```
+V_wait ≈ (1/N) · Σ_{i=1..N} result_i,     result = +1 win, −1 loss, 0 draw
+guess  if  2p − 1 ≥ V_wait
+```
+
+**What the measurements taught** (`docs/ai-internals.md`, "Playouts for guessing"):
+
+- **A playout is only as good as the players imagined in it.** When the AI imagined its own future moves as Normal's
+  (a worse hider than it really is), the imagined opponent named it too often. Waiting looked bad, the AI guessed
+  too early, and it won *less* (51%).
+- **Draw from an honest belief.** Drawing the opponent's rule from an overconfident belief also makes guessing look
+  safer than it is (section 6); a lower temper helped.
+- The best version wins 57.4% against Normal, up from 55%. The target is 60%.
+
+**Idea: tree search (next).** Playouts judge one decision: guess or wait. **Monte Carlo tree search** (MCTS) uses
+the same playouts for every decision (colours and cells too). It grows a tree of the most promising lines, spending
+more of its time on moves that look good but are not yet well tested. It sees what one step can't: that breaking
+this fake now keeps a better one for later, or that a colour sets up a forced skip two turns on.
+
+**Read more.** DMU §4.6 (online planning; §4.6.3 Sparse Sampling, §4.6.4 Monte Carlo Tree Search), §6.5.4 (Monte
+Carlo tree search for partially observable problems); Silver and Veness (2010), "Monte-Carlo Planning in Large
+POMDPs", cited in the research doc.
 
 ## Symbols at a glance
 
