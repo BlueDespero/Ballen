@@ -150,6 +150,52 @@ func test_exposure_placement_keeps_r04_believable() -> void:
 		assert_false(Board.is_on_edge(cell), "%s" % cell)
 
 
+func test_hard_thinking_in_steps_decides_as_it_does_at_once() -> void:
+	# Two seeded Hard AIs in two copies of one match: one decides at once, the
+	# other in steps of one playout each (a deadline already past).
+	var at_once: Match = _match()
+	var in_steps: Match = _match()
+	var hard_at_once: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
+	var hard_in_steps: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
+	var opponent_a: AIController = AIController.for_level(AILevel.Level.NORMAL, Fixtures.rng(5))
+	var opponent_b: AIController = AIController.for_level(AILevel.Level.NORMAL, Fixtures.rng(5))
+	assert_true(hard_in_steps.thinks_in_steps())
+	var steps: int = 0
+	for command_number: int in 6:
+		if at_once.phase() == Match.Phase.OVER:
+			break
+		for player: int in at_once.awaiting_players():
+			var a: Command
+			var b: Command
+			if player == AI:
+				a = hard_at_once.decide(at_once.public_view(AI))
+				b = hard_in_steps.think_step(in_steps.public_view(AI), 1)
+				while hard_in_steps.is_thinking():
+					steps += 1
+					b = hard_in_steps.think_step(in_steps.public_view(AI), 1)
+			else:
+				a = opponent_a.decide(at_once.public_view(player))
+				b = opponent_b.decide(in_steps.public_view(player))
+			assert_eq(_describe(b), _describe(a), "command %d" % command_number)
+			assert_true(at_once.submit(player, a))
+			assert_true(in_steps.submit(player, b))
+	assert_gt(steps, 0, "the decisions took more than one step")
+
+
+func _describe(command: Command) -> String:
+	if command == null:
+		return "none"
+	return "%d %s %s %s" % [command.type, command.cell, command.colour, command.rule_id]
+
+
+func test_hards_pause_leaves_out_the_time_it_spent_thinking() -> void:
+	var hard: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
+	var view: PublicView = _match().public_view(AI)
+	hard.decide(view)
+	var pause: float = hard.pause_seconds(Fixtures.rng(1))
+	assert_between(pause, 0.0, AIController.LONGEST_PAUSE)
+
+
 func test_hard_is_not_playable_yet() -> void:
 	assert_false(AILevel.is_built(AILevel.Level.HARD), "it must beat Normal 60% first (now about 55%)")
 	assert_not_null(AIController.for_level(AILevel.Level.HARD, Fixtures.rng(1)), "but it can be built for measurement")

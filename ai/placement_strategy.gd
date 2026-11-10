@@ -9,6 +9,16 @@ extends RefCounted
 ## No cell to place on.
 const NO_CELL: Vector2i = Vector2i(-1, -1)
 
+## For a strategy that thinks in steps (RolloutPlacement): stop working at
+## about this Time.get_ticks_msec(), 0 for no limit; is_pending() then says
+## whether choose() must be called again with the same view to finish.
+var deadline_msec: int = 0
+
+
+## True when the last choose() stopped at its deadline before deciding.
+func is_pending() -> bool:
+	return false
+
 
 ## The cell to place on; NO_CELL if the AI has none. exposure is the AI's
 ## belief about its own rules as the opponent could hold it.

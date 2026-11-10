@@ -24,6 +24,11 @@ const PLACEMENT_CLOSENESS: float = 0.2
 const EASY_THRESHOLD: float = 0.95
 ## Natural variation of a pause, either way, in seconds.
 const PAUSE_WOBBLE: float = 0.15
+## Hard's playouts: per guess decision, and per placement the best hiding
+## cells tried and the playouts of each (the 1000-match gate run's settings).
+const HARD_GUESS_PLAYOUTS: int = 32
+const HARD_PLACEMENT_CANDIDATES: int = 4
+const HARD_PLACEMENT_PLAYOUTS: int = 8
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
@@ -36,6 +41,13 @@ var _exposure: Belief
 ## if the AI weighed a guess, the guess's.
 var _action_closeness: float = 0.0
 var _guess_closeness: float = -1.0
+## Thinking in steps (Hard): whether the scene spreads decisions over frames,
+## whether one is unfinished, whether its guess has been weighed already, and
+## how long it has taken so far.
+var _thinks_in_steps: bool = false
+var _thinking: bool = false
+var _guess_weighed: bool = false
+var _thought_msec: int = 0
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
@@ -79,7 +91,11 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 			return AIController.new(rng, GuessPolicy.new(EASY_THRESHOLD), LooseColourPick.new(), easy_model(),
 				AnyLegalPlacement.new())
 		AILevel.Level.HARD:
-			return hard_without_search(rng)
+			var hard: AIController = AIController.new(rng, RolloutGuessPolicy.new(HARD_GUESS_PLAYOUTS),
+				SoftmaxColourPick.new(normal_model()), normal_model(),
+				RolloutPlacement.new(HARD_PLACEMENT_CANDIDATES, HARD_PLACEMENT_PLAYOUTS))
+			hard._thinks_in_steps = true
+			return hard
 		AILevel.Level.NORMAL:
 			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
 				HidingPlacement.new())
@@ -88,7 +104,8 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 
 
 ## Hard's one-step pieces: expected-value guessing, softmax colours, exposure
-## placement. Its own playouts (RolloutGuessPolicy) play it.
+## placement. Hard plays its own future moves like this in its playouts
+## (Playouts), which keeps them quick.
 static func hard_without_search(rng: RandomNumberGenerator) -> AIController:
 	return AIController.new(rng, ValueGuessPolicy.new(), SoftmaxColourPick.new(normal_model()), normal_model(),
 		ExposurePlacement.new(normal_model()))
@@ -103,17 +120,51 @@ func pause_seconds(rng: RandomNumberGenerator) -> float:
 	if _guess_closeness >= 0.0:
 		seconds = maxf(seconds, lerpf(SHORTEST_PAUSE, LONGEST_PAUSE, _guess_closeness))
 	seconds += rng.randf_range(-PAUSE_WOBBLE, PAUSE_WOBBLE)
+	if _thinks_in_steps:
+		# Its thinking already took a while: only the rest of the pause.
+		return clampf(seconds - _thought_msec / 1000.0, 0.0, LONGEST_PAUSE)
 	return clampf(seconds, SHORTEST_PAUSE, LONGEST_PAUSE)
 
 
 func decide(view: PublicView) -> Command:
-	_belief.update(view)
-	_exposure.update(view)
-	var candidates: Array[Rule] = _belief.alive()
-	_action_closeness = 0.0
-	_guess_closeness = -1.0
-	if view.can_guess():
+	return think_step(view, 0)
+
+
+func thinks_in_steps() -> bool:
+	return _thinks_in_steps
+
+
+func is_thinking() -> bool:
+	return _thinking
+
+
+## decide() in slices: works until about deadline_msec (0: no limit) and
+## returns null with is_thinking() true if its guess policy or placement
+## stopped there; called again with the same view, it carries on where it
+## stopped. Seeded, it decides exactly as decide() does.
+func think_step(view: PublicView, deadline_msec: int) -> Command:
+	var started: int = Time.get_ticks_msec()
+	if not _thinking:
+		_belief.update(view)
+		_exposure.update(view)
+		_action_closeness = 0.0
+		_guess_closeness = -1.0
+		_thought_msec = 0
+		_guess_weighed = false
+	_guess_policy.deadline_msec = deadline_msec
+	_placement.deadline_msec = deadline_msec
+	var command: Command = _decide(view)
+	_thinking = _guess_policy.is_pending() or _placement.is_pending()
+	_thought_msec += Time.get_ticks_msec() - started
+	return null if _thinking else command
+
+
+func _decide(view: PublicView) -> Command:
+	if view.can_guess() and not _guess_weighed:
 		var guess: Rule = _guess_policy.choose(_belief, _exposure, view, _rng)
+		if _guess_policy.is_pending():
+			return null
+		_guess_weighed = true
 		_guess_closeness = _guess_policy.last_closeness
 		if guess != null:
 			return Command.guess(guess.id)
@@ -125,17 +176,15 @@ func decide(view: PublicView) -> Command:
 		Match.Phase.PLACE:
 			_action_closeness = PLACEMENT_CLOSENESS
 			var cell: Vector2i = _placement.choose(view, _exposure, _rng)
-			if cell == PlacementStrategy.NO_CELL:
+			if _placement.is_pending() or cell == PlacementStrategy.NO_CELL:
 				return null
 			return Command.place(cell)
 		Match.Phase.FORCED_GUESS:
 			if view.forced_guess_due():
 				# The secret rule always remains, so this only guards a view that
 				# contradicts itself.
-				if candidates.is_empty():
+				if _belief.alive().is_empty():
 					push_error("AIController: no candidate left for the forced guess")
 					return null
 				return Command.forced_guess(_belief.top(_rng).id)
 	return null
-
-
