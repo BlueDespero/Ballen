@@ -30,9 +30,10 @@ Keep this document in step with `ai/`: every PR that changes the AI updates the 
 | --- | --- | --- |
 | Easy | Built | Belief with `easy_model()` (uniform, temper 0.15), `GuessPolicy(0.95)`, `LooseColourPick` (focus 0.4), `AnyLegalPlacement` |
 | Normal | Built | Belief with `normal_model()`, `DangerGuessPolicy`, `InformationColourPick`, `HidingPlacement` |
-| Hard | Planned (#22, #73): joint honest/bluffing model, value-of-information colours, hiding utility, MCTS, expected-value guessing | — |
+| Hard | In progress (#22): pieces built, not yet playable (55% against Normal, gate 60%); tree search to come | Belief with `normal_model()`, `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement` |
 
-`AILevel.BUILT` lists the playable levels; the match setup screen shows the rest as "coming soon".
+`AILevel.BUILT` lists the playable levels; the match setup screen shows the rest as "coming soon". `for_level(HARD)`
+already builds Hard, for the harness and tests, but it stays out of `BUILT` until it meets its gate.
 
 ## Ground rules
 
@@ -66,6 +67,9 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `HidingPlacement` | `ai/hiding_placement.gd` | Normal's placement: hide among the rules the opponent can still believe, then keep room for the next ball |
 | `AnyLegalPlacement` | `ai/any_legal_placement.gd` | Easy's placement: any legal cell at random |
 | `LooseColourPick` | `ai/loose_colour_pick.gd` | Easy's colour pick: the base strategy's pick with chance `focus`, otherwise any colour |
+| `ValueGuessPolicy` | `ai/value_guess_policy.gd` | Hard's guessing: guess when its expected value beats waiting one more opponent turn |
+| `SoftmaxColourPick` | `ai/softmax_colour_pick.gd` | Hard's colour pick: information-gain values, the colour drawn by softmax rather than always the best |
+| `ExposurePlacement` | `ai/exposure_placement.gd` | Hard's placement: the cell after which the exposure belief holds the secret rule least likely |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
 
 Callers: the match scene (`main_game.gd`) builds the AI with `AIController.for_level(_setup.ai_level(), _rng)` and
@@ -198,6 +202,24 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
   threshold ≈ 0.91.
   The idea: while hidden, wait for near-certainty; as the opponent closes in, gamble on less, because waiting risks
   being named first.
+- **`ValueGuessPolicy` (Hard):** pure expected value, no confidence floor. Count a win +1, a loss −1, a draw 0.
+  Guessing the top rule now is worth `2p − 1`. Waiting one opponent turn is worth
+
+  ```
+  V_wait = −g·m + g·(1 − m) + (1 − g)·max(0, 2p' − 1)
+  g  = clamp((their_top − 0.35) / (0.95 − 0.35), 0, 1)   chance the opponent guesses next turn
+     = 1                                                if the AI is one skip from losing
+  m  = exposure belief's probability for the AI's secret rule (at least 0.5 one skip from losing)
+  p' = the top rule's probability one turn on: its odds p / (1 − p) multiplied by ODDS_PER_TURN (1.6)
+  ```
+
+  where their_top is the exposure belief's highest probability (how sure the opponent could be). The opponent
+  names the AI's rule with chance g·m (the AI loses) or another rule with chance g·(1 − m) (the AI wins); otherwise
+  the match goes on and the AI will be surer. It guesses once `2p − 1 ≥ V_wait`, that is `p ≥ (1 + V_wait) / 2`.
+  Examples (tests): fully hidden with an even belief over 5 rules it holds back; with one rule left (p = 1) it
+  guesses. `threshold()` reads the top probability recorded by the last `choose()`, so call `choose()` first.
+  `choose()` and `threshold()` take the exposure belief, so a fake the AI broke (ruled out in the exposure)
+  already counts as known to the opponent.
 - **Forced guess** (full board): always names `belief.top()`. Exactly one right guess wins, so the most likely rule is
   the best pick whatever the confidence.
 
@@ -229,6 +251,13 @@ value(c) = H(b) − Σ_o P(o | c) · H(b'_o)   +   P(skip | c) · SKIP_BITS[oppo
 A colour every remaining rule treats alike is worth 0 (tested), so on the empty board picks are mostly ties broken
 at random. Cost: 5 legal-cell checks per colour (20 per pick) plus the outcome loop.
 
+### Hard: `SoftmaxColourPick`
+
+The same values as `InformationColourPick`, but the colour is drawn with chance proportional to
+`e^(precision · (v − v_best) / v_best)`, precision 6. A colour worth half the best is drawn e^−3 ≈ 1/20 as often as the
+best. Always handing over the most telling colour would show an attentive player what the AI suspects; drawing
+keeps that unreadable. When the best value is below `WORTH_WEIGHING` (nothing to weigh) it falls back to `best_of`.
+
 ### Base: `ColourPickStrategy`
 
 `score()` is the expected number of the belief's alive rules ruled out by the opponent's next turn in that colour, if
@@ -258,6 +287,19 @@ cells), or `NO_CELL` if there is none.
 
 Cost: one legal check per own rule and legal cell, plus 4 legal-cell sweeps per cell tied after step 1.
 
+### Hard: `ExposurePlacement`
+
+1. **Least exposed.** For each legal cell, update a copy of the exposure belief as if the AI had placed there,
+   exactly as the belief would (`exposed_after`: rules forbidding the cell drop out, the rest are weighted by
+   their tempered likelihood under the AI's model), and keep the cells where the secret rule ends least likely
+   (within 1e-6).
+2. **Keep room**, as `HidingPlacement` step 2. Ties at random.
+
+Unlike counting believable rules, this weighs *how* telling a cell is, and a fake already ruled out in the exposure
+has probability 0, so it no longer constrains placement (test `test_after_breaking_a_fake_it_protects_the_others`:
+once R04 is broken, Hard protects the remaining fakes instead). Still missing: choosing *which* fake to lose when a
+break is forced, with later turns in mind; the tree search covers it.
+
 ### Easy: `AnyLegalPlacement`
 
 Any cell its secret rule allows, at random: no attempt to keep its fakes believable, so its moves give its rule
@@ -265,8 +307,7 @@ away. That is what makes Easy readable for a new player.
 
 ### Base: `PlacementStrategy`
 
-The legal cells most of all 5 deck rules allow, ties at random (milestone 1's behaviour). Not yet: pressure on the
-opponent's rules and a softmax over which fake to break when one must break (Hard).
+The legal cells most of all 5 deck rules allow, ties at random (milestone 1's behaviour).
 
 ## Pauses and the driver
 
@@ -307,6 +348,10 @@ opponent's rules and a softmax over which fake to break when one must break (Har
 | `AIController.EASY_THRESHOLD` | `ai/ai_controller.gd` | 0.95 | A fixed high threshold, no gambling |
 | `LooseColourPick.focus` | `ai/loose_colour_pick.gd` | 0.4 | Considered picks some of the time, so it still looks like it tries |
 | `InformationColourPick.SKIP_BITS` | `ai/information_colour_pick.gd` | 0.5 / 1.0 / 20.0 | Tried 1.5 / 3.0 / 20.0: identical results (forced skips are rare in AI play); the last value makes a winning skip dominate |
+| `ValueGuessPolicy.SAFE` / `DESPERATE` | `ai/value_guess_policy.gd` | 0.95 / 0.35 | Normal's range, for the opponent's chance of guessing |
+| `ValueGuessPolicy.ODDS_PER_TURN` | same | 1.6 | Sweep 1.15 / 1.3 / 1.6 / 2.5 against Normal: 105 / 105 / 109 / 109 wins of 200 |
+| `SoftmaxColourPick.precision` | `ai/softmax_colour_pick.gd` | 6 | A colour worth half the best is drawn about 1 time in 20 |
+| `ExposurePlacement.TIE` | `ai/exposure_placement.gd` | 1e-6 | Probability tie tolerance |
 | `Belief.TIE`, `ColourPickStrategy.TIE` | | 1e-9 | Float tie tolerance |
 | `Controller.MIN_PAUSE` / `MAX_PAUSE` | `model/controller.gd` | 0.5 / 1.5 s | Default pause (milestone 1) |
 | `AIController.SHORTEST_PAUSE` / `ROUTINE_PAUSE` / `LONGEST_PAUSE` | `ai/ai_controller.gd` | 0.5 / 2.5 / 5.0 s | GDD: up to 5 s, longer on harder choices |
@@ -372,6 +417,18 @@ Levels, 200 seeded matches, seats swapped:
 | Match-up | Result | Gate |
 | --- | --- | --- |
 | Normal vs Easy | 181 – 19, 0 draws (90.5%); Normal's wins: 180 right guesses, 1 forced | Normal ≥ 65%: met |
+
+Hard's pieces (#22), 200 seeded matches against Normal, seats swapped:
+
+| Hard variant vs Normal | Hard's wins – Normal's |
+| --- | --- |
+| `ValueGuessPolicy` + `SoftmaxColourPick` + `ExposurePlacement` (as built) | 109 – 90 (55%) |
+| Same, `ODDS_PER_TURN` 1.15 / 1.3 / 2.5 | 105 / 105 / 109 wins |
+| Expected-value guessing alone, otherwise Normal | about 105 wins |
+| A joint honest/bluffing `MixtureModel` belief in place of `normal_model()` | 89 – 109 (dropped) |
+
+The heuristics alone don't reach the 60% gate; the one-turn lookahead in `value_of_waiting` is the part the tree
+search will replace.
 
 Easy almost never guesses first (its belief rarely reaches 0.95), so against people it is the opponent that gives its
 rule away and leaves the guessing to them.
@@ -471,6 +528,7 @@ Before merging a change to `ai/`:
 | `test/ai/test_ai_pause.gd` | A clear decision pauses briefly; a guess held back at its threshold pauses longer than any routine move; pauses stay within 0.5–5 s |
 | `test/model/test_match_driver.gd` | The driver asks each paused controller for its pause after deciding; skip displays |
 | `test/ai/test_hiding_placement.gd` | Hides off cells a believable fake forbids; once that fake is ruled out its cells are free again; `room_after` takes the worst colour; ties go to the most room |
+| `test/ai/test_hard_pieces.gd` | Waiting worth more than an unsure guess while hidden, little one skip from losing; holds back on an even belief, guesses with one rule left; protects the other fakes after breaking one; softmax draws every colour at precision 0; exposure placement keeps R04 believable; Hard not in `BUILT` yet |
 | `test/ai/test_ai_controller.gd` | Seeded determinism; two AIs playing a full scenario in code |
 | `test/harness/*` | Harness determinism and stats |
 
@@ -485,3 +543,4 @@ Before merging a change to `ai/`:
 | #23 | The controller chooses its pause (`Controller.pause_seconds`), after its decision; the AI's grows with how close the decision was |
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
 | #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |
+| #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
