@@ -42,7 +42,5 @@ static func rules_out(rule: Rule, before: MatchPosition, event: HistoryEntry) ->
 		HistoryEntry.Type.PLACEMENT:
 			return not RuleChecker.is_legal(rule, before, event.player, event.colour, event.cell)
 		HistoryEntry.Type.SKIP:
-			for cell: Vector2i in before.board.empty_cells():
-				if RuleChecker.is_legal(rule, before, event.player, event.colour, cell):
-					return true
+			return RuleChecker.legal_mask(rule, before, event.player, event.colour) != 0
 	return false

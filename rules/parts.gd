@@ -60,13 +60,88 @@ static var _parts: Dictionary[String, Callable] = {
 }
 
 
+## Filters that look only at what a ball is (colour, owner, last ball), never
+## where it is. Counted over the whole board, or over every cell but the
+## target, they give the same number for every target of one placement check.
+const _POSITION_FREE_FILTERS: Array[String] = [
+	"of_colour", "same_colour", "my_ball", "opponent_ball", "any_ball", "next_colour", "empty", "my_last_ball",
+	"opponent_last_ball",
+]
+
+## The key marking a target-invariant condition; its value numbers it.
+const _INVARIANT: String = "_invariant"
+## Numbers the target-invariant conditions, the key of their cached value.
+static var _next_invariant: int = 0
+
+
+## The colour after this one in the cycle yellow -> blue -> red -> green -> yellow.
+static func next_colour_after(colour: String) -> String:
+	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
+	return cycle[(cycle.find(colour) + 1) % cycle.size()]
+
+
 static func has_part(part: String) -> bool:
 	return _parts.has(part)
 
 
+## A condition marked by mark_invariant is the same for every target of one
+## placement check (one position, holder and colour), so it is worked out once
+## per check and kept in ctx.cache.
 static func evaluate(node: Dictionary, ctx: PlacementContext) -> Variant:
 	var part: Callable = _parts[node.part]
+	if node.has(_INVARIANT):
+		var key: int = node[_INVARIANT]
+		if not ctx.cache.has(key):
+			ctx.cache[key] = part.call(node, ctx)
+		return ctx.cache[key]
 	return part.call(node, ctx)
+
+
+## Marks, in a filled rule tree, every count whose answer doesn't depend on
+## the target: counts over the whole board, or over every other cell, of
+## balls picked by what they are rather than where. The placed ball is the
+## same colour and owner wherever it goes, so over the whole board it adds the
+## same count, and over the other cells it is left out wherever it is.
+static func mark_invariant(node: Variant) -> void:
+	if node is Array:
+		for item: Variant in node:
+			mark_invariant(item)
+		return
+	if not node is Dictionary:
+		return
+	if _is_invariant_condition(node):
+		node[_INVARIANT] = _next_invariant
+		_next_invariant += 1
+		return
+	for key: Variant in node:
+		mark_invariant(node[key])
+
+
+## True if mark_invariant marked this node.
+static func is_marked_invariant(node: Dictionary) -> bool:
+	return node.has(_INVARIANT)
+
+
+static func _is_invariant_condition(node: Dictionary) -> bool:
+	match node.get("part", ""):
+		"count_at_most", "count_at_least":
+			return _counts_the_same_everywhere(node.of)
+		"no_more_than":
+			return _counts_the_same_everywhere(node.of) and _counts_the_same_everywhere(node.than)
+	return false
+
+
+static func _counts_the_same_everywhere(node: Variant) -> bool:
+	if not node is Dictionary:
+		return false
+	var part: String = node.get("part", "")
+	if part == "whole_board":
+		return true
+	if part == "other_cells":
+		return node.of is Dictionary and node.of.get("part", "") == "target"
+	if _POSITION_FREE_FILTERS.has(part):
+		return _counts_the_same_everywhere(node.of)
+	return false
 
 
 static func _cells(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
@@ -246,8 +321,7 @@ static func _any_ball(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i
 ## {"part": "next_colour", "of": ...}
 static func _next_colour(node: Dictionary, ctx: PlacementContext) -> Array[Vector2i]:
 	var kept: Array[Vector2i] = []
-	var cycle: Array[String] = [BallColour.YELLOW, BallColour.BLUE, BallColour.RED, BallColour.GREEN]
-	var next: String = cycle[(cycle.find(ctx.colour) + 1) % cycle.size()]
+	var next: String = next_colour_after(ctx.colour)
 	for cell: Vector2i in _cells(node.of, ctx):
 		var ball: Ball = ctx.board.ball_at(cell)
 		if ball != null and ball.colour == next:

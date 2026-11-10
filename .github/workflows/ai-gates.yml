@@ -23,7 +23,8 @@ env:
 jobs:
   gates:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # Hard's playouts make its gate the long part: about an hour on 4 cores.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -56,3 +57,30 @@ jobs:
       # Normal must beat Easy in at least 65% of decided matches.
       - name: Normal beats Easy
         run: godot --headless --path . -s harness/run_harness.gd -- --matches "$MATCHES" --seed 1 --levels normal,easy --gate 0.65
+
+      # Hard must beat Normal in at least 60% of decided matches. The matches are
+      # split into 4 parts played at once (--start), one per core, and their
+      # wins added up: together they are exactly the matches of one run.
+      - name: Hard beats Normal
+        run: |
+          part=$(( (MATCHES + 3) / 4 ))
+          pids=()
+          for i in 0 1 2 3; do
+            godot --headless --path . -s harness/run_harness.gd -- --matches "$part" --start $(( i * part )) \
+              --seed 1 --levels hard,normal > "hard-gate-$i.txt" 2>&1 &
+            pids+=($!)
+          done
+          failed=0
+          for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
+          hard=0; normal=0
+          for i in 0 1 2 3; do
+            line=$(grep "Level wins" "hard-gate-$i.txt")
+            echo "Part $i: $line"
+            hard=$(( hard + $(sed -E 's/.*Hard ([0-9]+).*/\1/' <<< "$line") ))
+            normal=$(( normal + $(sed -E 's/.*Normal ([0-9]+).*/\1/' <<< "$line") ))
+          done
+          share=$(awk -v h="$hard" -v n="$normal" 'BEGIN { printf "%.3f", h / (h + n) }')
+          echo "Hard $hard, Normal $normal: Hard wins $share of decided matches, needs 0.600"
+          if [ "$failed" -ne 0 ]; then echo "A part had an unfinished match."; exit 1; fi
+          awk -v s="$share" 'BEGIN { exit !(s >= 0.6) }' || { echo "Gate NOT MET"; exit 1; }
+          echo "Gate met"

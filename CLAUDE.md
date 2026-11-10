@@ -15,6 +15,8 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   adding or changing a rule.
 - `docs/ai-decision-theory-research.md` explains the AI opponent's design (belief updating,
   colour picks, guessing, difficulty levels).
+- `docs/ai-theory-explained.md`: the AI's theory and equations for non-specialists, with worked examples and
+  links to the textbook's chapters; update it when the AI's maths changes.
 - `docs/ai-internals.md`: how the AI works as built, its parameters and measurements, debugging recipes and the
   quality checklist; update it (and its change log) in every PR that changes `ai/`.
 - `docs/release-audit.md`: what the web build reaches (network, files, autoloads) and ships, licences, known
@@ -62,7 +64,8 @@ godot --headless --path . -s harness/run_harness.gd -- --matches 100 --seed 1
 
 `--levels normal,easy` pits two built AI levels (seats swapped every other match) and adds each level's wins;
 `--gate 0.65` also fails the run unless the first level wins that share of the decided matches (the level gates in
-`docs/ai-internals.md`).
+`docs/ai-internals.md`). `--start N` plays matches N onwards, to split a long run into parts run at once (a Hard
+match takes 10–20 s).
 
 ## Strictness check
 
@@ -114,7 +117,7 @@ release is `docs/milestones/06-android-release.md`.
 Every pull request and every push to `master` runs:
 
 - `test`: import step, GUT suite, harness with `--matches 20 --seed 1`, and a 6-match smoke run of each built AI
-  level pairing (`--levels normal,easy`).
+  level pairing (`--levels normal,easy`), plus 2 matches of `--levels hard,normal`.
 - `web`, after `test`: stamps `config/version` with `+<short sha>`, exports Web and runs the web tests in all four
   browsers. A failure uploads the Playwright report as an artifact.
 - `android`, after `test`: installs the Android SDK packages Godot's Gradle build uses, stamps the version (name
@@ -125,7 +128,8 @@ Every pull request and every push to `master` runs:
 - `deploy`, on `master` only, after `web`: `butler push build/web <ITCH_GAME>:html5` with the build `web` tested.
 
 `.github/workflows/ai-gates.yml` runs the AI level gates nightly and on demand (Actions tab, "AI gates", with a match
-count): 1000 seeded matches per pairing, Normal beating Easy in at least 65% of decided matches.
+count): 1000 seeded matches per pairing, Normal beating Easy in at least 65% of decided matches and Hard beating Normal
+in at least 60% (played in 4 parts at once with `--start`, about an hour).
 
 Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
 API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.
@@ -164,11 +168,13 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
   `MatchSetup`, `DeckStore` (saved decks), `DeckDraft` (deck editor); plain `RefCounted`, no scene nodes
-- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
+- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`,
+  `RuleCompiler` and `CellMasks` (rules compiled to cell bit masks, ADR 0003);
   rule and template data in `rules/data/`
 - `ai/` — `AIController` (`for_level`), `Belief`, `OpponentModel`, `HiderModel`, `Deduction`, `GuessPolicy`,
   `DangerGuessPolicy`, `ColourPickStrategy`, `InformationColourPick`, `PlacementStrategy`, `HidingPlacement`,
-  `LooseColourPick`, `AnyLegalPlacement` (Easy)
+  `LooseColourPick`, `AnyLegalPlacement` (Easy), `RolloutGuessPolicy`, `RolloutPlacement`, `Playouts` (Hard), and
+  Hard's one-step pieces `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`
 - `harness/` — AI-vs-AI harness: `Harness` (plays matches), `MatchRecord`, `HarnessStats`, `run_harness.gd`;
   strictness check: `StrictnessCheck`, `run_strictness.gd`
 - `locale/` — Polish translation (`pl.po`, keyed on the English text); player-facing text only, see

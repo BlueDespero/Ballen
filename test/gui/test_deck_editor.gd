@@ -47,7 +47,7 @@ func test_every_built_rule_is_a_row_with_its_tier() -> void:
 	var rows: Array[Node] = editor.get_node("%RuleList").get_children()
 	assert_eq(rows.map(func(row: Node) -> String: return row.name), Array(_book.rule_ids()))
 	var tier_badge: Node = rows[0].find_child("Tier", true, false)
-	assert_eq((tier_badge.get_child(0) as Label).text, "Hardcore", "R01 is Hardcore")
+	assert_eq((tier_badge.get_child(0) as Label).text, TierBadge.title(_book.rule("R01").tier), "R01's own tier")
 
 
 func test_clicking_rows_picks_them_and_counts_them() -> void:

@@ -19,6 +19,10 @@ var values: Dictionary
 var tier: String
 # The template tree with every blank filled in.
 var _tree: Dictionary
+# The tree compiled to bit masks (RuleCompiler); null if it can't be
+# compiled. Built with the rule and never changed, so how a rule has been used
+# leaves no trace on it (ADR 0002).
+var _compiled: RuleCompiler.CompiledRule = null
 
 
 func _init(p_id: String, p_text: String, p_template_id: String, p_values: Dictionary, p_tree: Dictionary,
@@ -29,11 +33,18 @@ func _init(p_id: String, p_text: String, p_template_id: String, p_values: Dictio
 	values = p_values.duplicate(true)
 	_tree = p_tree
 	tier = p_tier
+	_compiled = RuleCompiler.compile(_tree)
 
 
 ## Pass / fail for one placement. Pure: no side effects, no scene access.
 func passes(ctx: PlacementContext) -> bool:
 	return Parts.evaluate(_tree, ctx)
+
+
+## The rule in bit-mask form, for RuleChecker; null if its tree uses a part
+## or shape the compiler doesn't support, so it is interpreted instead.
+func compiled() -> RuleCompiler.CompiledRule:
+	return _compiled
 
 
 ## The rule's data, in the format RuleBook.make_rule reads.

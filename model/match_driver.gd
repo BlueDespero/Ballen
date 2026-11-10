@@ -15,6 +15,10 @@ extends RefCounted
 ## The match accepted a command.
 signal changed
 
+## How long one slice of a stepped decision may run before the frame is
+## drawn, in milliseconds.
+const THINK_SLICE_MSEC: int = 12
+
 var _match: Match
 var _controllers: Array[Controller] = []
 var _paused_players: Array[int] = []
@@ -48,7 +52,7 @@ func _init(current_match: Match, controllers: Array[Controller], paused_players:
 func run() -> void:
 	while not _stopped and _match.phase() != Match.Phase.OVER:
 		for player: int in _match.awaiting_players():
-			var command: Command = await _controllers[player].decide(_match.public_view(player))
+			var command: Command = await _decision(_controllers[player], _match.public_view(player))
 			if _stopped:
 				return
 			if command == null:
@@ -64,6 +68,19 @@ func run() -> void:
 					await _wait.call(_skip_seconds)
 					if _stopped:
 						return
+
+
+## The controller's command: decide(), or for a controller that thinks in
+## steps, think_step() once a frame (each slice about THINK_SLICE_MSEC long,
+## waiting wait.call(0.0) between them) until it has decided.
+func _decision(controller: Controller, view: PublicView) -> Command:
+	if not controller.thinks_in_steps():
+		return await controller.decide(view)
+	var command: Command = controller.think_step(view, Time.get_ticks_msec() + THINK_SLICE_MSEC)
+	while controller.is_thinking() and not _stopped:
+		await _wait.call(0.0)
+		command = controller.think_step(view, Time.get_ticks_msec() + THINK_SLICE_MSEC)
+	return command
 
 
 ## Whether the history gained a skip after its first `first_new` events.

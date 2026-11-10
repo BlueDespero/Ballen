@@ -9,6 +9,19 @@ extends RefCounted
 ## No cell to place on.
 const NO_CELL: Vector2i = Vector2i(-1, -1)
 
+## For a strategy that thinks in steps (RolloutPlacement): stop working at
+## about this Time.get_ticks_msec(), 0 for no limit; is_pending() then says
+## whether choose() must be called again with the same view to finish.
+var deadline_msec: int = 0
+## Set when the AI has thought long enough: a strategy thinking in steps then
+## decides with what it has worked out so far.
+var must_finish: bool = false
+
+
+## True when the last choose() stopped at its deadline before deciding.
+func is_pending() -> bool:
+	return false
+
 
 ## The cell to place on; NO_CELL if the AI has none. exposure is the AI's
 ## belief about its own rules as the opponent could hold it.
@@ -20,10 +33,14 @@ func choose(view: PublicView, _exposure: Belief, rng: RandomNumberGenerator) -> 
 static func most_shared(view: PublicView, rules: Array[Rule]) -> Array[Vector2i]:
 	var best: Array[Vector2i] = []
 	var best_count: int = -1
+	var masks: Array[int] = []
+	for rule: Rule in rules:
+		masks.append(RuleChecker.legal_mask(rule, view.position, view.viewer, view.position.colour))
 	for cell: Vector2i in view.own_legal_cells():
 		var count: int = 0
-		for rule: Rule in rules:
-			if RuleChecker.is_legal(rule, view.position, view.viewer, view.position.colour, cell):
+		var bit: int = Board.bit(cell)
+		for mask: int in masks:
+			if mask & bit:
 				count += 1
 		if count > best_count:
 			best = []

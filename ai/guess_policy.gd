@@ -15,6 +15,14 @@ const CLEAR_MARGIN: float = 0.3
 ## at the threshold): the AI's thinking pause grows with it.
 var last_closeness: float = 0.0
 
+## For a policy that thinks in steps (RolloutGuessPolicy): stop working at
+## about this Time.get_ticks_msec(), 0 for no limit; is_pending() then says
+## whether choose() must be called again with the same view to finish.
+var deadline_msec: int = 0
+## Set when the AI has thought long enough: a policy thinking in steps then
+## decides with what it has worked out so far.
+var must_finish: bool = false
+
 var _threshold: float
 
 
@@ -26,6 +34,11 @@ func _init(p_threshold: float = 1.0) -> void:
 ## AI's belief about its own rules as the opponent could hold it.
 func threshold(_view: PublicView, _exposure: Belief) -> float:
 	return _threshold
+
+
+## True when the last choose() stopped at its deadline before deciding.
+func is_pending() -> bool:
+	return false
 
 
 ## The rule to name now, or null to hold off. Only a rule the hard evidence

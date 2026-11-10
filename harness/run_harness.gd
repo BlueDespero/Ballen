@@ -5,6 +5,10 @@ extends SceneTree
 ## Plays the matches with no pauses and prints the summary. Exit code 0 when
 ## every match finished, 1 otherwise (or on a bad argument).
 ##
+## --start N plays matches N onwards (default 0), so a long run can be split
+## into parts run at once: --start 0 --matches 250 and --start 250 --matches 250
+## play the same matches as one run of 500.
+##
 ## --levels A,B pits two AI levels (easy, normal, hard) against each other, the
 ## seats swapped every other match; the default is normal,normal. --gate S
 ## also fails the run (exit 1) unless level A wins at least the share S (0-1)
@@ -12,7 +16,7 @@ extends SceneTree
 
 const DEFAULT_MATCHES: int = 100
 const DEFAULT_SEED: int = 1
-const USAGE: String = "Usage: -- [--matches N] [--seed S] [--levels easy|normal|hard,easy|normal|hard] [--gate 0-1]"
+const USAGE: String = "Usage: -- [--matches N] [--seed S] [--start N] [--levels easy|normal|hard,easy|normal|hard] [--gate 0-1]"
 
 
 func _initialize() -> void:
@@ -24,9 +28,10 @@ func _initialize() -> void:
 	var match_count: int = options.matches
 	var seed_value: int = options.seed
 	var levels: Array[int] = options.levels
-	var stats: HarnessStats = Harness.run(RuleBook.load_default(), match_count, seed_value, levels)
-	print("Ballen AI-vs-AI harness: %d matches, seed %d, %s vs %s" % [
-		match_count, seed_value, AILevel.title(levels[0] as AILevel.Level), AILevel.title(levels[1] as AILevel.Level)])
+	var first_match: int = options.start
+	var stats: HarnessStats = Harness.run(RuleBook.load_default(), match_count, seed_value, levels, first_match)
+	print("Ballen AI-vs-AI harness: %d matches from match %d, seed %d, %s vs %s" % [
+		match_count, first_match, seed_value, AILevel.title(levels[0] as AILevel.Level), AILevel.title(levels[1] as AILevel.Level)])
 	print("")
 	print(stats.summary())
 	var passed: bool = stats.finished() == stats.matches()
@@ -40,12 +45,12 @@ func _initialize() -> void:
 	quit(0 if passed else 1)
 
 
-## {"matches": int, "seed": int, "levels": Array[int]} and, with --gate,
+## {"matches": int, "seed": int, "start": int, "levels": Array[int]} and, with --gate,
 ## "gate": float; empty if an argument is unknown, lacks a value or is not
 ## valid.
 func _parse(args: PackedStringArray) -> Dictionary:
 	var levels: Array[int] = [AILevel.Level.NORMAL, AILevel.Level.NORMAL]
-	var options: Dictionary = {"matches": DEFAULT_MATCHES, "seed": DEFAULT_SEED, "levels": levels}
+	var options: Dictionary = {"matches": DEFAULT_MATCHES, "seed": DEFAULT_SEED, "start": 0, "levels": levels}
 	var i: int = 0
 	while i < args.size():
 		var key: String = args[i].trim_prefix("--")
@@ -53,7 +58,7 @@ func _parse(args: PackedStringArray) -> Dictionary:
 			return {}
 		var value: String = args[i + 1]
 		match key:
-			"matches", "seed":
+			"matches", "seed", "start":
 				if not value.is_valid_int():
 					return {}
 				options[key] = value.to_int()
@@ -69,7 +74,7 @@ func _parse(args: PackedStringArray) -> Dictionary:
 			_:
 				return {}
 		i += 2
-	if options.matches < 1:
+	if options.matches < 1 or options.start < 0:
 		return {}
 	return options
 

@@ -13,6 +13,7 @@ export const SPOT = {
   singlePlayer: { x: 640, y: 369 },
   decks: { x: 640, y: 417 },
   setupRuleR08: { x: 296, y: 531 },
+  setupHard: { x: 584, y: 192 },
   start: { x: 461, y: 651 },
   pickRed: { x: 624, y: 660 },
   // Guess, with the note marks hint showing (a fresh profile).
@@ -173,13 +174,33 @@ export class Game {
     await send("touchend", points[points.length - 1]);
   }
 
-  // Single Player, secret rule R08 (any cell is legal for a first ball), Start;
-  // returns whether the player goes first.
-  async startMatch(): Promise<boolean> {
+  // Going second, the player picks the AI's first colour (red) and the AI
+  // places. The tap is retried until the game reports the pick, and the AI
+  // gets a long wait: on a loaded CI machine a failure then says which half
+  // stalled, the tap or the AI.
+  async pickFirstColourForAI(): Promise<void> {
+    const since = this.markers.length;
+    for (let tries = 0; tries < 5; tries++) {
+      const before = this.markers.length;
+      await this.click(SPOT.pickRed);
+      if (await this.seen("[ballen] colour_picked by=player", before, 3_000)) break;
+    }
+    await this.waitFor("[ballen] colour_picked by=player", since);
+    await this.waitFor("[ballen] ball_placed by=ai", since, 60_000);
+  }
+
+  // Single Player, the AI level if given (else the default, Normal), secret
+  // rule R08 (any cell is legal for a first ball), Start; returns whether the
+  // player goes first.
+  async startMatch(level?: "hard"): Promise<boolean> {
     const since = this.markers.length;
     await this.click(SPOT.singlePlayer);
     await this.waitFor("[ballen] scene=MainGame", since);
     await this.page.waitForTimeout(500);
+    if (level === "hard") {
+      await this.click(SPOT.setupHard);
+      await this.page.waitForTimeout(200);
+    }
     await this.click(SPOT.setupRuleR08);
     await this.page.waitForTimeout(200);
     await this.click(SPOT.start);

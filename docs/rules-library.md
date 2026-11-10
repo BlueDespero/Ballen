@@ -21,7 +21,8 @@ checks they match, so change both together.
 A dash means not measured yet.
 
 **Strictness and Tier are provisional** (#17): strictness from the strictness check on 2000 random
-boards (seed 1), tiers from 2000 AI-vs-AI matches (seed 1) with the thresholds in
+boards (seed 1), tiers from 2000 AI-vs-AI matches (seed 1, Normal vs Normal as of the M3 Normal: belief,
+information-gain colours, hiding placement) with the thresholds in
 [technical-design.md](technical-design.md#rule-tiers) (Simple: win rate as the secret rule ≥ 55% and skip
 rate < 5%; Hardcore: win rate < 33% or skip rate ≥ 10%; Intermediate: the rest). Re-measure when the AI
 or a rule changes; playtests confirm them before a rule is Tuned.
@@ -31,27 +32,27 @@ ball); above it R07 and R11.
 
 | ID | Rule (player text) | Type | Template | Blanks | Status | Strictness | Tier |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R01 | Never next to the same colour | Colour & neighbours | `not_next_to` | ball = same_colour | Built | 50% | Hardcore |
+| R01 | Never next to the same colour | Colour & neighbours | `not_next_to` | ball = same_colour | Built | 50% | Intermediate |
 | R02 | Red only next to blue | Colour & neighbours | `colour_only_next_to` | colour = red, other = blue | Built | 11% | Intermediate |
-| R03 | Only on even rows | Position | `only_on_axis` | axis = row, parity = even | Built | 50% | Intermediate |
-| R04 | Never on the edge | Position | `not_on_zone` | zone = edge | Built | 56% | Intermediate |
+| R03 | Only on even rows | Position | `only_on_axis` | axis = row, parity = even | Built | 50% | Hardcore |
+| R04 | Never on the edge | Position | `not_on_zone` | zone = edge | Built | 56% | Hardcore |
 | R05 | At most 2 of a colour in any row | Counts | `max_in_axis` | axis = row, ball = same_colour, n = 2 | Built | 14% | Intermediate |
 | R06 | Never more red than blue on the board | Counts | `never_more_than` | a = red, b = blue | Built | 16% | Hardcore |
 | R07 | Never next to an opponent ball | Ball owner | `not_next_to` | ball = opponent_ball | Built | 73% | Intermediate |
 | R08 | Not next to the ball you placed last | History | `not_next_to` | ball = my_last_ball | Built | 16% | Simple |
 | R09 | Never in the same row as your last ball | History | `not_same_axis_as` | axis = row, ball = my_last_ball | Built | 14% | Simple |
-| R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | 12% | Intermediate |
-| R11 | At least 2 cells from any red | Geometry | `min_distance_from` | colour = red, n = 2 | Built | 74% | Hardcore |
+| R10 | Never complete a line of 3 | Geometry | `no_line_of` | n = 3 | Built | 12% | Simple |
+| R11 | At least 2 cells from any red | Geometry | `min_distance_from` | colour = red, n = 2 | Built | 74% | Intermediate |
 | R12 | Diagonal check | Geometry | `diagonal_check` | – | Idea | – | – |
 | R13 | Must touch an existing ball | Connection | `must_touch` | ball = any_ball | Built | 12% | Simple |
-| R14 | Must join your own group | Connection | `must_touch` | ball = my_ball | Built | 24% | Simple |
+| R14 | Must join your own group | Connection | `must_touch` | ball = my_ball | Built | 24% | Intermediate |
 | R15 | Only in a row numbered higher than your last ball's row | Relative position | `relative_to_last` | direction = higher | Built | 54% | Hardcore |
 | R16 | Only in a row numbered lower than your last ball's row | Relative position | `relative_to_last` | direction = lower | Built | 54% | Hardcore |
 | R17 | Must touch the next colour in yellow → blue → red → green | Colour order | `must_touch` | ball = next_colour (cycle Y→B→R→G) | Built | 39% | Hardcore |
 | R18 | Only cells with 2+ empty neighbours | Space | `min_empty_neighbours` | n = 2 | Built | 31% | Simple |
 | R19 | Never fill a row completely | Space | `never_fill_axis` | axis = row | Built | 17% | Simple |
-| R20 | On your odd turns, edge only | Time | `zone_on_turn_parity` | parity = odd, zone = edge | Built | 24% | Simple |
-| R21 | For your first 5 turns, only rows 3 and 4 | Time | `rows_for_first_turns` | turns = 5, from = 3, to = 4 | Built | 18% | Simple |
+| R20 | On your odd turns, edge only | Time | `zone_on_turn_parity` | parity = odd, zone = edge | Built | 24% | Intermediate |
+| R21 | For your first 5 turns, only rows 3 and 4 | Time | `rows_for_first_turns` | turns = 5, from = 3, to = 4 | Built | 18% | Intermediate |
 | R22 | After any skip, must touch one of your own balls | Game state | `touch_mine_after_skips` | skips = 1 | Built | 9% | Simple |
 | R23 | Never next to the opponent's last ball | Opponent-aware | `not_next_to` | ball = opponent_last_ball | Built | 17% | Simple |
 

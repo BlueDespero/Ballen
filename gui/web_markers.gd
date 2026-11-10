@@ -25,12 +25,16 @@ static func scene_line(scene_name: String) -> String:
 	return line("scene=" + scene_name)
 
 
-static func match_started_line(player_goes_first: bool) -> String:
-	return line("match_started", {"first": "player" if player_goes_first else "ai"})
+static func match_started_line(player_goes_first: bool, ai_level: String) -> String:
+	return line("match_started", {"level": ai_level, "first": "player" if player_goes_first else "ai"})
 
 
 static func ball_placed_line(by_player: bool, cell: Vector2i) -> String:
 	return line("ball_placed", {"by": "player" if by_player else "ai", "cell": "%d,%d" % [cell.x, cell.y]})
+
+
+static func colour_picked_line(by_player: bool, colour: String) -> String:
+	return line("colour_picked", {"by": "player" if by_player else "ai", "colour": colour})
 
 
 static func deck_saved_line(deck_name: String) -> String:
@@ -57,8 +61,9 @@ func _ready() -> void:
 	if not OS.has_feature("web"):
 		return
 	get_tree().scene_changed.connect(_print_scene)
-	EventBus.match_started.connect(func(first: bool) -> void: print(match_started_line(first)))
+	EventBus.match_started.connect(func(first: bool, ai_level: String) -> void: print(match_started_line(first, ai_level)))
 	EventBus.ball_placed.connect(func(by_player: bool, cell: Vector2i) -> void: print(ball_placed_line(by_player, cell)))
+	EventBus.colour_picked.connect(func(by_player: bool, colour: String) -> void: print(colour_picked_line(by_player, colour)))
 	EventBus.deck_saved.connect(func(deck_name: String) -> void: print(deck_saved_line(deck_name)))
 	EventBus.decks_listed.connect(func(deck_names: Array[String]) -> void: print(decks_line(deck_names)))
 	EventBus.secret_rule_picked.connect(

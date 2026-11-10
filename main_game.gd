@@ -184,11 +184,13 @@ func _on_start_requested(deck: Deck, level: AILevel.Level, secret_rule: Rule) ->
 	var player_goes_first: bool = view.position.first_player == HUMAN
 	_show_status(TurnPrompt.new("You go first." if player_goes_first else "The AI goes first."))
 	await _setup_screen.show_coin_toss(player_goes_first, is_rematch)
-	var controllers: Array[Controller] = [_human, AIController.for_level(_setup.ai_level(), _rng)]
+	var ai: AIController = AIController.for_level(_setup.ai_level(), _rng)
+	ai.think_limit_msec = AIController.HARD_THINK_LIMIT_MSEC
+	var controllers: Array[Controller] = [_human, ai]
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
 	_redraw_from_match()
-	EventBus.match_started.emit(player_goes_first)
+	EventBus.match_started.emit(player_goes_first, AILevel.title(_setup.ai_level()).to_lower())
 	_driver.run()
 
 
@@ -270,6 +272,8 @@ func _on_match_changed() -> void:
 			await _show_skip(event)
 		if event.type == HistoryEntry.Type.PLACEMENT:
 			EventBus.ball_placed.emit(event.player == HUMAN, event.cell)
+		elif event.type == HistoryEntry.Type.COLOUR_PICK:
+			EventBus.colour_picked.emit(event.player == HUMAN, event.colour)
 		elif event.type == HistoryEntry.Type.GUESS:
 			EventBus.guessed.emit(event.player == HUMAN, _match.turn(), event.right)
 	_history.busy = false
