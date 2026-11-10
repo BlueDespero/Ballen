@@ -15,6 +15,10 @@ extends Control
 ## colour pick, Guess or Seal, Live, or stepping past the latest turn) return
 ## to the live board. The AI playing on meanwhile leaves the past board on show
 ## and lights up Live.
+##
+## Back (Escape, or Android's back button) during a match, from the coin toss
+## to the last move, asks "Leave this match?"; leaving goes to the main menu
+## and records nothing. The setup and match-end screens take back themselves.
 
 const HUMAN: int = MatchSetup.PLAYER
 const AI: int = MatchSetup.AI
@@ -35,7 +39,11 @@ const HINT_CORNERS: Dictionary[String, Vector2] = {
 	GameSettings.HINT_COLOUR_PICK: Vector2(704, 628),
 	GameSettings.HINT_WATCH_AI: Vector2(736, 112),
 }
+## The layout's built size; it shrinks to fit a smaller screen (one inset
+## for a camera cutout), centred.
+const LAYOUT_SIZE: Vector2 = Vector2(1280, 720)
 
+@onready var _layout: Control = $Layout
 @onready var _board_view: BoardView = %Board
 @onready var _player_ball: BallView = %PlayerBall
 @onready var _ai_ball: BallView = %AIBall
@@ -49,6 +57,7 @@ const HINT_CORNERS: Dictionary[String, Vector2] = {
 @onready var _setup_screen: MatchSetupScreen = %MatchSetup
 @onready var _match_end: MatchEndOverlay = %MatchEnd
 @onready var _history_nav: HistoryNav = %HistoryNav
+@onready var _leave_dialog: LeaveMatchDialog = %LeaveMatch
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _book: RuleBook = RuleBook.load_default()
@@ -89,8 +98,13 @@ func _ready() -> void:
 	_history_nav.forward_pressed.connect(_step_forward)
 	add_child(_cue)
 	$Layout.add_child(_coach)
+	# Above the cue, which is added after the scene's own nodes.
+	move_child(_leave_dialog, -1)
+	_leave_dialog.leave_confirmed.connect(_on_main_menu_requested)
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
+	resized.connect(_fit_layout)
+	_fit_layout()
 	_show_setup()
 
 
@@ -98,6 +112,16 @@ func _exit_tree() -> void:
 	if _driver != null:
 		_driver.stop()
 	_human.choose(null)
+
+
+## How much the layout shrinks to fit a screen of this size: never grows.
+static func layout_scale(screen_size: Vector2) -> float:
+	return minf(1.0, minf(screen_size.x / LAYOUT_SIZE.x, screen_size.y / LAYOUT_SIZE.y))
+
+
+func _fit_layout() -> void:
+	_layout.pivot_offset = LAYOUT_SIZE / 2.0
+	_layout.scale = Vector2.ONE * layout_scale(size)
 
 
 ## Passes the player's settings (the Settings autoload) on to the views.
@@ -117,6 +141,7 @@ func _apply_settings() -> void:
 	_setup_screen.text_scale = Settings.text_scale()
 	TextScale.apply(_match_end, Settings.text_scale())
 	TextScale.apply(_coach, Settings.text_scale())
+	TextScale.apply(_leave_dialog, Settings.text_scale())
 
 
 ## An empty board under the match setup screen: a new match draws the AI's
@@ -281,6 +306,14 @@ func _show_skip(skip: HistoryEntry) -> void:
 ## The player's waiting ball under the board, or the AI's above it.
 func _waiting_ball(player: int) -> BallView:
 	return _player_ball if player == HUMAN else _ai_ball
+
+
+## Back reaches here only during a match: the setup and match-end screens and
+## the open dialog take it first.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_leave_dialog.open()
 
 
 ## Pressing your ball while a past board is on show is an action: back to the

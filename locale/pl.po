@@ -618,3 +618,28 @@ msgstr "Po każdym pominięciu musi stykać się z Twoją kulą"
 
 msgid "Never next to the opponent's last ball"
 msgstr "Nigdy obok ostatniej kuli przeciwnika"
+
+# Leaving a match
+
+msgid "Leave this match?"
+msgstr "Opuścić ten mecz?"
+
+msgid "The match ends here without a result."
+msgstr "Mecz kończy się tutaj bez wyniku."
+
+msgid "Stay"
+msgstr "Zostań"
+
+msgid "Leave"
+msgstr "Wyjdź"
+
+# Privacy (Settings > Credits)
+
+msgid "Privacy"
+msgstr "Prywatność"
+
+msgid "Ballen collects no data. Your settings and decks stay on this device."
+msgstr "Ballen nie zbiera żadnych danych. Twoje ustawienia i talie zostają na tym urządzeniu."
+
+msgid "Privacy policy"
+msgstr "Polityka prywatności"

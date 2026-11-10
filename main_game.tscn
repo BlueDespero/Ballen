@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://j82ghhnsoume"]
+[gd_scene load_steps=11 format=3 uid="uid://j82ghhnsoume"]
 
 [ext_resource type="Script" uid="uid://2lk7otc6o7ex" path="res://main_game.gd" id="1_game"]
 [ext_resource type="Script" uid="uid://c4ypi10kpqevf" path="res://gui/board_view.gd" id="2_board"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://gui/match_setup_screen.tscn" id="6_setup"]
 [ext_resource type="PackedScene" path="res://gui/match_end_overlay.tscn" id="7_end"]
 [ext_resource type="Script" path="res://gui/history_nav.gd" id="8_history"]
+[ext_resource type="PackedScene" path="res://gui/leave_match_dialog.tscn" id="9_leave"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_side"]
 font_size = 20
@@ -189,3 +190,7 @@ offset_bottom = 704.0
 [node name="MatchSetup" parent="Layout" instance=ExtResource("6_setup")]
 unique_name_in_owner = true
 layout_mode = 0
+
+[node name="LeaveMatch" parent="." instance=ExtResource("9_leave")]
+unique_name_in_owner = true
+layout_mode = 1

@@ -19,6 +19,7 @@ config/version="0.3.0"
 run/main_scene="uid://dkeh6trij7nd7"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon/icon.png"
+config/quit_on_go_back=false
 
 [autoload]
 
@@ -28,6 +29,8 @@ Settings="*res://game_settings.gd"
 WebMarkers="*res://gui/web_markers.gd"
 RotateHint="*res://gui/rotate_hint.gd"
 SymbolFont="*res://gui/symbol_font.gd"
+BackButton="*res://gui/back_button.gd"
+SafeArea="*res://gui/safe_area.gd"
 
 [display]
 
@@ -35,6 +38,7 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [dotnet]
 
@@ -48,3 +52,5 @@ locale/translations=PackedStringArray("res://locale/pl.po")
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.11, 0.12, 0.15, 1)
+textures/vram_compression/import_etc2_astc=true

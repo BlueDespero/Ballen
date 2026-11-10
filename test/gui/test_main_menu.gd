@@ -13,11 +13,23 @@ func test_version_label_shows_the_project_version() -> void:
 	assert_eq(menu.get_node("%Version").text, "v" + version)
 
 
-# Quitting in a browser only freezes the canvas, so Quit is a desktop button.
+# Quitting in a browser only freezes the canvas, and mobile apps don't quit
+# themselves, so Quit is a desktop button.
 func test_quit_is_shown_on_desktop_only() -> void:
 	var quit_button: GDScript = preload("res://gui/menus/quit_button.gd")
-	assert_true(quit_button.is_shown(false), "desktop shows Quit")
-	assert_false(quit_button.is_shown(true), "the web hides Quit")
+	assert_true(quit_button.is_shown(false, false), "desktop shows Quit")
+	assert_false(quit_button.is_shown(true, false), "the web hides Quit")
+	assert_false(quit_button.is_shown(false, true), "phones and tablets hide Quit")
+
+
+# Android's back button on the first screen closes the app; Escape on desktop
+# leaves that to Quit, and quitting on the web only freezes the canvas.
+func test_back_closes_the_app_in_the_mobile_apps_only() -> void:
+	var main_menu: GDScript = preload("res://gui/menus/main_menu.gd")
+	assert_true(main_menu.closes_on_back(false, true), "phone and tablet apps")
+	assert_false(main_menu.closes_on_back(false, false), "desktop")
+	assert_false(main_menu.closes_on_back(true, false), "web")
+	assert_false(main_menu.closes_on_back(true, true), "web on a phone")
 
 
 # A web page's canvas starts tiny and grows after the menu is ready, which

@@ -30,7 +30,10 @@ Use Godot 4 APIs and syntax only — never Godot 3 (e.g. `await` not `yield`,
   (`gui/web_markers.gd`: in web builds only, prints `[ballen] …` console markers for the web tests, from scene
   changes and `EventBus` signals, including playtest measures: secret-rule pick time, guess turns, early Guess presses), `RotateHint` (`gui/rotate_hint.gd`: covers the screen and blocks input while it
   is taller than wide), `SymbolFont` (`gui/symbol_font.gd`: adds the bundled Noto Sans Symbols as a fallback of the
-  default font, for arrows the web build has no system font for). Turn state lives in the match.
+  default font, for arrows the web build has no system font for), `BackButton` (`gui/back_button.gd`: turns
+  Android's back gesture into a `ui_cancel` press, so each screen's Escape handler serves back), `SafeArea`
+  (`gui/safe_area.gd`: in the phone and tablet apps, insets the current scene to the display's safe area, clear of the
+  camera cutout). Turn state lives in the match.
 
 ## Tests
 
@@ -88,6 +91,22 @@ cd web-test; npm ci; npx playwright install; npx playwright test
 
 `serve.mjs` serves `build/web` on port 8137 (`PORT` to change it); `--project=desktop-chrome` runs one browser.
 
+## Android export
+
+The "Android" preset builds an App Bundle with Gradle for Google Play: package `io.github.bluedespero.ballen`, target
+SDK 36 (Godot's default), no permissions, landscape. It needs JDK 17+, the Android SDK (platform 36, build-tools
+36.1.0, NDK 29.0.14206865) set in Editor Settings (`export/android/android_sdk_path`), and the Android export
+templates. From the repo root, after the import step:
+
+```powershell
+New-Item -ItemType Directory -Force build/android > $null; godot --headless --path . --install-android-build-template --export-release "Android" build/android/ballen.aab
+```
+
+`--install-android-build-template` unpacks the Gradle project into `android/` (gitignored). A release build is signed
+with the upload key, given by the environment variables `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `_USER` and
+`_PASSWORD`; never commit a keystore. `--export-debug` signs with the debug keystore instead. The plan for the Play
+release is `docs/milestones/06-android-release.md`.
+
 ## CI
 
 `.github/workflows/ci.yml`, on GitHub Actions (Godot 4.7.1 on Linux):
@@ -98,6 +117,11 @@ Every pull request and every push to `master` runs:
   level pairing (`--levels normal,easy`).
 - `web`, after `test`: stamps `config/version` with `+<short sha>`, exports Web and runs the web tests in all four
   browsers. A failure uploads the Playwright report as an artifact.
+- `android`, after `test`: installs the Android SDK packages Godot's Gradle build uses, stamps the version (name
+  `+<short sha>`, code the workflow run number), exports the App Bundle and checks it with
+  `.github/scripts/check_aab.sh` (package, target SDK 36, min SDK 24, version code, no permissions, 16 KB aligned
+  arm64 libraries). On `master` with the upload key set it uploads the signed bundle as the artifact
+  `android-bundle`, to upload to Google Play by hand; otherwise a throwaway key signs it and nothing is kept.
 - `deploy`, on `master` only, after `web`: `butler push build/web <ITCH_GAME>:html5` with the build `web` tested.
 
 `.github/workflows/ai-gates.yml` runs the AI level gates nightly and on demand (Actions tab, "AI gates", with a match
@@ -105,6 +129,13 @@ count): 1000 seeded matches per pairing, Normal beating Easy in at least 65% of 
 
 Deploy needs, under the repo's Settings > Secrets and variables > Actions: the secret `BUTLER_API_KEY` (an itch.io
 API key) and the variable `ITCH_GAME` (`user/game`). Without them its first step fails and names what is missing.
+
+The Android upload key goes in three secrets: `ANDROID_KEYSTORE_BASE64` (the keystore file, base64), `ANDROID_KEY_ALIAS`
+and `ANDROID_KEYSTORE_PASSWORD` (one password for the keystore and the key, as Godot passes one). Make it once with
+`keytool -genkeypair -keystore upload.keystore -storetype PKCS12 -alias upload -keyalg RSA -keysize 2048 -validity
+10000`, encode it with `base64 -w0 upload.keystore` (Git Bash), keep the file and password safe outside the repo, and
+register it in the Play Console under Play App Signing. Without the secrets `android` still passes on `master` but warns
+that its bundle can't be uploaded.
 
 ## Commits
 

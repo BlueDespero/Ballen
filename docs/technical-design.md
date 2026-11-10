@@ -426,7 +426,9 @@ what the build reaches and ships is in [release-audit.md](release-audit.md).
     (Start on the setup screen), `guess by=player turn=5 right=false` and `guess_blocked` (Guess pressed
     before selecting a rule). They stay in the browser console; nothing is sent anywhere.
   - `RotateHint` covers the screen with "Rotate your device" and takes input while the screen is taller than
-    wide (`RotateHint.should_show(size)`), in every build, until the portrait layout exists.
+    wide (`RotateHint.should_show(size)`), in every build, until the portrait layout exists. The phone and tablet
+    apps lock to landscape either way round (`display/window/handheld/orientation`), so there it only shows in a
+    window that is still tall, such as split screen.
   - `SymbolFont` adds the bundled Noto Sans Symbols as a fallback of the default font: the web has no system fonts
     for the rule texts' arrows.
 - **Touch:** every tap target is at least 44 px at 1280×720; small glyphs (✗, ◀ ▶) are drawn, not typed.

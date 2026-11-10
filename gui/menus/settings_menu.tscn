@@ -229,6 +229,24 @@ size_flags_horizontal = 0
 text = "godotengine.org/license"
 uri = "https://godotengine.org/license"
 
+[node name="PrivacyTitle" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Privacy"
+
+[node name="Privacy" type="Label" parent="Centre/CreditsCard/Content"]
+layout_mode = 2
+text = "Ballen collects no data. Your settings and decks stay on this device."
+autowrap_mode = 3
+
+[node name="PrivacyLink" type="LinkButton" parent="Centre/CreditsCard/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Privacy policy"
+uri = "https://bluedespero.github.io/Ballen/privacy-policy.html"
+
 [node name="Buttons" type="HBoxContainer" parent="Centre/CreditsCard/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16

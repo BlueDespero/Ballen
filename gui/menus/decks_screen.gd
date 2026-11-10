@@ -6,6 +6,10 @@ extends Control
 ## (after a confirm); the built-in Starter can only be copied. New deck and
 ## Edit open the deck editor over this screen. Back (or Escape) returns to the
 ## main menu.
+##
+## On a phone the on-screen keyboard comes up under the Rename dialog's name
+## field and would cover it, so the dialog centres itself in the space above
+## the keyboard while it is up.
 
 const MAIN_MENU_SCENE: String = "res://main.tscn"
 const EDITOR_SCENE: PackedScene = preload("res://gui/menus/deck_editor.tscn")
@@ -24,6 +28,7 @@ var store_path: String = DeckStore.DEFAULT_PATH
 
 @onready var _deck_list: VBoxContainer = %DeckList
 @onready var _dialog: Control = %Dialog
+@onready var _dialog_centre: Control = %Dialog.get_node("Centre")
 @onready var _dialog_title: Label = %DialogTitle
 @onready var _dialog_message: Label = %DialogMessage
 @onready var _dialog_name: LineEdit = %DialogName
@@ -73,6 +78,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close_dialog()
 	else:
 		_on_back_pressed()
+
+
+func _process(_delta: float) -> void:
+	if (_dialog.visible and _dialog_name.visible
+			and DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD)):
+		_fit_dialog_above(keyboard_height(DisplayServer.virtual_keyboard_get_height(),
+			DisplayServer.window_get_size().y, get_viewport_rect().size.y))
+
+
+## The on-screen keyboard's height in the viewport: keyboard_px is in screen
+## pixels, which the stretch mode scales from the window's height to the
+## viewport's visible height. 0 with no keyboard (desktop, web).
+static func keyboard_height(keyboard_px: int, window_height: int, visible_height: float) -> float:
+	if keyboard_px <= 0 or window_height <= 0:
+		return 0.0
+	return keyboard_px * visible_height / window_height
+
+
+## Centres the dialog in the space above a keyboard this tall.
+func _fit_dialog_above(keyboard: float) -> void:
+	_dialog_centre.offset_bottom = -keyboard
 
 
 func _on_back_pressed() -> void:
@@ -207,6 +233,7 @@ func _on_dialog_confirmed() -> void:
 
 func _close_dialog() -> void:
 	_dialog.visible = false
+	_fit_dialog_above(0.0)
 	_dialog_name.release_focus()
 
 

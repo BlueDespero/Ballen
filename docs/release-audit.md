@@ -1,7 +1,8 @@
-# Release audit: web build 0.2.0
+# Release audit: web build 0.2.0 and Android build
 
 What the itch.io web build does and ships, checked against the code on `web-release` (Godot 4.7.1, the "Web"
-preset in `export_presets.cfg`). Re-run the checklist at the end before each public release.
+preset in `export_presets.cfg`), and what the Google Play build adds ("Android build" below). Re-run the checklist at
+the end before each public release.
 
 ## Network
 
@@ -9,8 +10,9 @@ None. The game's code (everything outside `addons/`, `test/`, `harness/` and `.c
 `HTTPClient`, `StreamPeer*`, `PacketPeer*`, `TCPServer`, `UDPServer`, `WebSocket*`, `WebRTC*`, ENet or
 `MultiplayerPeer`, and no `JavaScriptBridge` or `OS.shell_open`.
 
-The one way out is the player's own click: the Credits card's two `LinkButton`s (`gui/menus/settings_menu.tscn`)
-open `https://www.kenney.nl` and `https://godotengine.org/license`, which on the web opens a new browser tab.
+The one way out is the player's own click: the Credits card's three `LinkButton`s (`gui/menus/settings_menu.tscn`)
+open `https://www.kenney.nl`, `https://godotengine.org/license` and the privacy policy
+(`https://bluedespero.github.io/Ballen/privacy-policy.html`, from `site/`), which on the web opens a new browser tab.
 
 ## File access
 
@@ -45,6 +47,8 @@ holds none of it.
 | `WebMarkers` | `gui/web_markers.gd` | Web builds only: prints `[ballen] …` console lines on scene changes and key events for the web tests, and playtest measures (secret-rule pick time, guess turns, early Guess presses) to the browser console only. Does nothing elsewhere. |
 | `RotateHint` | `gui/rotate_hint.gd` | A top `CanvasLayer` that covers the screen and takes input while the screen is taller than wide. |
 | `SymbolFont` | `gui/symbol_font.gd` | Adds the bundled Noto Sans Symbols as a fallback of the default font (the web has no system fonts for ← →). |
+| `BackButton` | `gui/back_button.gd` | Turns Android's go-back request into a `ui_cancel` press (Escape). Never fires on the web, where browsers send no go-back request. |
+| `SafeArea` | `gui/safe_area.gd` | Phone and tablet apps only: insets the current scene to the display's safe area (clear of the camera cutout). Does nothing on the web. |
 
 ## What the export contains
 
@@ -91,6 +95,32 @@ Shown in the game under Options → Credits → Licences and listed in `THIRD_PA
   which the OFL forbids only for Reserved Font Names, and Noto declares none.
 - **GUT:** MIT, development only, not shipped.
 
+## Android build
+
+The "Android" preset (`export_presets.cfg`) builds an App Bundle for Google Play with Gradle; CI's `android` job
+builds and checks it (`.github/scripts/check_aab.sh`). Checked on 9 November 2026 with an unsigned APK export of the
+same preset (no Gradle: this machine can't reach the Android SDK downloads):
+
+- **Manifest:** package `io.github.bluedespero.ballen`, version name from `config/version`, min SDK 24, target SDK 36,
+  `isGame`, `allowBackup="false"`, orientation `userLandscape` (both landscape directions, following the player's
+  rotation lock).
+- **Permissions:** none. The preset turns them all off; Godot adds INTERNET only to debug builds for remote debugging.
+  AndroidX may declare its app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, which prompts nothing and Play
+  doesn't list.
+- **Native libraries:** `libgodot_android.so` and `libc++_shared.so` for `arm64-v8a` and `armeabi-v7a`; the 64-bit
+  ones are aligned to 16 KB pages (LOAD alignment `0x4000`), as Play requires. The preset packs them uncompressed.
+- **Size:** the two-architecture APK is 55 MB, of which the game's files are 9.4 MB uncompressed; Play's per-device
+  APKs from the bundle carry one architecture.
+- **Game files:** the same filter as Web, minus the store-only icons (`assets/icon/android/`) and the Gradle project
+  (`android/`); no `test/`, `harness/`, `addons/`, `docs/` or `site/` files.
+- **Launcher icons:** the adaptive foreground, background and monochrome layers and the 192 px legacy icon from
+  `assets/icon/android/`.
+- **Storage:** `user://` is the app's private storage (`/data/data/io.github.bluedespero.ballen/files`): kept across
+  updates, deleted on uninstall, not backed up (`user_data_backup/allow=false`).
+- **Network and links:** as on the web: no network code; the Credits links open the browser.
+- **Mobile-only autoloads:** `BackButton` (back steps back; the main menu closes the app) and `SafeArea` (clear of
+  the camera cutout).
+
 ## Known gaps
 
 - **Firefox is not tested locally:** Playwright's Firefox won't launch on the Windows dev machine. CI runs the web
@@ -105,6 +135,11 @@ Shown in the game under Options → Credits → Licences and listed in `THIRD_PA
 - **No real devices yet:** every phone run so far is an emulated Playwright device. Ideas for later: a device farm
   or an Android emulator.
 - **Download size:** about 42 MB, nearly all the engine's `.wasm`; the first load on a phone connection is slow.
+- **Android not yet on a device:** the bundle hasn't been installed on a phone or tablet; the safe-area inset, the
+  keyboard above the Rename dialog and the back button are checked in tests and on a simulated cutout only. Ticket 12
+  of `docs/milestones/06-android-release.md` is the device check.
+- **CI's `android` job hasn't run yet:** it runs on the first pull request; until then the Gradle build itself is
+  untested.
 
 ## Re-check before each public release
 
@@ -121,4 +156,7 @@ Shown in the game under Options → Credits → Licences and listed in `THIRD_PA
 - [ ] The GUT suite and the web tests pass in all four projects (CI's `deploy` job).
 - [ ] On the live page: it loads, the version label matches, a saved deck survives a reload, the rotate hint
       shows in portrait, and the console has no new errors.
+- [ ] Android: CI's `android` job passed for the release commit and its bundle was signed with the upload key (the
+      artifact `android-bundle` exists); the version code is higher than the last one uploaded to Play.
+- [ ] Android: the privacy policy page is live and still true.
 - [ ] Re-read Known gaps: close what's fixed, add what's new.

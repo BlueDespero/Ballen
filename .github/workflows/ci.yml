@@ -1,7 +1,9 @@
 # Tests every pull request and every push to master: GUT and the harness, then
-# a Web export run through the Playwright tests. On master, the tested build is
-# also pushed to itch.io. Deploy needs the repository secret BUTLER_API_KEY and
-# variable ITCH_GAME (e.g. "user/ballen"); see CLAUDE.md, "CI".
+# a Web export run through the Playwright tests, and an Android App Bundle
+# built and checked. On master, the tested web build is also pushed to itch.io,
+# and the bundle signed with the upload key is kept for Google Play. Deploy
+# needs the repository secret BUTLER_API_KEY and variable ITCH_GAME (e.g.
+# "user/ballen"); the upload key, three ANDROID_* secrets. See CLAUDE.md, "CI".
 name: CI
 
 on:
@@ -176,6 +178,160 @@ jobs:
           name: web-build
           path: build/web/
           retention-days: 7
+
+  # Builds the Android App Bundle for Google Play and checks it (package,
+  # target SDK, permissions, 16 KB alignment). On master it is signed with the
+  # upload key from secrets, if set, and kept as an artifact to upload to Play
+  # by hand; otherwise a throwaway key signs it, which only proves the build.
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ANDROID_PLATFORM: android-36
+      ANDROID_BUILD_TOOLS: 36.1.0
+      ANDROID_NDK: 29.0.14206865
+      BUNDLETOOL_VERSION: 1.18.3
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          zip="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          mkdir -p ~/godot-download ~/godot
+          cd ~/godot-download
+          curl -fsSL -o "$zip" "$GODOT_RELEASE_URL/$zip"
+          curl -fsSL -o SHA512-SUMS.txt "$GODOT_RELEASE_URL/SHA512-SUMS.txt"
+          grep " $zip\$" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "$zip"
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/godot/godot
+          chmod +x ~/godot/godot
+
+      - name: Add Godot to PATH
+        run: echo "$HOME/godot" >> "$GITHUB_PATH"
+
+      # Only the Android templates are kept: the full .tpz is over 1 GB.
+      - name: Cache export templates
+        id: cache-templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-templates-${{ env.GODOT_VERSION }}-android
+
+      - name: Install export templates
+        if: steps.cache-templates.outputs.cache-hit != 'true'
+        run: |
+          tpz="Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          dest="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p ~/templates-download "$dest"
+          cd ~/templates-download
+          curl -fsSL -o "$tpz" "$GODOT_RELEASE_URL/$tpz"
+          curl -fsSL -o SHA512-SUMS.txt "$GODOT_RELEASE_URL/SHA512-SUMS.txt"
+          grep " $tpz\$" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q -j -o "$tpz" 'templates/android_*' 'templates/version.txt' -d "$dest"
+          rm "$tpz"
+          ls "$dest"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # The runner image has the Android SDK; add the versions Godot's Gradle
+      # build uses (platform/android/java/app/config.gradle in Godot's source).
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses > /dev/null || true
+          "$sdkmanager" --install "platform-tools" "platforms;$ANDROID_PLATFORM" \
+            "build-tools;$ANDROID_BUILD_TOOLS" "ndk;$ANDROID_NDK" > /dev/null
+          ls "$ANDROID_HOME/build-tools"
+
+      - name: Import project
+        run: godot --headless --path . --import || echo "Import exited with $?."
+
+      - name: Point Godot at the SDK
+        run: |
+          settings="$HOME/.config/godot/editor_settings-4.7.tres"
+          if [ ! -f "$settings" ]; then
+            mkdir -p "$(dirname "$settings")"
+            printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' > "$settings"
+          fi
+          sed -i '/^export\/android\/android_sdk_path/d; /^export\/android\/java_sdk_path/d' "$settings"
+          printf 'export/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\n' \
+            "$ANDROID_HOME" "$JAVA_HOME" >> "$settings"
+
+      # Version name 0.3.0+<short sha>; version code the run number, which
+      # grows with every run as Play requires of each upload.
+      - name: Stamp version
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CODE: ${{ github.run_number }}
+        run: |
+          short="${SHA::7}"
+          sed -i -E "s/^config\/version=\"([^\"+]+)\"/config\/version=\"\1+${short}\"/" project.godot
+          sed -i -E "s/^version\/code=[0-9]+$/version\/code=${CODE}/" export_presets.cfg
+          grep -q "^version/code=${CODE}$" export_presets.cfg || { echo "::error::Could not set version/code."; exit 1; }
+          echo "Version $(sed -n -E 's/^config\/version="([^"]+)"/\1/p' project.godot), code $CODE"
+
+      # The upload key comes from secrets on master. Without them (pull
+      # requests, or before the key is added) a throwaway key signs the build.
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ON_MASTER: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          keystore="$RUNNER_TEMP/release.keystore"
+          if [ "$ON_MASTER" = "true" ] && [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "UPLOAD_SIGNED=true" >> "$GITHUB_ENV"
+          else
+            if [ "$ON_MASTER" = "true" ]; then
+              echo "::warning::ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD or ANDROID_KEY_ALIAS is not set, so this bundle is signed with a throwaway key and can't be uploaded to Google Play. See CLAUDE.md, \"CI\"."
+            fi
+            password="$(openssl rand -hex 16)"
+            echo "::add-mask::$password"
+            keytool -genkeypair -keystore "$keystore" -storetype PKCS12 -alias ci -keyalg RSA -keysize 2048 \
+              -validity 1 -storepass "$password" -dname "CN=Ballen CI" > /dev/null
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=ci" >> "$GITHUB_ENV"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$password" >> "$GITHUB_ENV"
+            echo "UPLOAD_SIGNED=false" >> "$GITHUB_ENV"
+          fi
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$keystore" >> "$GITHUB_ENV"
+
+      - name: Export Android
+        run: |
+          mkdir -p build/android
+          godot --headless --path . --install-android-build-template --export-release "Android" build/android/ballen.aab
+          test -f build/android/ballen.aab
+
+      - name: Check the bundle
+        run: |
+          jar="$RUNNER_TEMP/bundletool.jar"
+          curl -fsSL -o "$jar" "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          echo "$BUNDLETOOL_SHA256  $jar" | sha256sum -c -
+          .github/scripts/check_aab.sh build/android/ballen.aab "$jar" "${{ github.run_number }}"
+
+      - name: Upload bundle
+        if: env.UPLOAD_SIGNED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-bundle
+          path: build/android/ballen.aab
+          retention-days: 30
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
