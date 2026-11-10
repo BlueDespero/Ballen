@@ -190,16 +190,16 @@ func _describe(command: Command) -> String:
 
 func test_with_a_thinking_limit_hard_settles_for_what_it_has() -> void:
 	var hard: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
-	hard.think_limit_msec = 1
+	hard.think_limit_msec = 30
 	var current_match: Match = _match()
 	var view: PublicView = current_match.public_view(AI)
-	var steps: int = 1
-	var command: Command = hard.think_step(view, 1)
+	var started: int = Time.get_ticks_msec()
+	var command: Command = hard.think_step(view, Time.get_ticks_msec() + 5)
 	while hard.is_thinking():
-		steps += 1
-		command = hard.think_step(view, 1)
-	assert_lt(steps, 20, "far fewer steps than its 32 + 32 playouts")
+		command = hard.think_step(view, Time.get_ticks_msec() + 5)
+	assert_lt(Time.get_ticks_msec() - started, 2000, "settles soon after its 30 ms a choice, not after 64 playouts")
 	assert_not_null(command)
+	assert_ne(command.type, Command.Type.GUESS, "a few playouts are no reason to bet the match on a 1-in-5 guess")
 	assert_true(current_match.submit(AI, command))
 
 

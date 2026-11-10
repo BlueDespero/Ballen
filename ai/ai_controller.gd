@@ -30,8 +30,8 @@ const HARD_GUESS_PLAYOUTS: int = 32
 const HARD_PLACEMENT_CANDIDATES: int = 4
 const HARD_PLACEMENT_PLAYOUTS: int = 8
 ## How long Hard may think about one decision in the scene, in milliseconds
-## (GDD: up to 5 s a choice, and a turn can hold three). In Chrome a decision
-## takes about 2 s on average with no limit.
+## (GDD: up to 5 s a choice): the guess and the placement each get this long.
+## In Chrome a decision takes about 2 s on average with no limit.
 const HARD_THINK_LIMIT_MSEC: int = 2500
 
 var _rng: RandomNumberGenerator
@@ -52,6 +52,10 @@ var _thinks_in_steps: bool = false
 var _thinking: bool = false
 var _guess_weighed: bool = false
 var _thought_msec: int = 0
+## When the decision started and when its guess was weighed (-1 before), by
+## the wall clock: the thinking limits count the frames in between too.
+var _decision_started: int = 0
+var _guess_done_at: int = -1
 ## In the scene, how long a decision may think before it settles for what it
 ## has (0: no limit, as in the harness, so a seeded match always plays the same).
 var think_limit_msec: int = 0
@@ -152,6 +156,8 @@ func is_thinking() -> bool:
 func think_step(view: PublicView, deadline_msec: int) -> Command:
 	var started: int = Time.get_ticks_msec()
 	if not _thinking:
+		_decision_started = started
+		_guess_done_at = -1
 		_belief.update(view)
 		_exposure.update(view)
 		_action_closeness = 0.0
@@ -160,12 +166,14 @@ func think_step(view: PublicView, deadline_msec: int) -> Command:
 		_guess_weighed = false
 	_guess_policy.deadline_msec = deadline_msec
 	_placement.deadline_msec = deadline_msec
-	var out_of_time: bool = think_limit_msec > 0 and _thought_msec >= think_limit_msec
-	_guess_policy.must_finish = out_of_time
-	_placement.must_finish = out_of_time
+	# Each of the two choices (whether to guess, then where to place) gets its
+	# own thinking limit, by the wall clock.
+	var placement_started: int = _guess_done_at if _guess_done_at >= 0 else _decision_started
+	_guess_policy.must_finish = think_limit_msec > 0 and started - _decision_started >= think_limit_msec
+	_placement.must_finish = think_limit_msec > 0 and started - placement_started >= think_limit_msec
 	var command: Command = _decide(view)
 	_thinking = _guess_policy.is_pending() or _placement.is_pending()
-	_thought_msec += Time.get_ticks_msec() - started
+	_thought_msec = Time.get_ticks_msec() - _decision_started
 	return null if _thinking else command
 
 
@@ -175,6 +183,7 @@ func _decide(view: PublicView) -> Command:
 		if _guess_policy.is_pending():
 			return null
 		_guess_weighed = true
+		_guess_done_at = Time.get_ticks_msec()
 		_guess_closeness = _guess_policy.last_closeness
 		if guess != null:
 			return Command.guess(guess.id)
