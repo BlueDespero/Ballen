@@ -16,12 +16,15 @@ var holder: int
 var position: MatchPosition
 
 
-func _init(p_position: MatchPosition, p_holder: int, p_colour: String, p_target: Vector2i) -> void:
+## p_board, if given, is the board after the placement (it already holds the
+## new ball on the target), so a caller trying many cells can reuse one board;
+## otherwise a copy of the position's board with the new ball is made.
+func _init(p_position: MatchPosition, p_holder: int, p_colour: String, p_target: Vector2i, p_board: Board = null) -> void:
 	position = p_position
 	holder = p_holder
 	colour = p_colour
 	target = p_target
-	board = p_position.board.with_ball(p_target, Ball.new(p_colour, p_holder))
+	board = p_board if p_board != null else p_position.board.with_ball(p_target, Ball.new(p_colour, p_holder))
 
 
 ## The cell of the player's last ball (their most recent placement before this

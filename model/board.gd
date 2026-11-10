@@ -111,6 +111,13 @@ func place(cell: Vector2i, ball: Ball) -> void:
 	_balls[_index(cell)] = ball
 
 
+## Empties a cell (no-op if it is empty or off the board). For trying
+## placements on a scratch copy; a match never removes a ball.
+func remove(cell: Vector2i) -> void:
+	if contains(cell):
+		_balls[_index(cell)] = null
+
+
 func empty_cells() -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
 	for cell: Vector2i in all_cells():

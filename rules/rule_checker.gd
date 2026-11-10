@@ -14,9 +14,15 @@ static func is_legal(rule: Rule, position: MatchPosition, holder: int, colour: S
 
 
 ## The empty cells where the rule allows its holder to place a ball of this colour.
+## One scratch copy of the board serves every cell: the ball is placed on it,
+## the rule judged, and the ball lifted again (parts never keep the board).
 static func legal_cells(rule: Rule, position: MatchPosition, holder: int, colour: String) -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
+	var board: Board = position.board.copy()
+	var ball: Ball = Ball.new(colour, holder)
 	for cell: Vector2i in position.board.empty_cells():
-		if rule.passes(PlacementContext.new(position, holder, colour, cell)):
+		board.place(cell, ball)
+		if rule.passes(PlacementContext.new(position, holder, colour, cell, board)):
 			cells.append(cell)
+		board.remove(cell)
 	return cells

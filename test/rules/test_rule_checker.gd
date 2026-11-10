@@ -25,6 +25,29 @@ func _empty_position() -> MatchPosition:
 	return MatchPosition.new(Board.new())
 
 
+func test_legal_cells_agree_with_is_legal_cell_by_cell_on_random_boards() -> void:
+	# legal_cells reuses one scratch board; is_legal builds a fresh one per cell.
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7
+	for board_number: int in 6:
+		var board: Board = Board.new()
+		for cell: Vector2i in Board.all_cells():
+			if rng.randf() < 0.4:
+				board.place(cell, Ball.new(BallColour.ALL[rng.randi_range(0, 3)], rng.randi_range(0, 1)))
+		var position: MatchPosition = MatchPosition.new(board, rng.randi_range(0, 1))
+		var empty_before: Array[Vector2i] = board.empty_cells()
+		for rule_id: String in _book.rule_ids():
+			var rule: Rule = _book.rule(rule_id)
+			for colour: String in BallColour.ALL:
+				var expected: Array[Vector2i] = []
+				for cell: Vector2i in board.empty_cells():
+					if RuleChecker.is_legal(rule, position, 0, colour, cell):
+						expected.append(cell)
+				assert_eq(RuleChecker.legal_cells(rule, position, 0, colour), expected,
+					"%s %s on board %d" % [rule_id, colour, board_number])
+		assert_eq(board.empty_cells(), empty_before, "the board is unchanged")
+
+
 func test_r04_legal_cells_on_an_empty_board_are_the_inner_cells() -> void:
 	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R04"), _empty_position(), 0, BallColour.RED)
 	assert_eq(_sorted(cells), _sorted(INNER_CELLS))
