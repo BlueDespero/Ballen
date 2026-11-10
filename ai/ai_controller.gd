@@ -78,6 +78,9 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 		AILevel.Level.EASY:
 			return AIController.new(rng, GuessPolicy.new(EASY_THRESHOLD), LooseColourPick.new(), easy_model(),
 				AnyLegalPlacement.new())
+		AILevel.Level.HARD:
+			return AIController.new(rng, ValueGuessPolicy.new(), SoftmaxColourPick.new(normal_model()), normal_model(),
+				ExposurePlacement.new(normal_model()))
 		AILevel.Level.NORMAL:
 			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
 				HidingPlacement.new())
