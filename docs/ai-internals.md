@@ -514,13 +514,14 @@ affordable). Against Normal, same seeds:
 | Same, 16 playouts, for comparison with the next row | 0–399 | 225 – 173, 2 draws (56.5%) |
 | Same, 32 playouts per decision | 0–399 | 233 – 165, 2 draws (58.5%) |
 | Playout guessing (16) **and** `RolloutPlacement` (4 cells × 8 playouts) | 0–399 | 237 – 161, 2 draws (59.5%) |
+| **Gate run:** playout guessing (32) and `RolloutPlacement` (4 cells × 8 playouts) | 0–999 | **613 – 385, 2 draws (61.4%): gate met** |
 
 - **Playing the AI on as Normal undervalues waiting.** Normal hides worse than Hard, so in the playouts the opponent
   names the AI's rule more often than it does in real play, waiting looks bad, and the AI guesses early and wrong.
 - **Placement by playouts adds about 3 points** over playout guessing alone on the same seeds (59.5% against
-  56.5%): 123–76 on seeds 0–199 and 114–85 on seeds 200–399. That is just under the gate, and 400 matches is not
-  enough to say which side of 60% it is on. The next step is the 1000-match gate run of playout guessing (32) with
-  playout placement.
+  56.5%): 123–76 on seeds 0–199 and 114–85 on seeds 200–399. Over 1000 matches, with 32 playouts for guessing, it
+  meets the gate: 613–385 (61.4%, standard error about 1.5 points). The run took about 1.5 hours on 4 cores. Next:
+  `for_level(HARD)` builds this version, then frame-sliced thinking in the scene, then Hard joins `BUILT`.
 - **More playouts help a little:** 32 instead of 16 gains about 2 points on the same seeds, at twice the cost.
 - **The best version gains about 2.4 points** over the one-step estimate (standard error about 2 points over 600
   matches). Hard still loses mostly through its own wrong guesses.
