@@ -23,6 +23,7 @@ var _seed_index: int
 var _cell_total: float
 var _best: Vector2i
 var _best_total: float
+var _current: Playouts.Playout = null
 
 
 func _init(p_candidates: int = 4, p_simulations: int = 8, temper: float = 0.1) -> void:
@@ -37,10 +38,10 @@ func is_pending() -> bool:
 	return _pending
 
 
-## With a deadline it plays as many playouts as fit, at least one, and carries
+## With a deadline it plays on until then, part of a playout if need be, and carries
 ## on at the next choose() with the same view; the random draws are the same
 ## either way. When must_finish is set it picks among the cells played out in
-## full so far.
+## full so far, or the best hiding cell if none is.
 func choose(view: PublicView, exposure: Belief, rng: RandomNumberGenerator) -> Vector2i:
 	var key: int = view.position.history.size()
 	if not (_pending and key == _pending_key):
@@ -59,23 +60,30 @@ func choose(view: PublicView, exposure: Belief, rng: RandomNumberGenerator) -> V
 		_cell_total = 0.0
 		_best = _cells[0]
 		_best_total = -INF
+		_current = null
 	_pending = not _play(view)
 	return PlacementStrategy.NO_CELL if _pending else _best
 
 
-## Plays the remaining playouts, at least one, until the deadline; true once
-## every cell has been played out.
+## Plays the remaining playouts until the deadline (at least one command of
+## one); true once every cell has been played out.
 func _play(view: PublicView) -> bool:
-	var this_step: int = 0
+	var finished_one: bool = false
 	while _cell_index < _cells.size():
-		if must_finish and _cell_index > 0:
+		if must_finish:
+			_current = null
 			return true
-		if this_step > 0 and deadline_msec > 0 and Time.get_ticks_msec() >= deadline_msec:
+		if finished_one and deadline_msec > 0 and Time.get_ticks_msec() >= deadline_msec:
 			return false
-		var playout_rng: RandomNumberGenerator = RandomNumberGenerator.new()
-		playout_rng.seed = _seeds[_seed_index]
-		_cell_total += _playouts.play(view, playout_rng, _cells[_cell_index])
-		this_step += 1
+		if _current == null:
+			var playout_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+			playout_rng.seed = _seeds[_seed_index]
+			_current = _playouts.start(view, playout_rng, _cells[_cell_index])
+		if not _current.run(deadline_msec):
+			return false
+		_cell_total += _current.value
+		_current = null
+		finished_one = true
 		_seed_index += 1
 		if _seed_index == _seeds.size():
 			if _cell_total > _best_total + 1e-9:
