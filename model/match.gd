@@ -80,6 +80,22 @@ static func from_position(position: MatchPosition, decks: Array[Deck], secret_ru
 	return current_match
 
 
+## A match resumed exactly where a position stands, for looking ahead (Hard's
+## search): the position is copied and the match waits in the given phase,
+## PLACE or PICK_COLOUR, with no new turn started. Returns null (and reports an
+## error) if the setup doesn't fit or the phase can't be resumed.
+static func resume(position: MatchPosition, decks: Array[Deck], secret_rules: Array[Rule], rng: RandomNumberGenerator,
+		phase: Phase) -> Match:
+	if not _setup_is_valid(decks, secret_rules):
+		return null
+	if phase != Phase.PLACE and phase != Phase.PICK_COLOUR:
+		push_error("Match.resume: can't resume in phase %d" % phase)
+		return null
+	var current_match: Match = Match.new(position.copy(), decks, secret_rules, rng)
+	current_match._phase = phase
+	return current_match
+
+
 static func _setup_is_valid(decks: Array[Deck], secret_rules: Array[Rule]) -> bool:
 	if decks.size() != Players.COUNT or secret_rules.size() != Players.COUNT:
 		push_error("Match needs a deck and a secret rule for each of the 2 players")
