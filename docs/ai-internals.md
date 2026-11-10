@@ -69,6 +69,7 @@ These hold at every level. A change that breaks one is a bug, whatever it does t
 | `AnyLegalPlacement` | `ai/any_legal_placement.gd` | Easy's placement: any legal cell at random |
 | `LooseColourPick` | `ai/loose_colour_pick.gd` | Easy's colour pick: the base strategy's pick with chance `focus`, otherwise any colour |
 | `ValueGuessPolicy` | `ai/value_guess_policy.gd` | Hard's guessing: guess when its expected value beats waiting one more opponent turn |
+| `RolloutGuessPolicy` | `ai/rollout_guess_policy.gd` | Hard's guessing being measured: V_wait from playouts of the rest of the match |
 | `SoftmaxColourPick` | `ai/softmax_colour_pick.gd` | Hard's colour pick: information-gain values, the colour drawn by softmax rather than always the best |
 | `ExposurePlacement` | `ai/exposure_placement.gd` | Hard's placement: the cell after which the exposure belief holds the secret rule least likely |
 | `AILevel` | `ai/ai_level.gd` | The level enum, titles, descriptions, which are built |
@@ -227,6 +228,17 @@ A guess ends the match: right wins, wrong loses. The policy decides when.
   guesses. `threshold()` reads the top probability recorded by the last `choose()`, so call `choose()` first.
   `choose()` and `threshold()` take the exposure belief, so a fake the AI broke (ruled out in the exposure)
   already counts as known to the opponent.
+- **`RolloutGuessPolicy` (Hard, being measured; not yet `for_level(HARD)`):** the same rule, 2p − 1 ≥ V_wait,
+  but with V_wait measured instead of estimated. It plays the rest of the match `simulations` times (16) from the
+  view, with `Match.resume`:
+  - the opponent's secret rule is drawn from the belief;
+  - the opponent plays as Normal and the AI as Hard's one-step pieces (`AIController.hard_without_search`);
+  - the AI doesn't guess at this decision.
+
+  V_wait is the average result (+1 win, −1 loss, 0 draw), and each playout has its own seeded RNG. The playouts and
+  p use the policy's own belief, tempered to 0.1 rather than 0.4. The usual belief is overconfident against a
+  player who hides (see "Calibration"), and drawing the opponent's rule from it made guessing look better than it
+  is.
 - **Forced guess** (full board): always names `belief.top()`. Exactly one right guess wins, so the most likely rule is
   the best pick whatever the confidence.
 
@@ -477,6 +489,24 @@ the belief about the opponent could be more honest. Neither change reaches the g
 Conclusion: one-step heuristics plateau at about 55–57% against Normal. Reaching 60% needs real lookahead (the tree
 search), and that needs faster rule checks; see [Speed](#speed).
 
+**Playouts for guessing** (`RolloutGuessPolicy`, 16 playouts per decision, after the compiled rules made them
+affordable). Against Normal, same seeds:
+
+| Hard's guessing, other pieces as built | Seeds | Hard's wins – Normal's |
+| --- | --- | --- |
+| `ValueGuessPolicy` (one-step estimate) | 0–599 | 329 – 268, 3 draws (55.0%) |
+| Playouts, AI played on as Normal, belief temper 0.4 | 0–199 | 102 – 98 (51%) |
+| Playouts, AI played on as Hard, temper 0.4 | 0–199 | 115 – 85 (57.5%) |
+| Playouts, AI played on as Hard, temper 0 | 0–199 | 107 – 93 (53.5%) |
+| Playouts, AI played on as Hard, temper 0.1 (as built) | 0–599 | 343 – 255, 2 draws (57.4%) |
+
+- **Playing the AI on as Normal undervalues waiting.** Normal hides worse than Hard, so in the playouts the opponent
+  names the AI's rule more often than it does in real play, waiting looks bad, and the AI guesses early and wrong.
+- **The best version gains about 2.4 points** over the one-step estimate (standard error about 2 points over 600
+  matches). Hard still loses mostly through its own wrong guesses.
+- **Cost:** a guess decision takes about 0.5 s headless on one core (16 playouts of the rest of the match). 100 Hard-vs-Normal
+  matches take about 14 minutes on one core.
+
 Easy almost never guesses first (its belief rarely reaches 0.95), so against people it is the opponent that gives its
 rule away and leaves the guessing to them.
 
@@ -611,5 +641,5 @@ Before merging a change to `ai/`:
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
 | #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |
 | #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
-| #22 (part) | `legal_cells` reuses one scratch board (twice as fast), then counts whole-board conditions once per call, then compiles rules to cell bit masks (about 20 times faster again); `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured |
+| #22 (part) | `legal_cells` reuses one scratch board (twice as fast), then counts whole-board conditions once per call, then compiles rules to cell bit masks (about 20 times faster again); `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured; `Match.resume`; `RolloutGuessPolicy` measured (57.4%) |
 | Docs | `docs/ai-theory-explained.md`: the theory and equations for non-specialists, with worked examples and DMU sections |
