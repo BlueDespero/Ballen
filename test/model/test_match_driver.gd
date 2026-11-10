@@ -216,3 +216,39 @@ func test_after_a_skip_the_driver_waits_for_the_skip_display_before_going_on() -
 	assert_between(_waits[1], AIController.SHORTEST_PAUSE, AIController.LONGEST_PAUSE)
 	assert_eq(_waits[2], 2.3, "the player's skip is shown before they are asked for a colour")
 	human.choose(null) # gives up the decision, ending run()
+
+
+## A controller that needs three steps to decide on a pass-through decision:
+## it wraps an AI and holds back its command for two steps.
+class SlowThinker extends Controller:
+	var ai: AIController
+	var steps: int = 0
+
+	func _init(p_ai: AIController) -> void:
+		ai = p_ai
+
+	func thinks_in_steps() -> bool:
+		return true
+
+	func think_step(view: PublicView, _deadline_msec: int) -> Command:
+		steps += 1
+		if steps % 3 != 0:
+			return null
+		return ai.decide(view)
+
+	func is_thinking() -> bool:
+		return steps % 3 != 0
+
+
+func test_a_controller_that_thinks_in_steps_gets_a_frame_between_steps() -> void:
+	var current_match: Match = _r04_match(11)
+	var thinker: SlowThinker = SlowThinker.new(_ai(1))
+	var controllers: Array[Controller] = [thinker, _ai(2)]
+	var driver: MatchDriver = _driver(current_match, controllers, [], 1)
+	await driver.run()
+	assert_eq(current_match.phase(), Match.Phase.OVER)
+	assert_gt(thinker.steps, 0)
+	assert_eq(thinker.steps % 3, 0, "every decision ran its three steps")
+	assert_eq(_waits.size(), thinker.steps / 3 * 2, "a frame (a wait of 0 s) between steps")
+	for seconds: float in _waits:
+		assert_eq(seconds, 0.0)
