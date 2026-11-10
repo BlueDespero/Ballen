@@ -33,6 +33,10 @@ static func ball_placed_line(by_player: bool, cell: Vector2i) -> String:
 	return line("ball_placed", {"by": "player" if by_player else "ai", "cell": "%d,%d" % [cell.x, cell.y]})
 
 
+static func colour_picked_line(by_player: bool, colour: String) -> String:
+	return line("colour_picked", {"by": "player" if by_player else "ai", "colour": colour})
+
+
 static func deck_saved_line(deck_name: String) -> String:
 	return line("deck_saved", {"name": deck_name})
 
@@ -59,6 +63,7 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_print_scene)
 	EventBus.match_started.connect(func(first: bool) -> void: print(match_started_line(first)))
 	EventBus.ball_placed.connect(func(by_player: bool, cell: Vector2i) -> void: print(ball_placed_line(by_player, cell)))
+	EventBus.colour_picked.connect(func(by_player: bool, colour: String) -> void: print(colour_picked_line(by_player, colour)))
 	EventBus.deck_saved.connect(func(deck_name: String) -> void: print(deck_saved_line(deck_name)))
 	EventBus.decks_listed.connect(func(deck_names: Array[String]) -> void: print(decks_line(deck_names)))
 	EventBus.secret_rule_picked.connect(

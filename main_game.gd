@@ -270,6 +270,8 @@ func _on_match_changed() -> void:
 			await _show_skip(event)
 		if event.type == HistoryEntry.Type.PLACEMENT:
 			EventBus.ball_placed.emit(event.player == HUMAN, event.cell)
+		elif event.type == HistoryEntry.Type.COLOUR_PICK:
+			EventBus.colour_picked.emit(event.player == HUMAN, event.colour)
 		elif event.type == HistoryEntry.Type.GUESS:
 			EventBus.guessed.emit(event.player == HUMAN, _match.turn(), event.right)
 	_history.busy = false

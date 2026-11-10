@@ -44,3 +44,8 @@ func test_guess_line_says_who_when_and_whether_right() -> void:
 
 func test_guess_blocked_line() -> void:
 	assert_eq(Markers.guess_blocked_line(), "[ballen] guess_blocked")
+
+
+func test_colour_picked_line_says_who_picked_which_colour() -> void:
+	assert_eq(Markers.colour_picked_line(true, "red"), "[ballen] colour_picked by=player colour=red")
+	assert_eq(Markers.colour_picked_line(false, "blue"), "[ballen] colour_picked by=ai colour=blue")
