@@ -69,6 +69,30 @@ func test_with_one_rule_left_it_guesses() -> void:
 	assert_eq(guess.id, "R04")
 
 
+func test_with_playouts_it_holds_back_on_an_even_belief() -> void:
+	var view: PublicView = _match().public_view(AI)
+	var belief: Belief = Belief.of(view, AIController.normal_model())
+	assert_null(RolloutGuessPolicy.new(4).choose(belief, _exposure(view), view, Fixtures.rng(1)),
+		"a 1-in-5 guess is worth -0.6; playing on from turn 2 is worth more")
+
+
+func test_with_playouts_and_one_rule_left_it_guesses_without_playing_out() -> void:
+	var view: PublicView = _match().public_view(AI)
+	view.decks[OPPONENT] = Deck.new([_book.rule("R04")] as Array[Rule])
+	var belief: Belief = Belief.of(view, AIController.normal_model())
+	var guess: Rule = RolloutGuessPolicy.new(0).choose(belief, _exposure(view), view, Fixtures.rng(1))
+	assert_not_null(guess)
+	assert_eq(guess.id, "R04")
+
+
+func test_playouts_follow_the_seed() -> void:
+	var view: PublicView = _match().public_view(AI)
+	var first: float = RolloutGuessPolicy.new(3).value_of_waiting(view, Fixtures.rng(7))
+	var again: float = RolloutGuessPolicy.new(3).value_of_waiting(view, Fixtures.rng(7))
+	assert_eq(first, again)
+	assert_between(first, -1.0, 1.0)
+
+
 func test_after_breaking_a_fake_it_protects_the_others() -> void:
 	# The AI's own edge placement broke R04: from then on, an opponent knows
 	# R04 isn't its rule, so the AI no longer stays off the edge for it.

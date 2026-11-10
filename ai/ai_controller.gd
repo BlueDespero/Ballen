@@ -79,13 +79,19 @@ static func for_level(level: AILevel.Level, rng: RandomNumberGenerator) -> AICon
 			return AIController.new(rng, GuessPolicy.new(EASY_THRESHOLD), LooseColourPick.new(), easy_model(),
 				AnyLegalPlacement.new())
 		AILevel.Level.HARD:
-			return AIController.new(rng, ValueGuessPolicy.new(), SoftmaxColourPick.new(normal_model()), normal_model(),
-				ExposurePlacement.new(normal_model()))
+			return hard_without_search(rng)
 		AILevel.Level.NORMAL:
 			return AIController.new(rng, DangerGuessPolicy.new(), InformationColourPick.new(normal_model()), normal_model(),
 				HidingPlacement.new())
 	push_error("AIController: level %d is not built yet" % level)
 	return AIController.new(rng)
+
+
+## Hard's one-step pieces: expected-value guessing, softmax colours, exposure
+## placement. Its own playouts (RolloutGuessPolicy) play it.
+static func hard_without_search(rng: RandomNumberGenerator) -> AIController:
+	return AIController.new(rng, ValueGuessPolicy.new(), SoftmaxColourPick.new(normal_model()), normal_model(),
+		ExposurePlacement.new(normal_model()))
 
 
 ## Longer the closer the last decision was, so a long pause honestly means the
