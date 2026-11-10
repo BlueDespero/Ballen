@@ -20,10 +20,14 @@ func choose(view: PublicView, _exposure: Belief, rng: RandomNumberGenerator) -> 
 static func most_shared(view: PublicView, rules: Array[Rule]) -> Array[Vector2i]:
 	var best: Array[Vector2i] = []
 	var best_count: int = -1
+	var masks: Array[int] = []
+	for rule: Rule in rules:
+		masks.append(RuleChecker.legal_mask(rule, view.position, view.viewer, view.position.colour))
 	for cell: Vector2i in view.own_legal_cells():
 		var count: int = 0
-		for rule: Rule in rules:
-			if RuleChecker.is_legal(rule, view.position, view.viewer, view.position.colour, cell):
+		var bit: int = Board.bit(cell)
+		for mask: int in masks:
+			if mask & bit:
 				count += 1
 		if count > best_count:
 			best = []
