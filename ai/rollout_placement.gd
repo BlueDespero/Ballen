@@ -39,7 +39,8 @@ func is_pending() -> bool:
 
 ## With a deadline it plays as many playouts as fit, at least one, and carries
 ## on at the next choose() with the same view; the random draws are the same
-## either way.
+## either way. When must_finish is set it picks among the cells played out in
+## full so far.
 func choose(view: PublicView, exposure: Belief, rng: RandomNumberGenerator) -> Vector2i:
 	var key: int = view.position.history.size()
 	if not (_pending and key == _pending_key):
@@ -67,6 +68,8 @@ func choose(view: PublicView, exposure: Belief, rng: RandomNumberGenerator) -> V
 func _play(view: PublicView) -> bool:
 	var this_step: int = 0
 	while _cell_index < _cells.size():
+		if must_finish and _cell_index > 0:
+			return true
 		if this_step > 0 and deadline_msec > 0 and Time.get_ticks_msec() >= deadline_msec:
 			return false
 		var playout_rng: RandomNumberGenerator = RandomNumberGenerator.new()

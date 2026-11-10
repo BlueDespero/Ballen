@@ -11,6 +11,7 @@ extends GuessPolicy
 ## With a deadline (GuessPolicy.deadline_msec) it plays as many playouts as fit,
 ## at least one, and carries on at the next choose() with the same view; the
 ## random draws are the same either way, so a seeded match plays the same.
+## When must_finish is set it decides on the playouts played so far.
 
 var simulations: int
 var _playouts: Playouts
@@ -53,7 +54,7 @@ func choose(_belief: Belief, _exposure: Belief, view: PublicView, rng: RandomNum
 	_pending = not _play(view, rng)
 	if _pending:
 		return null
-	var waiting: float = _total / maxi(simulations, 1)
+	var waiting: float = _total / maxi(_played, 1)
 	last_closeness = clampf(1.0 - absf(2.0 * _chance - 1.0 - waiting) / (2.0 * CLEAR_MARGIN), 0.0, 1.0)
 	return _top if 2.0 * _chance - 1.0 >= waiting else null
 
@@ -75,6 +76,8 @@ func value_of_waiting(view: PublicView, rng: RandomNumberGenerator) -> float:
 func _play(view: PublicView, rng: RandomNumberGenerator) -> bool:
 	var this_step: int = 0
 	while _played < simulations:
+		if must_finish and _played > 0:
+			return true
 		if this_step > 0 and deadline_msec > 0 and Time.get_ticks_msec() >= deadline_msec:
 			return false
 		_total += _one_playout(view, rng)

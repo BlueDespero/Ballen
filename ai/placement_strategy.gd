@@ -13,6 +13,9 @@ const NO_CELL: Vector2i = Vector2i(-1, -1)
 ## about this Time.get_ticks_msec(), 0 for no limit; is_pending() then says
 ## whether choose() must be called again with the same view to finish.
 var deadline_msec: int = 0
+## Set when the AI has thought long enough: a strategy thinking in steps then
+## decides with what it has worked out so far.
+var must_finish: bool = false
 
 
 ## True when the last choose() stopped at its deadline before deciding.

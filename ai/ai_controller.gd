@@ -29,6 +29,10 @@ const PAUSE_WOBBLE: float = 0.15
 const HARD_GUESS_PLAYOUTS: int = 32
 const HARD_PLACEMENT_CANDIDATES: int = 4
 const HARD_PLACEMENT_PLAYOUTS: int = 8
+## How long Hard may think about one decision in the scene, in milliseconds
+## (GDD: up to 5 s a choice, and a turn can hold three). In Chrome a decision
+## takes about 2 s on average with no limit.
+const HARD_THINK_LIMIT_MSEC: int = 2500
 
 var _rng: RandomNumberGenerator
 var _guess_policy: GuessPolicy
@@ -48,6 +52,9 @@ var _thinks_in_steps: bool = false
 var _thinking: bool = false
 var _guess_weighed: bool = false
 var _thought_msec: int = 0
+## In the scene, how long a decision may think before it settles for what it
+## has (0: no limit, as in the harness, so a seeded match always plays the same).
+var think_limit_msec: int = 0
 
 
 ## Every random choice goes through rng; seed it for reproducible play.
@@ -153,6 +160,9 @@ func think_step(view: PublicView, deadline_msec: int) -> Command:
 		_guess_weighed = false
 	_guess_policy.deadline_msec = deadline_msec
 	_placement.deadline_msec = deadline_msec
+	var out_of_time: bool = think_limit_msec > 0 and _thought_msec >= think_limit_msec
+	_guess_policy.must_finish = out_of_time
+	_placement.must_finish = out_of_time
 	var command: Command = _decide(view)
 	_thinking = _guess_policy.is_pending() or _placement.is_pending()
 	_thought_msec += Time.get_ticks_msec() - started

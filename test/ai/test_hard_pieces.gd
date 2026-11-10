@@ -188,6 +188,21 @@ func _describe(command: Command) -> String:
 	return "%d %s %s %s" % [command.type, command.cell, command.colour, command.rule_id]
 
 
+func test_with_a_thinking_limit_hard_settles_for_what_it_has() -> void:
+	var hard: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
+	hard.think_limit_msec = 1
+	var current_match: Match = _match()
+	var view: PublicView = current_match.public_view(AI)
+	var steps: int = 1
+	var command: Command = hard.think_step(view, 1)
+	while hard.is_thinking():
+		steps += 1
+		command = hard.think_step(view, 1)
+	assert_lt(steps, 20, "far fewer steps than its 32 + 32 playouts")
+	assert_not_null(command)
+	assert_true(current_match.submit(AI, command))
+
+
 func test_hards_pause_leaves_out_the_time_it_spent_thinking() -> void:
 	var hard: AIController = AIController.for_level(AILevel.Level.HARD, Fixtures.rng(4))
 	var view: PublicView = _match().public_view(AI)
