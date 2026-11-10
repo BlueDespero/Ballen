@@ -190,7 +190,7 @@ func _on_start_requested(deck: Deck, level: AILevel.Level, secret_rule: Rule) ->
 	_driver = MatchDriver.new(_match, controllers, [AI], _rng, _wait, SKIP_HOLD_SECONDS + SKIP_DISSOLVE_SECONDS)
 	_driver.changed.connect(_on_match_changed)
 	_redraw_from_match()
-	EventBus.match_started.emit(player_goes_first)
+	EventBus.match_started.emit(player_goes_first, AILevel.title(_setup.ai_level()).to_lower())
 	_driver.run()
 
 

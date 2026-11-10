@@ -9,9 +9,9 @@ func test_scene_line_names_the_scene() -> void:
 	assert_eq(Markers.scene_line("Main"), "[ballen] scene=Main")
 
 
-func test_match_started_line_says_who_goes_first() -> void:
-	assert_eq(Markers.match_started_line(true), "[ballen] match_started first=player")
-	assert_eq(Markers.match_started_line(false), "[ballen] match_started first=ai")
+func test_match_started_line_says_the_ai_level_and_who_goes_first() -> void:
+	assert_eq(Markers.match_started_line(true, "hard"), "[ballen] match_started level=hard first=player")
+	assert_eq(Markers.match_started_line(false, "easy"), "[ballen] match_started level=easy first=ai")
 
 
 func test_ball_placed_line_says_who_placed_and_where() -> void:
