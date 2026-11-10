@@ -166,7 +166,8 @@ IMPORTANT: history must read as a series of small, self-contained changes.
 - `model/` — game model: `Match` (passive state machine), `MatchPosition`, `Board`, `Deck`, `Command`,
   `HistoryEntry`, `MatchResult`, `PublicView`, `Controller`, `HumanController`, `MatchDriver`,
   `MatchSetup`, `DeckStore` (saved decks), `DeckDraft` (deck editor); plain `RefCounted`, no scene nodes
-- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`;
+- `rules/` — rules engine: `RuleBook`, `Rule`, `Parts`, `GroupParts`, `PlacementContext`, `RuleChecker`,
+  `RuleCompiler` and `CellMasks` (rules compiled to cell bit masks, ADR 0003);
   rule and template data in `rules/data/`
 - `ai/` — `AIController` (`for_level`), `Belief`, `OpponentModel`, `HiderModel`, `Deduction`, `GuessPolicy`,
   `DangerGuessPolicy`, `ColourPickStrategy`, `InformationColourPick`, `PlacementStrategy`, `HidingPlacement`,

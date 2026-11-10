@@ -255,7 +255,17 @@ The catalogue of planned rules lives in [rules-library.md](rules-library.md).
   The context is the board as it would be after the placement, the target cell, the ball's colour,
   the rule's holder and the position before the placement (first player, history, skips, turn).
 - `RuleChecker` answers whether a cell is legal for a rule, colour and holder, and lists the legal
-  cells.
+  cells (`legal_cells`, or `legal_mask` as a 36-bit cell mask).
+- **Compiled form (ADR 0003).** `RuleChecker` answers from the rule's compiled form, not by walking the tree
+  for each cell.
+  - When a `Rule` is built, `RuleCompiler` (`rules/rule_compiler.gd`) turns its tree into conditions over
+    the board's cell masks (`Board.occupied_mask`, `colour_mask`, `owner_mask`; tables in `CellMasks`). These
+    give the legal cells for every target at once.
+  - The Parts interpreter (`RuleChecker.interpreted_legal_mask`) is the reference, and the fallback for a
+    tree the compiler doesn't support.
+  - `test_rule_compiler.gd` holds the two equal for every built-in rule and for test trees covering every
+    part.
+  - Cost per check: about 17 µs on desktop and 33 µs in Chrome, against 370 µs and 590 µs interpreted.
 - The same evaluation drives the legal-cell highlights, skip detection, the AI and, later, the server.
 - A rule that doesn't fit the parts gets its own script (fallback), still with the same signature.
 

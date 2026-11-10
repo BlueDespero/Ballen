@@ -502,14 +502,16 @@ mid-game board (26 empty cells):
 | One scratch board per call | about 490 µs on average; simple rules about 250 µs, `must_touch` and `never_more_than` rules 1.1–1.6 ms |
 | Now: also whole-board counts worked out once per call (`Parts.mark_invariant`) | about 370 µs on average; R22 160 µs, R04 210 µs, R02 290 µs, R06 310 µs, R13 / R14 / R17 470–510 µs, R10 530 µs, R11 670 µs |
 
-The harness's 20 matches went from 22 s to 13 s, then 11 s, with identical output each time. What remains is the
-parts interpreter itself (about 10 µs per cell for the simplest rules), so the next step is compiling the rules to
-bitmasks.
+| Now: compiled to cell bit masks (`RuleCompiler`, ADR 0003) | about 17 µs on average (5–33 µs) on desktop; in Chrome 33 µs on average (worst 62 µs), against 590 µs interpreted |
+
+The harness's 20 matches went from 22 s to 13 s, 11 s, then 2.1 s, with identical output each time (seeds 1–4
+checked). In Chrome, three whole Normal-vs-Normal matches take 0.24 s.
 
 **What that means for the tree search.** A simulated turn needs at least one rule check for the mover and five to
-update a belief, about 3 ms; a playout to the end of a match about 50 ms; the planned 200 simulations per move about
-10 s on desktop, and several times that in a browser. The research doc's budget (50–200 simulations in 300 ms on a
-phone) assumed rules compiled to 64-bit bitmasks. So the search is blocked on a faster rule engine.
+update a belief. With the interpreter that was about 3 ms, so 200 simulations per move came to about 10 s on desktop.
+Compiled, it is about 0.1 ms on desktop (0.2 ms in Chrome), so the same search comes to about 0.4 s on desktop and
+roughly 1 s in a browser. That is affordable spread over frames with pondering, so the search is no longer
+blocked.
 
 ### How to reproduce
 
@@ -609,5 +611,5 @@ Before merging a change to `ai/`:
 | Easy | `AILevel.BUILT` gains Easy: `easy_model()`, `GuessPolicy(0.95)`, `LooseColourPick`, `AnyLegalPlacement` |
 | #24 | Harness `--levels` and `--gate`; CI smoke-runs Normal vs Easy; `ai-gates.yml` runs the gates nightly |
 | #22 (part) | Hard's pieces: `ValueGuessPolicy`, `SoftmaxColourPick`, `ExposurePlacement`, `for_level(HARD)`; not yet in `BUILT` |
-| #22 (part) | `legal_cells` reuses one scratch board (twice as fast), then counts whole-board conditions once per call; `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured |
+| #22 (part) | `legal_cells` reuses one scratch board (twice as fast), then counts whole-board conditions once per call, then compiles rules to cell bit masks (about 20 times faster again); `InformationColourPick.outcomes()`; Hard variants and calibration against today's Normal measured |
 | Docs | `docs/ai-theory-explained.md`: the theory and equations for non-specialists, with worked examples and DMU sections |
