@@ -76,6 +76,7 @@ func make_rule(data: Dictionary) -> Rule:
 	if not _parts_exist(tree):
 		push_error("Rule %s: template '%s' uses an unknown part" % [data.get("id", "?"), template_id])
 		return null
+	Parts.mark_invariant(tree)
 	var tier: Variant = data.get("tier", "")
 	if tier != "" and not Rule.TIERS.has(tier):
 		push_error("Rule %s: '%s' is not a tier (%s)" % [data.get("id", "?"), tier, ", ".join(Rule.TIERS)])

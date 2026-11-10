@@ -14,13 +14,20 @@ var holder: int
 ## The position before the placement: first player, and whatever later tickets
 ## add for rules to read (history, turn number, skip counts).
 var position: MatchPosition
+## Values that are the same for every target of one placement check (see
+## Parts.mark_invariant); RuleChecker.legal_cells shares one across its cells.
+var cache: Dictionary = {}
 
 
 ## p_board, if given, is the board after the placement (it already holds the
 ## new ball on the target), so a caller trying many cells can reuse one board;
 ## otherwise a copy of the position's board with the new ball is made.
-func _init(p_position: MatchPosition, p_holder: int, p_colour: String, p_target: Vector2i, p_board: Board = null) -> void:
+## p_cache, if given, is shared by every context of one placement check.
+func _init(p_position: MatchPosition, p_holder: int, p_colour: String, p_target: Vector2i, p_board: Board = null,
+		p_cache: Variant = null) -> void:
 	position = p_position
+	if p_cache != null:
+		cache = p_cache
 	holder = p_holder
 	colour = p_colour
 	target = p_target

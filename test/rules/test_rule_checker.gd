@@ -48,6 +48,58 @@ func test_legal_cells_agree_with_is_legal_cell_by_cell_on_random_boards() -> voi
 		assert_eq(board.empty_cells(), empty_before, "the board is unchanged")
 
 
+func test_legal_cells_agree_with_is_legal_on_positions_from_played_matches() -> void:
+	# Played positions carry history, turns and skips for the rules that read them.
+	var positions: Array[MatchPosition] = []
+	for seed_value: int in 4:
+		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+		rng.seed = seed_value
+		var decks: Array[Deck] = [Deck.draw(_book, rng), Deck.draw(_book, rng)]
+		var played: Match = Match.create(decks, [decks[0].rules[0], decks[1].rules[0]] as Array[Rule], rng)
+		var ais: Array[AIController] = [AIController.new(rng, GuessPolicy.new(INF)), AIController.new(rng, GuessPolicy.new(INF))]
+		var commands: int = 0
+		while played.phase() != Match.Phase.OVER and commands < 200:
+			for player: int in played.awaiting_players():
+				assert_true(played.submit(player, ais[player].decide(played.public_view(player))))
+				commands += 1
+				if commands % 2 == 0:
+					positions.append(played.public_view(0).position)
+	assert_gt(positions.size(), 20)
+	for position: MatchPosition in positions:
+		for rule_id: String in _book.rule_ids():
+			var rule: Rule = _book.rule(rule_id)
+			for holder: int in 2:
+				var colour: String = BallColour.ALL[(position.turn + holder) % BallColour.ALL.size()]
+				var expected: Array[Vector2i] = []
+				for cell: Vector2i in position.board.empty_cells():
+					if RuleChecker.is_legal(rule, position, holder, colour, cell):
+						expected.append(cell)
+				assert_eq(RuleChecker.legal_cells(rule, position, holder, colour), expected,
+					"%s %s holder %d turn %d" % [rule_id, colour, holder, position.turn])
+
+
+func test_counts_that_are_the_same_for_every_cell_are_marked_once_per_check() -> void:
+	var marked: Array[String] = []
+	for rule_id: String in _book.rule_ids():
+		if _has_marked_node(_book.rule(rule_id)._tree):
+			marked.append(rule_id)
+	assert_eq(marked, ["R02", "R06", "R13", "R14", "R17", "R22"] as Array[String])
+
+
+func _has_marked_node(node: Variant) -> bool:
+	if node is Array:
+		for item: Variant in node:
+			if _has_marked_node(item):
+				return true
+	elif node is Dictionary:
+		if Parts.is_marked_invariant(node):
+			return true
+		for key: Variant in node:
+			if _has_marked_node(node[key]):
+				return true
+	return false
+
+
 func test_r04_legal_cells_on_an_empty_board_are_the_inner_cells() -> void:
 	var cells: Array[Vector2i] = RuleChecker.legal_cells(_book.rule("R04"), _empty_position(), 0, BallColour.RED)
 	assert_eq(_sorted(cells), _sorted(INNER_CELLS))
