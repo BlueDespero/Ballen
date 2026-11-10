@@ -68,14 +68,9 @@ func test_the_setup_keeps_the_ai_level_for_rematches() -> void:
 	assert_eq(setup.ai_level(), NORMAL)
 
 
-func test_easy_and_normal_can_be_set_up() -> void:
-	for level: AILevel.Level in [AILevel.Level.EASY, NORMAL]:
+func test_every_level_can_be_set_up() -> void:
+	for level: AILevel.Level in [AILevel.Level.EASY, NORMAL, AILevel.Level.HARD]:
 		assert_eq(MatchSetup.against_ai(_starter(), _ai_deck(), level, Fixtures.rng(1)).ai_level(), level)
-
-
-func test_a_level_not_built_yet_sets_up_nothing() -> void:
-	assert_null(MatchSetup.against_ai(_starter(), _ai_deck(), AILevel.Level.HARD, Fixtures.rng(1)))
-	assert_push_error("Hard is not built")
 
 
 func test_the_tapped_rule_is_the_player_s_secret_rule() -> void:

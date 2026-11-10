@@ -211,6 +211,6 @@ func test_hards_pause_leaves_out_the_time_it_spent_thinking() -> void:
 	assert_between(pause, 0.0, AIController.LONGEST_PAUSE)
 
 
-func test_hard_is_not_playable_yet() -> void:
-	assert_false(AILevel.is_built(AILevel.Level.HARD), "it must beat Normal 60% first (now about 55%)")
-	assert_not_null(AIController.for_level(AILevel.Level.HARD, Fixtures.rng(1)), "but it can be built for measurement")
+func test_hard_is_playable() -> void:
+	assert_true(AILevel.is_built(AILevel.Level.HARD), "it beat Normal 61.4% over 1000 seeded matches")
+	assert_true(AIController.for_level(AILevel.Level.HARD, Fixtures.rng(1)).thinks_in_steps())
