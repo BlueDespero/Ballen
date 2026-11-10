@@ -55,6 +55,27 @@ test("placing a ball by tapping a glowing cell", async ({ page }, testInfo) => {
   expect(game.errors).toEqual([]);
 });
 
+test("Hard thinks over several frames and places its ball", async ({ page }, testInfo) => {
+  const game = new Game(page, testInfo);
+  await game.open();
+  const since = game.markers.length;
+  const playerFirst = await game.startMatch("hard");
+  await game.waitFor(/^\[ballen\] match_started level=hard first=/, since);
+  if (playerFirst) {
+    await page.waitForTimeout(500);
+    for (const target of [cell(2, 2), cell(3, 3), cell(1, 4)]) {
+      const before = game.markers.length;
+      await game.click(target);
+      if (await game.seen("[ballen] ball_placed by=player", before, 3_000)) break;
+    }
+    await game.waitFor("[ballen] ball_placed by=player", since);
+  }
+  // The player picks the AI's colour; Hard then thinks (up to 2.5 s a
+  // decision, spread over frames) and places.
+  await game.pickFirstColourForAI();
+  expect(game.errors).toEqual([]);
+});
+
 test("the game reports the secret rule pick and an early Guess press", async ({ page }, testInfo) => {
   const game = new Game(page, testInfo);
   await game.open();
